@@ -2,10 +2,10 @@ package src
 
 import (
 	"fmt"
-	"chess-engine/src/api"
+	"chess-engine/src/API"
 )
 
 func Test() {
 	fmt.Println("hello")
-	api.LoadBoardState()
+	API.LoadBoardState()
 }
