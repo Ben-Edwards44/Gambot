@@ -19,6 +19,7 @@ def draw_pieces(pieces):
 
     for i in pieces:
         img = pygame.image.load(i.img_path)
+        img = pygame.transform.scale(img, (step_x, step_y))
 
         x = i.draw_x * step_x
         y = i.draw_y * step_y
