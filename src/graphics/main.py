@@ -14,8 +14,8 @@ def init_graphics():
 
 def get_images():
     images = []
-    for i in ["White", "Black"]:
-        path = f"Images\\{i}"
+    for i in ["white", "black"]:
+        path = f"images\\{i}"
         img_names = listdir(path)
 
         #images in form {name : path} e.g. {"queen" : "Images/White/queen.png"}
