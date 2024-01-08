@@ -9,12 +9,18 @@ import (
 )
 
 
+func panicErr(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
+
+
 func strToList(str string) [8][8]int {
     //convert the string "[[1, 2], [3, 4]]" to array [[1, 2], [3, 4]]
 
-    //remove the [[ and ]] at end (2 because there are 2 chars that must be removed)
-    str = removeFirstLast(str)
-    str = removeFirstLast(str)
+    //remove the [[ and ]] at end
+    str = str[2 : len(str) - 2]
 
     strLs := strings.Split(str, "], [")
 
@@ -25,9 +31,7 @@ func strToList(str string) [8][8]int {
         for x := 0; x < 8; x++ {
             num, err := strconv.Atoi(nums[x])
 
-            if err != nil {
-                panic(err)
-            }
+            panicErr(err)
 
             outList[i][x] = num
         }
@@ -138,12 +142,37 @@ func jsonLoad(str string) map[string]string {
 }
 
 
-func LoadBoardState() [8][8]int {    
-    file, err := os.Open("src/API/interface.json")
+func stateToString(boardState [8][8]int) string {
+    str := "\"["
+    for i, line := range boardState {
+        str += "["
 
-    if err != nil {
-        panic(err)
+        for i, num := range line {
+            str += strconv.Itoa(num)
+
+            if i < len(line) - 1 {
+                str += ", "
+            }
+        }
+
+        str += "]"
+
+        if i < len(boardState) - 1 {
+            str += ", "
+        }
     }
+
+    //add final ]" for 2d array
+    str += "]\""
+
+    return str
+}
+
+
+func LoadBoardState() [8][8]int {
+    file, err := os.Open("src/api/interface.json")
+
+    panicErr(err)
 
     defer file.Close()
 
@@ -155,20 +184,43 @@ func LoadBoardState() [8][8]int {
 
         if readBytes == 0 {
             break
-        } else if err != nil {
-            panic(err)
+        } else {
+            panicErr(err)
         }
     }
 
     str := string(buffer)
-    fmt.Println(str)
+
     json := jsonLoad(str)
-
-    fmt.Println(json)
-
     board := strToList(json["board"])
 
-    fmt.Println(board)
-
     return board
+}
+
+
+func WriteBoardState(boardState [8][8]int) {
+    str := stateToString(boardState)
+
+    //convert to json form
+    writeStr := "{\"board\" : " + str + "}"
+    writeData := []byte(writeStr)
+
+    fmt.Println(writeStr)
+
+    //open file in read/write mode and overwrite existing contents
+    file, err := os.OpenFile("src/api/interface.json", os.O_CREATE, 0644)
+    panicErr(err)
+
+    defer file.Close()
+
+    _, err = file.Write(writeData)
+    panicErr(err)
+}
+
+
+func Test() {
+    state := LoadBoardState()
+    fmt.Println(state)
+    state[0][5] = 17
+    WriteBoardState(state)
 }
