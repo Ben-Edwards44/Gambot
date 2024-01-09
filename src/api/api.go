@@ -78,7 +78,7 @@ func splitJson(str string) []string {
         //work forwards/back until 2nd double quote
 
         key := ""
-        backInx := inx - 2
+        backInx := inx - 1
         numQuote := 0
 
         for backInx >= 0 && numQuote < 2 {
@@ -92,6 +92,7 @@ func splitJson(str string) []string {
         }
 
         value := ""
+        //add 2 becuase there is a space after colon
         forInx := inx + 2
         numQuote = 0
 
