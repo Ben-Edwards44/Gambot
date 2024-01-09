@@ -1,5 +1,5 @@
 import pygame
-import graphics_const
+import src.graphics.graphics_const as graphics_const
 
 
 def init_draw():

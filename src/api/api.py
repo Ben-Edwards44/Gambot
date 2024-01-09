@@ -1,6 +1,9 @@
 import json
 
 
+FILE_PATH = "src/api/interface.json"
+
+
 def str_to_list(string):
     string = string[2:-2].split("], [")
     
@@ -15,7 +18,7 @@ def str_to_list(string):
 
 
 def load_board_state():
-    with open("interface.json", "r") as file:
+    with open(FILE_PATH, "r") as file:
         data = file.read()
 
     #board_dict in form {"board" : "[[...], [...], ...]"}
@@ -33,5 +36,5 @@ def write_board_state(board):
     board_dict = {"board" : str(board)}
     json_str = json.dumps(board_dict)
 
-    with open("interface.json", "w") as file:
+    with open(FILE_PATH, "w") as file:
         file.write(json_str)

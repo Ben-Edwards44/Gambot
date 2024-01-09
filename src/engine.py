@@ -1,0 +1,24 @@
+import src.api.api as api
+import src.graphics.main as graphics
+import src.graphics.input as input
+
+
+#starting position
+START_BOARD_STATE = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
+
+
+def init():
+    #call before first loop
+
+    api.write_board_state(START_BOARD_STATE)
+    graphics.init_graphics()
+
+
+def main():
+    #perform one loop
+
+    board = api.load_board_state()
+    graphics.draw_board(board)
+
+    player_move_board = input.get_player_input(board)
+    api.write_board_state(player_move_board)

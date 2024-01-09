@@ -1,21 +1,22 @@
-import draw
-import piece
+import src.graphics.draw as draw
+import src.graphics.piece as piece
+import src.graphics.graphics_const as graphics_const
+
 from os import listdir
 
 
 def init_graphics():
-    global pieces
+    global images
 
     draw.init_draw()
 
     images = get_images()
-    pieces = build_pieces(images)
 
 
 def get_images():
     images = []
     for i in ["white", "black"]:
-        path = f"images\\{i}"
+        path = f"src/graphics/images/{i}"
         img_names = listdir(path)
 
         #images in form {name : path} e.g. {"queen" : "Images/White/queen.png"}
@@ -24,48 +25,38 @@ def get_images():
     return images
 
 
-def build_pieces(images):
+def build_pieces(board, images):
     #return list of Piece objects with starting position and image path
 
-    white_row = ["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"]
-    black_row = white_row[::-1]
+    piece_list = []
+    for x in range(8):
+        for y in range(8):
+            value = board[x][y]
 
-    x_pos = 7
-    pieces = []
+            if value != 0:
+                #find colour
+                if value > 6:
+                    is_white = False
+                    value -= 6
+                else:
+                    is_white = True
 
-    #x_pos refers to 1st index of 2d array, y_pos refers to 2nd (opposite to cartesian coords)
-    for x_pos in [0, 1, 6, 7]:
-        is_white = x_pos > 4
-        is_pawn = 0 < x_pos < 7
+                name = graphics_const.PIECE_VALUES[value]
 
-        row = white_row if is_white else black_row
-        img_dict = images[0] if is_white else images[1]
+                #get image
+                img_dict = images[0] if is_white else images[1]
+                img_path = img_dict[name]
 
-        for y_pos in range(8):
-            if is_pawn:
-                name = "pawn"
-            else:
-                name = row[y_pos]
-
-            img_path = img_dict[name]
-            new_piece = piece.Piece(name, img_path, x_pos, y_pos)
-
-            pieces.append(new_piece)
-
-    return pieces
+                #add piece to list
+                new_piece = piece.Piece(name, img_path, x, y)
+                piece_list.append(new_piece)
+            
+    return piece_list
 
 
-def draw_board():
-    #draw background and pieces
-    draw.draw_board(pieces)
+def draw_board(board):
+    #convert board to list of pieces
+    piece_list = build_pieces(board, images)
 
-
-if __name__ == "__main__":
-    #for testing
-
-    init_graphics()
-
-    draw_board()
-
-    while True:
-        pass
+    #actually draw the board and background
+    draw.draw_board(piece_list)
