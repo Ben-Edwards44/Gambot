@@ -25,7 +25,25 @@ def get_images():
     return images
 
 
-def build_pieces(board, images):
+def get_piece(value, x, y):
+    #find colour
+    if value > 6:
+        is_white = False
+        value -= 6
+    else:
+        is_white = True
+
+    #get image
+    name = graphics_const.PIECE_VALUES[value]
+    img_dict = images[0] if is_white else images[1]
+    img_path = img_dict[name]
+
+    new_piece = piece.Piece(name, img_path, x, y)
+
+    return new_piece
+
+
+def build_pieces(board):
     #return list of Piece objects with starting position and image path
 
     piece_list = []
@@ -34,21 +52,7 @@ def build_pieces(board, images):
             value = board[x][y]
 
             if value != 0:
-                #find colour
-                if value > 6:
-                    is_white = False
-                    value -= 6
-                else:
-                    is_white = True
-
-                name = graphics_const.PIECE_VALUES[value]
-
-                #get image
-                img_dict = images[0] if is_white else images[1]
-                img_path = img_dict[name]
-
-                #add piece to list
-                new_piece = piece.Piece(name, img_path, x, y)
+                new_piece = get_piece(value, x, y)
                 piece_list.append(new_piece)
             
     return piece_list
@@ -56,7 +60,7 @@ def build_pieces(board, images):
 
 def draw_board(board):
     #convert board to list of pieces
-    piece_list = build_pieces(board, images)
+    piece_list = build_pieces(board)
 
     #actually draw the board and background
     draw.draw_board(piece_list)

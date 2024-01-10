@@ -32,8 +32,6 @@ def player_move(board):
 
     x, y = get_cell_inx()
 
-    print(x, y)
-
     if not 0 <= x < 8 or not 0 <= y < 8:
         return False
 

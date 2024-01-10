@@ -21,10 +21,7 @@ def draw_pieces(pieces):
         img = pygame.image.load(i.img_path)
         img = pygame.transform.scale(img, (step_x, step_y))
 
-        x = i.draw_x * step_x
-        y = i.draw_y * step_y
-
-        window.blit(img, (x, y))
+        window.blit(img, (i.draw_x, i.draw_y))
 
 
 def draw_squares():
