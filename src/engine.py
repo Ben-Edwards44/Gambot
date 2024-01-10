@@ -1,6 +1,7 @@
 import src.api.api as api
 import src.graphics.main as graphics
 import src.graphics.input as input
+from os import system
 
 
 #starting position
@@ -22,3 +23,5 @@ def main():
 
     player_move_board = input.get_player_input(board)
     api.write_board_state(player_move_board)
+
+    #TODO: run go engine
