@@ -12,8 +12,3 @@ func EngineMove() {
 	newBoard := engine.CalculateMove(currentPosition)
 	api.WriteBoardState(newBoard)
 }
-
-
-func Test() {
-	api.Test()
-}

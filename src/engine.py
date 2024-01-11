@@ -24,4 +24,5 @@ def main():
     player_move_board = input.get_player_input(board)
     api.write_board_state(player_move_board)
 
-    #TODO: run go engine
+    #run go engine - need to ensure the most up to date version is built
+    system("chess-engine.exe")
