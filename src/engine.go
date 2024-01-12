@@ -4,7 +4,6 @@ package src
 import (
 	"chess-engine/src/api"
 	"chess-engine/src/engine"
-	"fmt"
 )
 
 
@@ -21,8 +20,8 @@ func Main() {
 	if action == "move_gen" {
 		engineMove(parsedBoard)
 	} else if action == "legal_moves" {
-		fmt.Println("not implemented yet")
-		fmt.Println(json["piece_x"])
-		fmt.Println(json["piece_y"])
+		//TODO: actually generate legal moves
+		moves := [][2]int{{0, 0}, {1, 1}, {2, 2}}
+		api.WriteLegalMoves(moves)
 	}
 }

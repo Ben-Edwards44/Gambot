@@ -167,6 +167,26 @@ func stateToString(boardState [8][8]int) string {
 }
 
 
+func coordsToString(moveCoords [][2]int) string {
+	str := "\"["
+
+	for i, coord := range moveCoords {
+		x := strconv.Itoa(coord[0])
+		y := strconv.Itoa(coord[1])
+
+		str += "[" + x + ", " + y + "]"
+
+		if i < len(moveCoords) - 1 {
+			str += ", "
+		}
+	}
+
+	str += "]\""
+
+	return str
+}
+
+
 func LoadData() (map[string]string, [8][8]int) {
 	file, err := os.Open("src/api/interface.json")
 
@@ -196,11 +216,7 @@ func LoadData() (map[string]string, [8][8]int) {
 }
 
 
-func WriteBoardState(boardState [8][8]int) {
-	str := stateToString(boardState)
-
-	//convert to json form
-	writeStr := "{\"board\": " + str + "}"
+func writeToJson(writeStr string) {
 	writeData := []byte(writeStr)
 
 	//open file in read/write mode and overwrite existing contents
@@ -211,4 +227,20 @@ func WriteBoardState(boardState [8][8]int) {
 
 	_, err = file.Write(writeData)
 	panicErr(err)
+}
+
+
+func WriteBoardState(boardState [8][8]int) {
+	str := stateToString(boardState)
+	writeStr := "{\"board\": " + str + "}"
+
+	writeToJson(writeStr)
+}
+
+
+func WriteLegalMoves(moveCoords [][2]int) {
+	str := coordsToString(moveCoords)
+	writeStr := "{\"moves\": " + str + "}"
+
+	writeToJson(writeStr)
 }

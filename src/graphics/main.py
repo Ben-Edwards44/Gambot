@@ -102,7 +102,9 @@ def get_legal_moves(board, x, y):
     api.send_data("legal_moves", board, piece_x=x, piece_y=y)
     system("chess-engine.exe")
 
-    return [(0, 0)]
+    moves = api.load_legal_moves()
+
+    return moves
 
 
 def draw_legal_moves(move_coords):

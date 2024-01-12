@@ -17,17 +17,33 @@ def str_to_list(string):
     return list
 
 
-def load_board_state():
+def read_json():
     with open(FILE_PATH, "r") as file:
         data = file.read()
 
-    #board_dict in form {"board" : "[[...], [...], ...]"}
-    board_dict = json.loads(data)
+    data_dict = json.loads(data)
+
+    return data_dict
+
+
+def load_board_state():
+    board_dict = read_json()
+
+    #board_dict in form {"board" : "[[...], [...], ...]", ...}
     board_str = board_dict["board"]
 
     board = str_to_list(board_str)
 
     return board
+
+
+def load_legal_moves():
+    move_dict = read_json()
+
+    moves = move_dict["moves"]
+    moves = str_to_list(moves)
+
+    return moves
 
 
 def send_data(engine_task, board, **kwargs):
