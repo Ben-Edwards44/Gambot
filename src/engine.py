@@ -1,6 +1,5 @@
 import src.api.api as api
 import src.graphics.main as graphics
-import src.graphics.input as input
 from os import system
 
 
@@ -19,9 +18,8 @@ def main():
     #perform one loop
 
     board = api.load_board_state()
-    graphics.draw_board(board)
+    player_move_board = graphics.graphics_loop(board)
 
-    player_move_board = input.get_player_input(board)
     api.write_board_state(player_move_board)
 
     #run go engine - need to ensure the most up to date version is built

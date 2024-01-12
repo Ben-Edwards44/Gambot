@@ -2,29 +2,16 @@ import pygame
 import src.graphics.graphics_const as graphics_const
 
 
-def init_draw():
-    global window
-
-    pygame.init()
-    pygame.display.set_caption("Chess Engine")
-
-    window = pygame.display.set_mode((graphics_const.SCREEN_WIDTH, graphics_const.SCREEN_HEIGHT))
-
-
-def draw_pieces(pieces):
+def draw_pieces(window, pieces):
     #pieces is a list of piece.Piece objects
-
-    step_x = graphics_const.SCREEN_WIDTH // 8
-    step_y = graphics_const.SCREEN_HEIGHT // 8
-
     for i in pieces:
         img = pygame.image.load(i.img_path)
-        img = pygame.transform.scale(img, (step_x, step_y))
+        img = pygame.transform.scale(img, (i.img_width, i.img_height))
 
         window.blit(img, (i.draw_x, i.draw_y))
 
 
-def draw_squares():
+def draw_squares(window):
     #draw the background squares
 
     step_x = graphics_const.SCREEN_WIDTH // 8
@@ -43,10 +30,6 @@ def draw_squares():
             pygame.draw.rect(window, colour, (x, y, step_x, step_y))
 
 
-def draw_board(pieces):
-    window.fill((0, 0, 0))
-
-    draw_squares()
-    draw_pieces(pieces)
-
-    pygame.display.update()
+def draw_board(window, pieces):
+    draw_squares(window)
+    draw_pieces(window, pieces)

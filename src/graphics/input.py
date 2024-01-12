@@ -2,7 +2,10 @@ import pygame
 import src.graphics.graphics_const as graphics_const
 
 
-#NOTE: pygame.init() will have been called in draw.py
+#NOTE: pygame.init() will have been called in graphics/main.py
+
+
+selected_piece = None
 
 
 class Selected:
@@ -27,56 +30,47 @@ def get_cell_inx():
     return cell_x, cell_y
 
 
-def player_move(board):
+def select(board):
     global selected_piece
 
-    x, y = get_cell_inx()
+    if selected_piece != None:
+        return
 
-    if not 0 <= x < 8 or not 0 <= y < 8:
-        return False
+    x, y = get_cell_inx()
+    piece_value = board[x][y]
+
+    #TODO: ensure piece is correct colour
+    if piece_value != 0:
+        piece = Selected(x, y, piece_value)
+        selected_piece = piece
+
+
+def move_selected(board):
+    global selected_piece
 
     if selected_piece == None:
-        piece_value = board[x][y]
-
-        #TODO: ensure piece is correct colour
-        if piece_value != 0:
-            piece = Selected(x, y, piece_value)
-            selected_piece = piece
-
-        #because we have not moved
-        return False
-    else:
-        #TODO: ensure not moving onto piece of same colour
-
-        #move piece
-        board[selected_piece.x][selected_piece.y] = 0
-        board[x][y] = selected_piece.piece_value
-
-        selected_piece = None
-
-        #because we have moved
-        return True
+        return
+    
+    x, y = get_cell_inx()
+    
+    board[selected_piece.x][selected_piece.y] = 0
+    board[x][y] = selected_piece.piece_value
+    selected_piece = None
 
 
 def get_player_input(board):
     global selected_piece
 
-    selected_piece = None
+    #need to pump to ensure clicks are properly handeled
+    pygame.event.pump()
 
-    ready_for_click = True
-    while True:
-        for event in pygame.event.get():
-            if pygame.mouse.get_pressed()[0]:
-                if ready_for_click:
-                    #debounce
-                    ready_for_click = False
+    if pygame.mouse.get_pressed()[0]:
+        select(board)
+    else:
+        move_selected(board)
 
-                    has_moved = player_move(board)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            quit()
 
-                    if has_moved:
-                        return board
-            else:
-                ready_for_click = True
-
-            if event.type == pygame.QUIT:
-                quit()
+    return board
