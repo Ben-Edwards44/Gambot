@@ -14,20 +14,17 @@ def draw_pieces(window, pieces):
 def draw_squares(window):
     #draw the background squares
 
-    step_x = graphics_const.SCREEN_WIDTH // 8
-    step_y = graphics_const.SCREEN_HEIGHT // 8
-
     for i in range(8):
         for j in range(8):
-            x = i * step_x
-            y = j * step_y
+            x = i * graphics_const.STEP_X
+            y = j * graphics_const.STEP_Y
 
             if (i + j) % 2 == 0:
                 colour = graphics_const.LIGHT_SQ_COLOUR
             else:
                 colour = graphics_const.DARK_SQ_COLOUR
 
-            pygame.draw.rect(window, colour, (x, y, step_x, step_y))
+            pygame.draw.rect(window, colour, (x, y, graphics_const.STEP_X, graphics_const.STEP_Y))
 
 
 def draw_board(window, pieces):

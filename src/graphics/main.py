@@ -15,25 +15,22 @@ class Piece:
         self.act_x = x
         self.act_y = y
 
-        self.step_x = graphics_const.SCREEN_WIDTH // 8
-        self.step_y = graphics_const.SCREEN_HEIGHT // 8
-
-        self.img_width = self.step_x
-        self.img_height = self.step_y
+        self.img_width = graphics_const.STEP_X
+        self.img_height = graphics_const.STEP_Y
 
         self.draw_x, self.draw_y = self.get_draw_pos(x, y)
 
     def get_draw_pos(self, x, y): 
         #x and y are swapped because the array inxs are opposite to cartesian coords
-        draw_x = y * self.step_y
-        draw_y = x * self.step_x
+        draw_x = y * graphics_const.STEP_Y
+        draw_y = x * graphics_const.STEP_X
 
         return draw_x, draw_y
     
     def overwrite_draw_pos(self, mouse_x, mouse_y):
         #ensure center of image goes to mouse pos
-        offset_x = self.step_x // 2
-        offset_y = self.step_y // 2
+        offset_x = graphics_const.STEP_X // 2
+        offset_y = graphics_const.STEP_Y // 2
 
         self.draw_x = mouse_x - offset_x
         self.draw_y = mouse_y - offset_y
@@ -105,10 +102,19 @@ def get_legal_moves(board, x, y):
     api.send_data("legal_moves", board, piece_x=x, piece_y=y)
     system("chess-engine.exe")
 
-    return []
+    return [(0, 0)]
 
 
-def dragging_piece(board):
+def draw_legal_moves(move_coords):
+    for x, y in move_coords:
+        #x, y swap because array inxs are different to cartesian coords
+        draw_x = y * graphics_const.STEP_Y
+        draw_y = x * graphics_const.STEP_X
+
+        pygame.draw.rect(window, graphics_const.LEGAL_MOVE_COLOUR, (draw_x, draw_y, graphics_const.STEP_X, graphics_const.STEP_Y))
+
+
+def dragging_piece(board, legal_moves):
     x, y = pygame.mouse.get_pos()
 
     board[input.selected_piece.x][input.selected_piece.y] = 0
@@ -119,7 +125,9 @@ def dragging_piece(board):
     piece_list = build_pieces(board)
     piece_list.append(selected)
 
-    draw.draw_board(window, piece_list)
+    draw.draw_squares(window)
+    draw_legal_moves(legal_moves)
+    draw.draw_pieces(window, piece_list)
 
     board[input.selected_piece.x][input.selected_piece.y] = input.selected_piece.piece_value
 
@@ -140,10 +148,10 @@ def graphics_loop(board):
             legal_moves = None
         else:
             #player has selected a piece
-            dragging_piece(player_move)
-
             if legal_moves == None:
                 legal_moves = get_legal_moves(board, input.selected_piece.x, input.selected_piece.y)
+
+            dragging_piece(player_move, legal_moves)
 
         pygame.display.update()
 
