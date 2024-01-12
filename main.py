@@ -9,4 +9,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("HAVE YOU COMPILED THE UP TO DATE GO SCRIPT??")
     main()
