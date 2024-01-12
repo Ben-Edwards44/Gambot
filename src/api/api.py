@@ -30,11 +30,19 @@ def load_board_state():
     return board
 
 
-def write_board_state(board):
+def send_data(engine_task, board, **kwargs):
     #board in form [[x, y, z, ...], [...], ...] where 0 = empty, 1 = white pawn etc.
 
-    board_dict = {"board" : str(board)}
-    json_str = json.dumps(board_dict)
+    send_dict = {"task" : engine_task, "board" : str(board)}
+
+    for name, val in kwargs.items():
+        #go side of api needs everything as string
+        if type(val) != str:
+            val = str(val)
+
+        send_dict[name] = val
+
+    json_str = json.dumps(send_dict)
 
     with open(FILE_PATH, "w") as file:
         file.write(json_str)

@@ -167,7 +167,7 @@ func stateToString(boardState [8][8]int) string {
 }
 
 
-func LoadBoardState() [8][8]int {
+func LoadData() (map[string]string, [8][8]int) {
 	file, err := os.Open("src/api/interface.json")
 
 	panicErr(err)
@@ -192,7 +192,7 @@ func LoadBoardState() [8][8]int {
 	json := jsonLoad(str)
 	board := strToList(json["board"])
 
-	return board
+	return json, board
 }
 
 

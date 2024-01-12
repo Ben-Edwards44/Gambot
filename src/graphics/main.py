@@ -1,9 +1,10 @@
+import src.api.api as api
 import src.graphics.draw as draw
 import src.graphics.input as input
 import src.graphics.graphics_const as graphics_const
 
 import pygame
-from os import listdir
+from os import listdir, system
 
 
 class Piece:
@@ -99,6 +100,14 @@ def draw_board(board):
     draw.draw_board(window, piece_list)
 
 
+def get_legal_moves(board, x, y):
+    #TODO: do this
+    api.send_data("legal_moves", board, piece_x=x, piece_y=y)
+    system("chess-engine.exe")
+
+    return []
+
+
 def dragging_piece(board):
     x, y = pygame.mouse.get_pos()
 
@@ -119,6 +128,7 @@ def graphics_loop(board):
     #loop until the player has made a move
 
     board_copy = [[i for i in x] for x in board]
+    legal_moves = None
 
     while True:
         window.fill((0, 0, 0))
@@ -127,9 +137,13 @@ def graphics_loop(board):
 
         if input.selected_piece == None:
             draw_board(player_move)
+            legal_moves = None
         else:
             #player has selected a piece
             dragging_piece(player_move)
+
+            if legal_moves == None:
+                legal_moves = get_legal_moves(board, input.selected_piece.x, input.selected_piece.y)
 
         pygame.display.update()
 
