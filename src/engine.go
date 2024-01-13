@@ -21,9 +21,24 @@ func flattenBoard(board [8][8]int) [64]int {
 }
 
 
-func engineMove(currentPosition [8][8]int) {
+func unflattenBoard(flattened [64]int) [8][8]int {
+	var board [8][8]int
+	for x := 0; x < 8; x++ {
+		for y := 0; y < 8; y++ {
+			value := flattened[x * 8 + y]
+			board[x][y] = value
+		}
+	}
+
+	return board
+}
+
+
+func engineMove(currentPosition [64]int) {
 	newBoard := engine.CalculateMove(currentPosition)
-	api.WriteBoardState(newBoard)
+	unflattened := unflattenBoard(newBoard)
+
+	api.WriteBoardState(unflattened)
 }
 
 
@@ -52,10 +67,8 @@ func Main() {
 	engine.PrecomputeValues()
 
 	if action == "move_gen" {
-		//TODO: use flattened board
-		engineMove(parsedBoard)
+		engineMove(flatBoard)
 	} else if action == "legal_moves" {
-		//TODO: actually generate legal moves
 		legalMoves(flatBoard, json)
 	}
 }

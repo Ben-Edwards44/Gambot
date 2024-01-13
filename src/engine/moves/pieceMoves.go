@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
+var moveFunctions [6]func([64]int, int, int, int) []move = [6]func([64]int, int, int, int) []move{pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 //array matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
@@ -12,12 +12,6 @@ var yMults [8]int = [8]int{0, 0, -1, 1, -1, 1, -1, 1}
 var dists [512]int
 func InitPrecalculate(edgeDists [512]int) {
 	dists = edgeDists
-}
-
-
-func emptyMove(board [64]int, x int, y int, pieceValue int) []move {
-	//no legal moves
-	return []move{}
 }
 
 
@@ -209,9 +203,9 @@ func GetPieceMoves(board [64]int, x int, y int) []move {
 
 		//accounts for white/black
 		if pieceValue < 7 {
-			inx = pieceValue
+			inx = pieceValue - 1
 		} else {
-			inx = pieceValue - 6
+			inx = pieceValue - 7
 		}
 
 		moveFunc := moveFunctions[inx]
