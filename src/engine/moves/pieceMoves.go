@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, emptyMove, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
+var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 //array matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
@@ -147,6 +147,57 @@ func knightMoves(board [64]int, x int, y int, pieceValue int) []move {
 		}
 	}
 
+	return moves
+}
+
+
+func pawnMoves(board [64]int, x int, y int, pieceValue int) []move {
+	if x == 0 || x == 7 {
+		//on back rank
+		return []move{}
+	}
+
+	isWhite := pieceValue < 7
+	onStart := (isWhite && x == 6) || (!isWhite && x == 1)
+
+	xMult := 1
+	if isWhite {
+		xMult = -1
+	}
+	
+	maxStep := 1
+	if onStart {
+		maxStep = 2
+	}
+
+	//normal moves - no capture
+	var moves []move
+	for i := 1; i <= maxStep; i++ {
+		newX := x + i * xMult
+
+		good, capture := canMove(board, newX, y, pieceValue)
+		if good && !capture {
+			m := move{x, y, newX, y, pieceValue}
+			moves = append(moves, m)
+		}
+	}
+
+	//capture moves
+	newX := x + xMult
+	for i := -1; i < 2; i += 2 {
+		newY := y + i
+
+		if 0 <= newY && newY < 8 {
+			good, capture := canMove(board, newX, newY, pieceValue)
+
+			if good && capture {
+				m := move{x, y, newX, newY, pieceValue}
+				moves = append(moves, m)
+			}
+		}
+	}
+	
+	
 	return moves
 }
 
