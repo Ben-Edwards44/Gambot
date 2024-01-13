@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, emptyMove, emptyMove, bishopMoves, rookMoves, kingMoves, queenMoves}
+var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, emptyMove, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 //array matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
@@ -114,6 +114,35 @@ func kingMoves(board [64]int, x int, y int, pieceValue int) []move {
 			if good {
 				m := move{x, y, newX, newY, pieceValue}
 				moves = append(moves, m)
+			}
+		}
+	}
+
+	return moves
+}
+
+
+func knightMoves(board [64]int, x int, y int, pieceValue int) []move {
+	var moves []move
+	for xStep := 1; xStep < 3; xStep++ {
+		for xMult := -1; xMult < 2; xMult += 2 {
+			newX := x + xStep * xMult
+
+			if newX < 0 || newX > 7 {break}
+
+			//xStep 1 => yStep 2, xStep 2 => yStep 1
+			yStep := 3 - xStep
+			for yMult := -1; yMult < 2; yMult += 2 {
+				newY := y + yStep * yMult
+
+				if newY < 0 || newY > 7 {break}
+
+				good, _ := canMove(board, newX, newY, pieceValue)
+
+				if good {
+					m := move{x, y, newX, newY, pieceValue}
+					moves = append(moves, m)
+				}
 			}
 		}
 	}
