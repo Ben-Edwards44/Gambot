@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"chess-engine/src/engine/moves"
+	"fmt"
 )
 
 
@@ -187,7 +189,54 @@ func coordsToString(moveCoords [][2]int) string {
 }
 
 
-func LoadData() (map[string]string, [8][8]int) {
+func strToInt(str string) int {
+	i, err := strconv.Atoi(str)
+	panicErr(err)
+
+	return i
+}
+
+
+func formatAttr(name string, value string) string {
+	qName := "\"" + name + "\""
+	qVal := "\"" + value + "\""
+
+	str := qName + ": " + qVal
+
+	return str
+}
+
+
+func moveToStr(move moves.Move) string {
+	sX := formatAttr("prev_start_x", strconv.Itoa(move.StartX))
+	sY := formatAttr("prev_start_y", strconv.Itoa(move.StartY))
+	eX := formatAttr("prev_end_x", strconv.Itoa(move.EndX))
+	eY := formatAttr("prev_end_y", strconv.Itoa(move.EndY))
+	pVal := formatAttr("prev_piece_value", strconv.Itoa(move.PieceValue))
+	dPawnMove := formatAttr("prev_pawn_double_move", strconv.FormatBool(move.PawnDoubleMove))
+
+	str := sX + ", " + sY + ", " + eX + ", " + eY + ", " + pVal + ", " + dPawnMove
+
+	return str
+}
+
+
+func strToMove(jsonData map[string]string) moves.Move {
+	//return a move struct of the previous move
+	sX := strToInt(jsonData["prev_start_x"])
+	sY := strToInt(jsonData["prev_start_y"])
+	eX := strToInt(jsonData["prev_end_x"])
+	eY := strToInt(jsonData["prev_end_y"])
+	pVal := strToInt(jsonData["prev_piece_value"])
+	dPawnMove := jsonData["prev_pawn_double_move"] == "true"
+
+	prevMove := moves.Move{StartX: sX, StartY: sY, EndX: eX, EndY: eY, PieceValue: pVal, PawnDoubleMove: dPawnMove}
+
+	return prevMove
+}
+
+
+func LoadData() (map[string]string, [8][8]int, moves.Move) {
 	file, err := os.Open("src/api/interface.json")
 
 	panicErr(err)
@@ -211,8 +260,11 @@ func LoadData() (map[string]string, [8][8]int) {
 
 	json := jsonLoad(str)
 	board := strToList(json["board"])
+	prevMove := strToMove(json)
 
-	return json, board
+	fmt.Println(prevMove)
+
+	return json, board, prevMove
 }
 
 
@@ -230,9 +282,11 @@ func writeToJson(writeStr string) {
 }
 
 
-func WriteBoardState(boardState [8][8]int) {
-	str := stateToString(boardState)
-	writeStr := "{\"board\": " + str + "}"
+func WriteBoardState(boardState [8][8]int, boardMove moves.Move) {
+	boardStr := stateToString(boardState)
+	moveStr := moveToStr(boardMove)
+
+	writeStr := "{\"board\": " + boardStr + ", " + moveStr + "}"
 
 	writeToJson(writeStr)
 }

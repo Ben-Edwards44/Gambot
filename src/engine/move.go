@@ -12,8 +12,8 @@ func CalculateMove(board [64]int) [64]int {
 }
 
 
-func GetLegalMoves(board [64]int, x int, y int) [][2]int {
-	moves := moves.GetPieceMoves(board, x, y)
+func GetLegalMoves(board [64]int, x int, y int, prevMove moves.Move) [][2]int {
+	moves := moves.GetPieceMoves(board, x, y, prevMove)
 
 	//convert move structs to list of coords
 	var coords [][2]int

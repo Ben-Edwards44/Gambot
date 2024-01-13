@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"chess-engine/src/api"
 	"chess-engine/src/engine"
+	"chess-engine/src/engine/moves"
 )
 
 
@@ -38,11 +39,14 @@ func engineMove(currentPosition [64]int) {
 	newBoard := engine.CalculateMove(currentPosition)
 	unflattened := unflattenBoard(newBoard)
 
-	api.WriteBoardState(unflattened)
+	//TODO: actually get the engine move
+	moveObj := moves.Move{}
+
+	api.WriteBoardState(unflattened, moveObj)
 }
 
 
-func legalMoves(board [64]int, json map[string]string) {
+func legalMoves(board [64]int, json map[string]string, prevMove moves.Move) {
 	x, err1 := strconv.Atoi(json["piece_x"])
 	y, err2 := strconv.Atoi(json["piece_y"])
 
@@ -52,14 +56,14 @@ func legalMoves(board [64]int, json map[string]string) {
 		panic(err2)
 	}
 
-	moves := engine.GetLegalMoves(board, x, y)
+	moves := engine.GetLegalMoves(board, x, y, prevMove)
 
 	api.WriteLegalMoves(moves)
 }
 
 
 func Main() {
-	json, parsedBoard := api.LoadData()
+	json, parsedBoard, prevMove := api.LoadData()
 	action := json["task"]
 	flatBoard := flattenBoard(parsedBoard)
 
@@ -69,6 +73,6 @@ func Main() {
 	if action == "move_gen" {
 		engineMove(flatBoard)
 	} else if action == "legal_moves" {
-		legalMoves(flatBoard, json)
+		legalMoves(flatBoard, json, prevMove)
 	}
 }
