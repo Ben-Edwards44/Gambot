@@ -122,14 +122,14 @@ func knightMoves(board [64]int, x int, y int, pieceValue int) []move {
 		for xMult := -1; xMult < 2; xMult += 2 {
 			newX := x + xStep * xMult
 
-			if newX < 0 || newX > 7 {break}
+			if newX < 0 || newX > 7 {continue}
 
 			//xStep 1 => yStep 2, xStep 2 => yStep 1
 			yStep := 3 - xStep
 			for yMult := -1; yMult < 2; yMult += 2 {
 				newY := y + yStep * yMult
 
-				if newY < 0 || newY > 7 {break}
+				if newY < 0 || newY > 7 {continue}
 
 				good, _ := canMove(board, newX, newY, pieceValue)
 
