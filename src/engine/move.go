@@ -17,8 +17,15 @@ func CalculateMove(currentPosition [8][8]int) [8][8]int {
 
 func GetLegalMoves(board [64]int, x int, y int) [][2]int {
 	moves := moves.GetPieceMoves(board, x, y)
+
+	//convert move structs to list of coords
+	var coords [][2]int
+	for _, i := range moves {
+		coord := [2]int{i.EndX, i.EndY}
+		coords = append(coords, coord)
+	}
 	
-	return moves
+	return coords
 }
 
 

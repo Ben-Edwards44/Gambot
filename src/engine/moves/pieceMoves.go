@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [7]func([64]int, int, int, int) [][2]int = [7]func([64]int, int, int, int) [][2]int{emptyMove, emptyMove, emptyMove, emptyMove, rookMoves, emptyMove, emptyMove}
+var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, emptyMove, emptyMove, emptyMove, rookMoves, emptyMove, emptyMove}
 
 
 var dists [8 * 8 * 4]int
@@ -11,10 +11,9 @@ func InitPrecalculate(edgeDists [256]int) {
 }
 
 
-func emptyMove(board [64]int, x int, y int, pieceValue int) [][2]int {
-	//for testing
-	moves := [][2]int{{0, 0}}
-	return moves
+func emptyMove(board [64]int, x int, y int, pieceValue int) []move {
+	//no legal moves
+	return []move{}
 }
 
 
@@ -30,10 +29,10 @@ func canMove(board [64]int, x int, y int, pieceValue int) (bool, bool) {
 }
 
 
-func rookMoves(board [64]int, x int, y int, pieceValue int) [][2]int {
+func rookMoves(board [64]int, x int, y int, pieceValue int) []move {
 	dirInx := x * 32 + y * 4
 
-	var moves [][2]int
+	var moves []move
 	for dir := 0; dir < 4; dir++ {
 		edgeDist := dists[dirInx + dir]
 
@@ -54,8 +53,8 @@ func rookMoves(board [64]int, x int, y int, pieceValue int) [][2]int {
 			goodSq, capture := canMove(board, newX, newY, pieceValue) 
 
 			if goodSq {
-				move := [2]int{newX, newY}
-				moves = append(moves, move)
+				m := move{x, y, newX, newY, pieceValue}
+				moves = append(moves, m)
 			}
 			if capture {
 				break
@@ -67,11 +66,18 @@ func rookMoves(board [64]int, x int, y int, pieceValue int) [][2]int {
 }
 
 
-func GetPieceMoves(board [64]int, x int, y int) [][2]int {
+func GetPieceMoves(board [64]int, x int, y int) []move {
 	pieceValue := board[x * 8 + y]
-
 	if pieceValue != 0 {
-		moveFunc := moveFunctions[pieceValue]
+		var inx int
+
+		if pieceValue < 7 {
+			inx = pieceValue
+		} else {
+			inx = pieceValue - 6
+		}
+
+		moveFunc := moveFunctions[inx]
 		moves := moveFunc(board, x, y, pieceValue)
 
 		return moves
