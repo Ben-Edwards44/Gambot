@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, emptyMove, emptyMove, bishopMoves, rookMoves, emptyMove, emptyMove}
+var moveFunctions [7]func([64]int, int, int, int) []move = [7]func([64]int, int, int, int) []move{emptyMove, emptyMove, emptyMove, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 
 var dists [512]int
@@ -109,11 +109,63 @@ func bishopMoves(board [64]int, x int, y int, pieceValue int) []move {
 }
 
 
+func queenMoves(board [64]int, x int, y int, pieceValue int) []move {
+	rook := rookMoves(board, x, y, pieceValue)
+	bishop := bishopMoves(board, x, y, pieceValue)
+	allMoves := append(rook, bishop...)
+
+	return allMoves
+}
+
+
+func kingMoves(board [64]int, x int, y int, pieceValue int) []move {
+	edgeInx := x * 64 + y * 8
+
+	var moves []move
+	for i := 0; i < 8; i++ {
+		edgeDist := dists[edgeInx + i]
+
+		if edgeDist > 0 {
+			var xStep int
+			var yStep int
+
+			if i == 0 || i == 4 || i == 5 {
+				xStep = -1
+			} else if i == 2 || i == 3 {
+				xStep = 0
+			} else {
+				xStep = 1
+			}
+			if i == 2 || i == 4 || i == 6 {
+				yStep = -1
+			} else if i <= 1 {
+				yStep = 0
+			} else {
+				yStep = 1
+			}
+
+			newX := x + xStep
+			newY := y + yStep
+			
+			good, _ := canMove(board, newX, newY, pieceValue)
+
+			if good {
+				m := move{x, y, newX, newY, pieceValue}
+				moves = append(moves, m)
+			}
+		}
+	}
+
+	return moves
+}
+
+
 func GetPieceMoves(board [64]int, x int, y int) []move {
 	pieceValue := board[x * 8 + y]
 	if pieceValue != 0 {
 		var inx int
 
+		//accounts for white/black
 		if pieceValue < 7 {
 			inx = pieceValue
 		} else {
