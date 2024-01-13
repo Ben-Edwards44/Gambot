@@ -5,6 +5,9 @@ FILE_PATH = "src/api/interface.json"
 
 
 def str_to_list(string):
+    if string == "[]":
+        return []
+
     string = string[2:-2].split("], [")
     
     list = []

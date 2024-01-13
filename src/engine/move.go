@@ -1,7 +1,10 @@
 package engine
 
 
-import "math/rand"
+import (
+	"math/rand"
+	"chess-engine/src/engine/moves"
+)
 
 
 func CalculateMove(currentPosition [8][8]int) [8][8]int {
@@ -9,6 +12,13 @@ func CalculateMove(currentPosition [8][8]int) [8][8]int {
 	newBoard := test(currentPosition)
 
 	return newBoard
+}
+
+
+func GetLegalMoves(board [64]int, x int, y int) [][2]int {
+	moves := moves.GetPieceMoves(board, x, y)
+	
+	return moves
 }
 
 
