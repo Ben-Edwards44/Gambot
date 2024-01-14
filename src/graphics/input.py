@@ -1,4 +1,5 @@
 import pygame
+import src.graphics.game_state as game_state
 import src.graphics.graphics_const as graphics_const
 
 
@@ -53,9 +54,24 @@ def move_selected(board):
     
     x, y = get_cell_inx()
     
+    #update board
     board[selected_piece.x][selected_piece.y] = 0
     board[x][y] = selected_piece.piece_value
+
+    update_game_state(board, x, y)
+
     selected_piece = None
+
+
+def update_game_state(board, end_x, end_y):
+    game_state.game_state_obj.board = board
+
+    #check for pawn double move
+    if (selected_piece.piece_value == 1 or selected_piece.piece_value == 7) and end_y == selected_piece.y and abs(end_x - selected_piece.x) == 2:
+        game_state.game_state_obj.prev_pawn_double = [end_x, end_y]
+    else:
+        #no pawn double move
+        game_state.game_state_obj.prev_pawn_double = [-1, -1]
 
 
 def get_player_input(board):

@@ -1,6 +1,7 @@
 import src.api.api as api
 import src.graphics.draw as draw
 import src.graphics.input as input
+import src.graphics.game_state as game_state
 import src.graphics.graphics_const as graphics_const
 
 import pygame
@@ -97,12 +98,11 @@ def draw_board(board):
     draw.draw_board(window, piece_list)
 
 
-def get_legal_moves(board, x, y):
-    #TODO: do this
-    api.send_data("legal_moves", board, piece_x=x, piece_y=y)
-    system("chess-engine.exe")
+def get_legal_moves(x, y):
+    api.send_data("legal_moves", game_state.game_state_obj, piece_x=x, piece_y=y)
+    #system("chess-engine.exe")
 
-    moves = api.load_legal_moves()
+    moves = []#api.load_legal_moves()
 
     return moves
 
@@ -151,7 +151,7 @@ def graphics_loop(board):
         else:
             #player has selected a piece
             if legal_moves == None:
-                legal_moves = get_legal_moves(board, input.selected_piece.x, input.selected_piece.y)
+                legal_moves = get_legal_moves(input.selected_piece.x, input.selected_piece.y)
 
             dragging_piece(player_move, legal_moves)
 

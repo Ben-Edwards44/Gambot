@@ -1,5 +1,6 @@
 import src.api.api as api
 import src.graphics.main as graphics
+import src.graphics.game_state as game_state
 
 from os import system
 
@@ -11,17 +12,24 @@ START_BOARD_STATE = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0,
 def init():
     #call before first loop
 
-    api.send_data("move_gen", START_BOARD_STATE)
+    game_state.init_game_state(START_BOARD_STATE)
     graphics.init_graphics()
+
+    api.send_data("move_gen", game_state.game_state_obj)
 
 
 def main():
     #perform one loop
 
-    board = api.load_board_state()
-    player_move_board = graphics.graphics_loop(board)
+    state_dict = api.load_game_state()
+    graphics.game_state.game_state_obj.load_from_dict(state_dict)
 
-    api.send_data("move_gen", player_move_board)
+    player_move_board = graphics.graphics_loop(graphics.game_state.game_state_obj.board)
+
+    #ensure the game state is updated
+    graphics.game_state.game_state_obj.board = player_move_board
+
+    api.send_data("move_gen", graphics.game_state.game_state_obj)
 
     #run go engine - need to ensure the most up to date version is built
-    system("chess-engine.exe")
+    #system("chess-engine.exe")
