@@ -146,7 +146,7 @@ def graphics_loop(board):
     while True:
         window.fill((0, 0, 0))
 
-        player_move = input.get_player_input(board_copy)
+        player_move = input.get_player_input(board_copy, legal_moves)
 
         if input.selected_piece == None:
             draw_board(player_move)

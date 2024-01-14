@@ -46,7 +46,10 @@ def select(board):
         selected_piece = piece
 
 
-def make_move(board, start_x, start_y, end_x, end_y, piece_value):
+def make_move(board, legal_moves, start_x, start_y, end_x, end_y, piece_value):
+    if [end_x, end_y] not in legal_moves:
+        return
+    
     px, py = game_state.game_state_obj.prev_pawn_double
     if (piece_value == 1 or piece_value == 7) and px == start_x and py == end_y:
         #en passant
@@ -58,7 +61,7 @@ def make_move(board, start_x, start_y, end_x, end_y, piece_value):
     board[end_x][end_y] = piece_value
 
 
-def move_selected(board):
+def move_selected(board, legal_moves):
     global selected_piece
 
     if selected_piece == None:
@@ -66,7 +69,7 @@ def move_selected(board):
     
     x, y = get_cell_inx()
     
-    make_move(board, selected_piece.x, selected_piece.y, x, y, selected_piece.piece_value)
+    make_move(board, legal_moves, selected_piece.x, selected_piece.y, x, y, selected_piece.piece_value)
     update_game_state(board, x, y)
 
     selected_piece = None
@@ -83,7 +86,7 @@ def update_game_state(board, end_x, end_y):
         game_state.game_state_obj.prev_pawn_double = [-1, -1]
 
 
-def get_player_input(board):
+def get_player_input(board, legal_moves):
     global selected_piece
 
     #need to pump to ensure clicks are properly handeled
@@ -92,7 +95,7 @@ def get_player_input(board):
     if pygame.mouse.get_pressed()[0]:
         select(board)
     else:
-        move_selected(board)
+        move_selected(board, legal_moves)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
