@@ -46,6 +46,18 @@ def select(board):
         selected_piece = piece
 
 
+def make_move(board, start_x, start_y, end_x, end_y, piece_value):
+    px, py = game_state.game_state_obj.prev_pawn_double
+    if (piece_value == 1 or piece_value == 7) and px == start_x and py == end_y:
+        #en passant
+        board[start_x][end_y] = 0
+
+    #TODO: castling
+
+    board[start_x][start_y] = 0
+    board[end_x][end_y] = piece_value
+
+
 def move_selected(board):
     global selected_piece
 
@@ -54,10 +66,7 @@ def move_selected(board):
     
     x, y = get_cell_inx()
     
-    #update board
-    board[selected_piece.x][selected_piece.y] = 0
-    board[x][y] = selected_piece.piece_value
-
+    make_move(board, selected_piece.x, selected_piece.y, x, y, selected_piece.piece_value)
     update_game_state(board, x, y)
 
     selected_piece = None
