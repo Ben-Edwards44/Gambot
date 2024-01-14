@@ -100,9 +100,12 @@ def draw_board(board):
 
 def get_legal_moves(x, y):
     api.send_data("legal_moves", game_state.game_state_obj, piece_x=x, piece_y=y)
-    #system("chess-engine.exe")
+    
+    exit_code = system("chess-engine.exe")
+    if exit_code != 0:
+        raise Exception("Go script resulted in an error")
 
-    moves = []#api.load_legal_moves()
+    moves = api.load_legal_moves()
 
     return moves
 

@@ -11,5 +11,5 @@ type Move struct {
 	PieceValue int
 
 	//TODO: add flags like en passant, promotions etc.
-	PawnDoubleMove bool
+	EnPassant bool
 }

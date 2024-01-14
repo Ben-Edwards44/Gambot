@@ -1,27 +1,31 @@
 package moves
 
 
-func enPassant(board [64]int, currentX int, currentY int, pieceValue int, prevMove Move) (bool, Move) {
-	//if opponent moved pawn 2 and pawns are on same rank
-	if prevMove.PawnDoubleMove && prevMove.EndX == currentX {	
-		rowDiff := currentY - prevMove.EndY
+func enPassant(board [64]int, currentX int, currentY int, pieceValue int, prevPawnDouble [2]int) Move {
+	otherX := prevPawnDouble[0]
+	otherY := prevPawnDouble[1]
 
-		if rowDiff == -1 || rowDiff == 1 {
-			//account for colour
+	//if opponent double moved pawn and pawns are on same rank
+	if otherX == currentX {
+		fileDiff := currentY - otherY
+
+		currentWhite := pieceValue < 7
+		otherWhite := board[otherX * 8 + otherY] < 7
+
+		//if pawns are next to each other and different colours
+		if (fileDiff == 1 || fileDiff == -1) && currentWhite != otherWhite {
 			newX := currentX + 1
-			if pieceValue < 7 {
+			if currentWhite {
 				newX = currentX - 1
 			}
 
-			newY := prevMove.EndY
+			newY := otherY
 
-			good, capture := canMove(board, newX, newY, pieceValue)
-			if good && !capture {
-				m := Move{StartX: currentX, StartY: currentY, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				return true, m
-			}
+			m := Move{StartX: currentX, StartY: currentY, EndX: newX, EndY: newY, PieceValue: pieceValue, EnPassant: true}
+
+			return m
 		}
 	}
 
-	return false, Move{}
+	return Move{}
 }

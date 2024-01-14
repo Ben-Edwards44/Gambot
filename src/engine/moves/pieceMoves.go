@@ -171,7 +171,7 @@ func pawnMoves(board [64]int, x int, y int, pieceValue int) []Move {
 
 		good, capture := canMove(board, newX, y, pieceValue)
 		if good && !capture {
-			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, PawnDoubleMove: i == 2}
+			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue}
 			moves = append(moves, m)
 		}
 	}
@@ -196,21 +196,22 @@ func pawnMoves(board [64]int, x int, y int, pieceValue int) []Move {
 }
 
 
-func specialMoves(board [64]int, x int, y int, pieceValue int, prevMove Move, moves *[]Move) {
+func specialMoves(board [64]int, x int, y int, pieceValue int, prevPawnDouble [2]int, moves *[]Move) {
 	//a pointer is used for moves to ensure it is passed by reference
 	
 	if pieceValue == 1 || pieceValue == 7 {
 		//pawn - check for en passant
-		canEnPassant, m := enPassant(board, x, y, pieceValue, prevMove)
+		move := enPassant(board, x, y, pieceValue, prevPawnDouble)
 
-		if canEnPassant {
-			*moves = append(*moves, m)
+		//if move actually is en passant and not just blank
+		if move.EnPassant {
+			*moves = append(*moves, move)
 		}
 	}
 } 
 
 
-func GetPieceMoves(board [64]int, x int, y int, prevMove Move) []Move {
+func GetPieceMoves(board [64]int, x int, y int, prevPawnDouble [2]int) []Move {
 	pieceValue := board[x * 8 + y]
 	if pieceValue != 0 {
 		var inx int
@@ -226,7 +227,7 @@ func GetPieceMoves(board [64]int, x int, y int, prevMove Move) []Move {
 		moves := moveFunc(board, x, y, pieceValue)
 
 		//perform any special moves (en passant, castling etc.). These will be appended to the slice
-		specialMoves(board, x, y, pieceValue, prevMove, &moves)
+		specialMoves(board, x, y, pieceValue, prevPawnDouble, &moves)
 
 		return moves
 	} else {

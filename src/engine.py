@@ -32,4 +32,6 @@ def main():
     api.send_data("move_gen", graphics.game_state.game_state_obj)
 
     #run go engine - need to ensure the most up to date version is built
-    #system("chess-engine.exe")
+    exit_code = system("chess-engine.exe")
+    if exit_code != 0:
+        raise Exception("Go script resulted in an error")

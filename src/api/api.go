@@ -5,9 +5,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"chess-engine/src/engine/moves"
-	"fmt"
+	"chess-engine/src/engine"
 )
+
+
+const FILE_PATH string = "src/api/interface.json"
 
 
 func panicErr(err error) {
@@ -17,8 +19,34 @@ func panicErr(err error) {
 }
 
 
-func strToList(str string) [8][8]int {
-	//convert the string "[[1, 2], [3, 4]]" to array [[1, 2], [3, 4]]
+func flattenBoard(board [8][8]int) [64]int {
+	var flattened [64]int
+
+	for x := 0; x < 8; x++ {
+		for y := 0; y < 8; y++ {
+			flattened[x * 8 + y] = board[x][y]
+		}
+	}
+
+	return flattened
+}
+
+
+func unflattenBoard(flattened [64]int) [8][8]int {
+	var board [8][8]int
+	for x := 0; x < 8; x++ {
+		for y := 0; y < 8; y++ {
+			value := flattened[x * 8 + y]
+			board[x][y] = value
+		}
+	}
+
+	return board
+}
+
+
+func boardStrToList(str string) [64]int {
+	//convert the string "[[1, 2, ...], [3, 4, ...], ...]" to array [[1, 2], [3, 4]]
 
 	//remove the [[ and ]] at end
 	str = str[2 : len(str) - 2]
@@ -38,7 +66,24 @@ func strToList(str string) [8][8]int {
 		}
 	}
 
-	return outList
+	return flattenBoard(outList)
+}
+
+
+func coordStrToList(str string) [2]int {
+	//convert a single coord string "[x, y]" to array [x, y]
+
+	//remove [ and ]
+	str = str[1 : len(str) - 1]
+	nums := strings.Split(str, ", ")
+
+	var coords [2]int
+	for i, x := range nums {
+		num := strToInt(x)
+		coords[i] = num
+	}
+
+	return coords
 }
 
 
@@ -142,8 +187,10 @@ func jsonLoad(str string) map[string]string {
 }
 
 
-func stateToString(boardState [8][8]int) string {
-	str := "\"["
+func boardToString(board [64]int) string {
+	boardState := unflattenBoard(board)
+
+	str := "["
 	for i, line := range boardState {
 		str += "["
 
@@ -163,7 +210,7 @@ func stateToString(boardState [8][8]int) string {
 	}
 
 	//add final ]" for 2d array
-	str += "]\""
+	str += "]"
 
 	return str
 }
@@ -207,37 +254,44 @@ func formatAttr(name string, value string) string {
 }
 
 
-func moveToStr(move moves.Move) string {
-	sX := formatAttr("prev_start_x", strconv.Itoa(move.StartX))
-	sY := formatAttr("prev_start_y", strconv.Itoa(move.StartY))
-	eX := formatAttr("prev_end_x", strconv.Itoa(move.EndX))
-	eY := formatAttr("prev_end_y", strconv.Itoa(move.EndY))
-	pVal := formatAttr("prev_piece_value", strconv.Itoa(move.PieceValue))
-	dPawnMove := formatAttr("prev_pawn_double_move", strconv.FormatBool(move.PawnDoubleMove))
+func jsonToState(json map[string]string) engine.GameState {
+	board := boardStrToList(json["board"])
+	whiteMove := json["white_to_move"] == "true"
+	whiteCastle := json["white_can_castle"] == "true"
+	blackCastle := json["black_can_castle"] == "true"
+	pawnDouble := coordStrToList(json["prev_pawn_double"])
 
-	str := sX + ", " + sY + ", " + eX + ", " + eY + ", " + pVal + ", " + dPawnMove
+	stateObj := engine.GameState{Board: board, WhiteToMove: whiteMove, WhiteCanCastle: whiteCastle, BlackCanCastle: blackCastle, PrevPawnDouble: pawnDouble}
+	
+	return stateObj
+}
+
+
+func stateToJson(stateObj engine.GameState) string {
+	board := boardToString(stateObj.Board)
+	whiteMove := strconv.FormatBool(stateObj.WhiteToMove)
+	whiteCastle := strconv.FormatBool(stateObj.WhiteCanCastle)
+	blackCastle := strconv.FormatBool(stateObj.BlackCanCastle)
+
+	pDoubleSlice := coordsToString([][2]int{stateObj.PrevPawnDouble})
+	//remove the "[ and ]" at each end
+	pDouble := pDoubleSlice[2 : len(pDoubleSlice) - 2]
+
+	bAttr := formatAttr("board", board)
+	wmAttr := formatAttr("white_to_move", whiteMove)
+	wcAttr := formatAttr("white_can_castle", whiteCastle)
+	bcAttr := formatAttr("black_can_castle", blackCastle)
+	pdAttr := formatAttr("prev_pawn_double", pDouble)
+
+	attrs := []string{bAttr, wmAttr, wcAttr, bcAttr, pdAttr}
+	str := strings.Join(attrs, ", ")
 
 	return str
 }
 
 
-func strToMove(jsonData map[string]string) moves.Move {
-	//return a move struct of the previous move
-	sX := strToInt(jsonData["prev_start_x"])
-	sY := strToInt(jsonData["prev_start_y"])
-	eX := strToInt(jsonData["prev_end_x"])
-	eY := strToInt(jsonData["prev_end_y"])
-	pVal := strToInt(jsonData["prev_piece_value"])
-	dPawnMove := jsonData["prev_pawn_double_move"] == "true"
-
-	prevMove := moves.Move{StartX: sX, StartY: sY, EndX: eX, EndY: eY, PieceValue: pVal, PawnDoubleMove: dPawnMove}
-
-	return prevMove
-}
-
-
-func LoadData() (map[string]string, [8][8]int, moves.Move) {
-	file, err := os.Open("src/api/interface.json")
+func readFile() string {
+	file, err := os.Open(FILE_PATH)
 
 	panicErr(err)
 
@@ -258,13 +312,17 @@ func LoadData() (map[string]string, [8][8]int, moves.Move) {
 
 	str := string(buffer)
 
+	return str
+}
+
+
+func LoadGameState() (map[string]string, engine.GameState) {
+	str := readFile()
 	json := jsonLoad(str)
-	board := strToList(json["board"])
-	prevMove := strToMove(json)
+	
+	state := jsonToState(json)
 
-	fmt.Println(prevMove)
-
-	return json, board, prevMove
+	return json, state
 }
 
 
@@ -272,7 +330,7 @@ func writeToJson(writeStr string) {
 	writeData := []byte(writeStr)
 
 	//open file in read/write mode and overwrite existing contents
-	file, err := os.Create("src/api/interface.json")
+	file, err := os.Create(FILE_PATH)
 	panicErr(err)
 
 	defer file.Close()
@@ -282,11 +340,9 @@ func writeToJson(writeStr string) {
 }
 
 
-func WriteBoardState(boardState [8][8]int, boardMove moves.Move) {
-	boardStr := stateToString(boardState)
-	moveStr := moveToStr(boardMove)
-
-	writeStr := "{\"board\": " + boardStr + ", " + moveStr + "}"
+func WriteState(stateObj engine.GameState) {
+	str := stateToJson(stateObj)
+	writeStr := "{" + str + "}"
 
 	writeToJson(writeStr)
 }
