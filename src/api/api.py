@@ -125,5 +125,3 @@ def send_data(engine_task, game_state_obj, **kwargs):
 
     with open(FILE_PATH, "w") as file:
         file.write(json_str)
-
-    print(json_str)
