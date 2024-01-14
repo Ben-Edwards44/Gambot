@@ -12,4 +12,6 @@ type Move struct {
 
 	//TODO: add flags like en passant, promotions etc.
 	EnPassant bool
+	KingCastle bool
+	QueenCastle bool
 }
