@@ -6,8 +6,11 @@ type GameState struct {
 
 	WhiteToMove bool
 
-	WhiteCanCastle bool
-	BlackCanCastle bool
+	WhiteKingCastle bool
+	WhiteQueenCastle bool
+
+	BlackKingCastle bool
+	BlackQueenCastle bool
 
 	PrevPawnDouble [2]int
 }

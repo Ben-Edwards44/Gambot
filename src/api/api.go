@@ -257,11 +257,13 @@ func formatAttr(name string, value string) string {
 func jsonToState(json map[string]string) engine.GameState {
 	board := boardStrToList(json["board"])
 	whiteMove := json["white_to_move"] == "true"
-	whiteCastle := json["white_can_castle"] == "true"
-	blackCastle := json["black_can_castle"] == "true"
+	whiteKingCastle := json["white_king_castle"] == "true"
+	whiteQueenCastle := json["white_queen_castle"] == "true"
+	blackKingCastle := json["black_king_castle"] == "true"
+	blackQueenCastle := json["black_queen_castle"] == "true"
 	pawnDouble := coordStrToList(json["prev_pawn_double"])
 
-	stateObj := engine.GameState{Board: board, WhiteToMove: whiteMove, WhiteCanCastle: whiteCastle, BlackCanCastle: blackCastle, PrevPawnDouble: pawnDouble}
+	stateObj := engine.GameState{Board: board, WhiteToMove: whiteMove, WhiteKingCastle: whiteKingCastle, WhiteQueenCastle: whiteQueenCastle, BlackKingCastle: blackKingCastle, BlackQueenCastle: blackQueenCastle, PrevPawnDouble: pawnDouble}
 	
 	return stateObj
 }
@@ -270,20 +272,23 @@ func jsonToState(json map[string]string) engine.GameState {
 func stateToJson(stateObj engine.GameState) string {
 	board := boardToString(stateObj.Board)
 	whiteMove := strconv.FormatBool(stateObj.WhiteToMove)
-	whiteCastle := strconv.FormatBool(stateObj.WhiteCanCastle)
-	blackCastle := strconv.FormatBool(stateObj.BlackCanCastle)
+	whiteKingCastle := strconv.FormatBool(stateObj.WhiteKingCastle)
+	whiteQueenCastle := strconv.FormatBool(stateObj.WhiteQueenCastle)
+	blackKingCastle := strconv.FormatBool(stateObj.BlackKingCastle)
+	blackQueenCastle := strconv.FormatBool(stateObj.BlackQueenCastle)
 
 	pDoubleSlice := coordsToString([][2]int{stateObj.PrevPawnDouble})
-	//remove the "[ and ]" at each end
-	pDouble := pDoubleSlice[2 : len(pDoubleSlice) - 2]
+	pDouble := pDoubleSlice[2 : len(pDoubleSlice) - 2] //remove the "[ and ]" at each end
 
 	bAttr := formatAttr("board", board)
 	wmAttr := formatAttr("white_to_move", whiteMove)
-	wcAttr := formatAttr("white_can_castle", whiteCastle)
-	bcAttr := formatAttr("black_can_castle", blackCastle)
+	wkAttr := formatAttr("white_king_castle", whiteKingCastle)
+	wqAttr := formatAttr("white_queen_castle", whiteQueenCastle)
+	bkAttr := formatAttr("black_king_castle", blackKingCastle)
+	bqAttr := formatAttr("black_queen_castle", blackQueenCastle)
 	pdAttr := formatAttr("prev_pawn_double", pDouble)
 
-	attrs := []string{bAttr, wmAttr, wcAttr, bcAttr, pdAttr}
+	attrs := []string{bAttr, wmAttr, wkAttr, wqAttr, bkAttr, bqAttr, pdAttr}
 	str := strings.Join(attrs, ", ")
 
 	return str
