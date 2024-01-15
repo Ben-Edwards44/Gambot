@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [6]func([64]int, int, int, int) []Move = [6]func([64]int, int, int, int) []Move{pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
+var moveFunctions [6]func([64]int, int, int, int, *[]Move) = [6]func([64]int, int, int, int, *[]Move) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 //array matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
@@ -27,10 +27,9 @@ func canMove(board [64]int, x int, y int, pieceValue int) (bool, bool) {
 }
 
 
-func rookMoves(board [64]int, x int, y int, pieceValue int) []Move {
+func rookMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
 	dirInx := x * 64 + y * 8
 
-	var moves []Move
 	for dir := 0; dir < 4; dir++ {
 		//get from precalculated
 		edgeDist := dists[dirInx + dir]
@@ -43,22 +42,19 @@ func rookMoves(board [64]int, x int, y int, pieceValue int) []Move {
 
 			if goodSq {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				moves = append(moves, m)
+				*resultSlice = append(*resultSlice, m)
 			}
 			if capture {
 				break
 			}
 		}
 	}
-
-	return moves
 }
 
 
-func bishopMoves(board [64]int, x int, y int, pieceValue int) []Move {
+func bishopMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
 	dirInx := x * 64 + y * 8
 
-	var moves []Move
 	for dir := 0; dir < 4; dir++ {
 		//get from precalculated (+4 since we are looking at diagonal)
 		edgeDist := dists[dirInx + dir + 4]
@@ -71,31 +67,26 @@ func bishopMoves(board [64]int, x int, y int, pieceValue int) []Move {
 
 			if goodSq {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				moves = append(moves, m)
+				*resultSlice = append(*resultSlice, m)
 			}
 			if capture {
 				break
 			}
 		}
 	}
-
-	return moves
 }
 
 
-func queenMoves(board [64]int, x int, y int, pieceValue int) []Move {
-	rook := rookMoves(board, x, y, pieceValue)
-	bishop := bishopMoves(board, x, y, pieceValue)
-	allMoves := append(rook, bishop...)
-
-	return allMoves
+func queenMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+	//resultSlice is updated within the functions
+	rookMoves(board, x, y, pieceValue, resultSlice)
+	bishopMoves(board, x, y, pieceValue, resultSlice)
 }
 
 
-func kingMoves(board [64]int, x int, y int, pieceValue int) []Move {
+func kingMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
 	edgeInx := x * 64 + y * 8
 
-	var moves []Move
 	for dir := 0; dir < 8; dir++ {
 		edgeDist := dists[edgeInx + dir]
 
@@ -107,17 +98,14 @@ func kingMoves(board [64]int, x int, y int, pieceValue int) []Move {
 
 			if good {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				moves = append(moves, m)
+				*resultSlice = append(*resultSlice, m)
 			}
 		}
 	}
-
-	return moves
 }
 
 
-func knightMoves(board [64]int, x int, y int, pieceValue int) []Move {
-	var moves []Move
+func knightMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
 	for xStep := 1; xStep < 3; xStep++ {
 		for xMult := -1; xMult < 2; xMult += 2 {
 			newX := x + xStep * xMult
@@ -135,20 +123,18 @@ func knightMoves(board [64]int, x int, y int, pieceValue int) []Move {
 
 				if good {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-					moves = append(moves, m)
+					*resultSlice = append(*resultSlice, m)
 				}
 			}
 		}
 	}
-
-	return moves
 }
 
 
-func pawnMoves(board [64]int, x int, y int, pieceValue int) []Move {
+func pawnMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
 	if x == 0 || x == 7 {
 		//on back rank
-		return []Move{}
+		return
 	}
 
 	isWhite := pieceValue < 7
@@ -165,14 +151,13 @@ func pawnMoves(board [64]int, x int, y int, pieceValue int) []Move {
 	}
 
 	//normal moves - no capture
-	var moves []Move
 	for i := 1; i <= maxStep; i++ {
 		newX := x + i * xMult
 
 		good, capture := canMove(board, newX, y, pieceValue)
 		if good && !capture {
 			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue}
-			moves = append(moves, m)
+			*resultSlice = append(*resultSlice, m)
 		}
 	}
 
@@ -186,17 +171,14 @@ func pawnMoves(board [64]int, x int, y int, pieceValue int) []Move {
 
 			if good && capture {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				moves = append(moves, m)
+				*resultSlice = append(*resultSlice, m)
 			}
 		}
 	}
-	
-	
-	return moves
 }
 
 
-func specialMoves(board [64]int, x int, y int, pieceValue int, prevPawnDouble [2]int, moves *[]Move) {
+func specialMoves(board [64]int, x int, y int, pieceValue int, prevPawnDouble [2]int, resultSlice *[]Move) {
 	//a pointer is used for moves to ensure it is passed by reference
 	
 	if pieceValue == 1 || pieceValue == 7 {
@@ -205,13 +187,13 @@ func specialMoves(board [64]int, x int, y int, pieceValue int, prevPawnDouble [2
 
 		//if move actually is en passant and not just blank
 		if move.EnPassant {
-			*moves = append(*moves, move)
+			*resultSlice = append(*resultSlice, move)
 		}
 	}
 } 
 
 
-func GetPieceMoves(board [64]int, x int, y int, prevPawnDouble [2]int) []Move {
+func GetPieceMoves(board [64]int, x int, y int, prevPawnDouble [2]int, resultSlice *[]Move) {
 	pieceValue := board[x * 8 + y]
 	if pieceValue != 0 {
 		var inx int
@@ -224,12 +206,12 @@ func GetPieceMoves(board [64]int, x int, y int, prevPawnDouble [2]int) []Move {
 		}
 
 		moveFunc := moveFunctions[inx]
-		moves := moveFunc(board, x, y, pieceValue)
+
+		//update resultSlice
+		moveFunc(board, x, y, pieceValue, resultSlice)
 
 		//perform any special moves (en passant, castling etc.). These will be appended to the slice
-		specialMoves(board, x, y, pieceValue, prevPawnDouble, &moves)
-
-		return moves
+		specialMoves(board, x, y, pieceValue, prevPawnDouble, resultSlice)
 	} else {
 		panic("piece value not 0")
 	}

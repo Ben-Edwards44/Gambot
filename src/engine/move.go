@@ -13,11 +13,13 @@ func CalculateMove(stateObj GameState) GameState {
 
 
 func GetLegalMoves(stateObj GameState, x int, y int) [][2]int {
-	moves := moves.GetPieceMoves(stateObj.Board, x, y, stateObj.PrevPawnDouble)
+	var legalMoves []moves.Move
+	
+	moves.GetPieceMoves(stateObj.Board, x, y, stateObj.PrevPawnDouble, &legalMoves)
 
 	//convert move structs to list of coords
 	var coords [][2]int
-	for _, i := range moves {
+	for _, i := range legalMoves {
 		coord := [2]int{i.EndX, i.EndY}
 		coords = append(coords, coord)
 	}
