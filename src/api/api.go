@@ -263,7 +263,7 @@ func jsonToState(json map[string]string) engine.GameState {
 	blackQueenCastle := json["black_queen_castle"] == "true"
 	pawnDouble := coordStrToList(json["prev_pawn_double"])
 
-	stateObj := engine.GameState{Board: board, WhiteToMove: whiteMove, WhiteKingCastle: whiteKingCastle, WhiteQueenCastle: whiteQueenCastle, BlackKingCastle: blackKingCastle, BlackQueenCastle: blackQueenCastle, PrevPawnDouble: pawnDouble}
+	stateObj := engine.CreateGameState(board, whiteMove, whiteKingCastle, whiteQueenCastle, blackKingCastle, blackQueenCastle, pawnDouble)
 	
 	return stateObj
 }
