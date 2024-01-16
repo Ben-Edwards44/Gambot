@@ -1,4 +1,4 @@
-package engine
+package moves
 
 
 type GameState struct {
@@ -16,6 +16,8 @@ type GameState struct {
 
 	WhitePiecePos [][2]int
 	BlackPiecePos [][2]int
+
+	otherMoveBitBoard uint64
 }
 
 
@@ -39,6 +41,10 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 	}
 
 	state := GameState{Board: b, WhiteToMove: whiteMove, WhiteKingCastle: wkCastle, WhiteQueenCastle: wqCastle, BlackKingCastle: bkCastle, BlackQueenCastle: bqCastle, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
+
+	otherBitBoard := getOtherMoveBitBoard(state)
+
+	state.otherMoveBitBoard = otherBitBoard
 
 	return state
 }

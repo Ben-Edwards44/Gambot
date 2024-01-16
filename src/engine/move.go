@@ -6,16 +6,16 @@ import (
 )
 
 
-func CalculateMove(stateObj GameState) GameState {
+func CalculateMove(stateObj moves.GameState) moves.GameState {
 	//TODO: return a new game state with the engine's move
 	return stateObj
 }
 
 
-func GetLegalMoves(stateObj GameState, x int, y int) [][2]int {
+func GetLegalMoves(stateObj moves.GameState, x int, y int) [][2]int {
 	var legalMoves []moves.Move
 	
-	moves.GetPieceMoves(stateObj.Board, x, y, stateObj.PrevPawnDouble, &legalMoves)
+	moves.GetPieceMoves(stateObj, x, y, &legalMoves)
 
 	//convert move structs to list of coords
 	var coords [][2]int

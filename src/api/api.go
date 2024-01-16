@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"chess-engine/src/engine"
+	"chess-engine/src/engine/moves"
 )
 
 
@@ -254,7 +254,7 @@ func formatAttr(name string, value string) string {
 }
 
 
-func jsonToState(json map[string]string) engine.GameState {
+func jsonToState(json map[string]string) moves.GameState {
 	board := boardStrToList(json["board"])
 	whiteMove := json["white_to_move"] == "true"
 	whiteKingCastle := json["white_king_castle"] == "true"
@@ -263,13 +263,13 @@ func jsonToState(json map[string]string) engine.GameState {
 	blackQueenCastle := json["black_queen_castle"] == "true"
 	pawnDouble := coordStrToList(json["prev_pawn_double"])
 
-	stateObj := engine.CreateGameState(board, whiteMove, whiteKingCastle, whiteQueenCastle, blackKingCastle, blackQueenCastle, pawnDouble)
+	stateObj := moves.CreateGameState(board, whiteMove, whiteKingCastle, whiteQueenCastle, blackKingCastle, blackQueenCastle, pawnDouble)
 	
 	return stateObj
 }
 
 
-func stateToJson(stateObj engine.GameState) string {
+func stateToJson(stateObj moves.GameState) string {
 	board := boardToString(stateObj.Board)
 	whiteMove := strconv.FormatBool(stateObj.WhiteToMove)
 	whiteKingCastle := strconv.FormatBool(stateObj.WhiteKingCastle)
@@ -321,7 +321,7 @@ func readFile() string {
 }
 
 
-func LoadGameState() (map[string]string, engine.GameState) {
+func LoadGameState() (map[string]string, moves.GameState) {
 	str := readFile()
 	json := jsonLoad(str)
 	
@@ -345,7 +345,7 @@ func writeToJson(writeStr string) {
 }
 
 
-func WriteState(stateObj engine.GameState) {
+func WriteState(stateObj moves.GameState) {
 	str := stateToJson(stateObj)
 	writeStr := "{" + str + "}"
 

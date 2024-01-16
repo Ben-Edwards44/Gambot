@@ -5,17 +5,18 @@ import (
 	"strconv"
 	"chess-engine/src/api"
 	"chess-engine/src/engine"
+	"chess-engine/src/engine/moves"
 )
 
 
-func engineMove(stateObj engine.GameState) {
+func engineMove(stateObj moves.GameState) {
 	newState := engine.CalculateMove(stateObj)
 
 	api.WriteState(newState)
 }
 
 
-func legalMoves(stateObj engine.GameState, json map[string]string) {
+func legalMoves(stateObj moves.GameState, json map[string]string) {
 	x, err1 := strconv.Atoi(json["piece_x"])
 	y, err2 := strconv.Atoi(json["piece_y"])
 
@@ -32,11 +33,11 @@ func legalMoves(stateObj engine.GameState, json map[string]string) {
 
 
 func Main() {
-	json, stateObj := api.LoadGameState()
-	action := json["task"]
-
 	//TODO: not have to precompute at the start of each move (store in a file)
 	engine.PrecomputeValues()
+	
+	json, stateObj := api.LoadGameState()
+	action := json["task"]
 
 	if action == "move_gen" {
 		engineMove(stateObj)
