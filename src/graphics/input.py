@@ -50,15 +50,27 @@ def make_move(board, legal_moves, start_x, start_y, end_x, end_y, piece_value):
     if [end_x, end_y] not in legal_moves:
         return
     
-    px, py = game_state.game_state_obj.prev_pawn_double
-    if (piece_value == 1 or piece_value == 7) and px == start_x and py == end_y:
-        #en passant
-        board[start_x][end_y] = 0
-
-    #TODO: castling
-
+    #move piece
     board[start_x][start_y] = 0
     board[end_x][end_y] = piece_value
+    
+    #en passant - capture other pawn
+    px, py = game_state.game_state_obj.prev_pawn_double
+    if (piece_value == 1 or piece_value == 7) and px == start_x and py == end_y:
+        board[start_x][end_y] = 0
+
+    #castling - move rook as well
+    if piece_value == 5 or piece_value == 11:
+        if start_y - end_y == -2:
+            #kingside
+            rook_value = board[start_x][7]
+            board[start_x][7] = 0
+            board[start_x][start_y + 1] = rook_value
+        elif start_y - end_y == 2:
+            #queenside
+            rook_value = board[start_x][0]
+            board[start_x][0] = 0
+            board[start_x][start_y - 1] = rook_value
 
 
 def move_selected(board, legal_moves):

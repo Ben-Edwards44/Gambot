@@ -7,6 +7,7 @@ from os import system
 
 #starting position
 START_BOARD_STATE = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
+PLAYER_WHITE = True
 
 
 def init():
@@ -23,11 +24,13 @@ def main():
 
     state_dict = api.load_game_state()
     graphics.game_state.game_state_obj.load_from_dict(state_dict)
+    graphics.game_state.game_state_obj.white_to_move = PLAYER_WHITE  #because it is player's turn
 
     player_move_board = graphics.graphics_loop(graphics.game_state.game_state_obj.board)
 
     #ensure the game state is updated
     graphics.game_state.game_state_obj.board = player_move_board
+    graphics.game_state.game_state_obj.white_to_move = not PLAYER_WHITE  #because it is no longer player turn
 
     api.send_data("move_gen", graphics.game_state.game_state_obj)
 

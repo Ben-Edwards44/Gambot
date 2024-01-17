@@ -98,7 +98,9 @@ def draw_board(board):
     draw.draw_board(window, piece_list)
 
 
-def get_legal_moves(x, y):
+def get_legal_moves(x, y, piece_value):
+    game_state.game_state_obj.white_to_move = piece_value < 7
+
     api.send_data("legal_moves", game_state.game_state_obj, piece_x=x, piece_y=y)
     
     exit_code = system("chess-engine.exe")
@@ -154,7 +156,7 @@ def graphics_loop(board):
         else:
             #player has selected a piece
             if legal_moves == None:
-                legal_moves = get_legal_moves(input.selected_piece.x, input.selected_piece.y)
+                legal_moves = get_legal_moves(input.selected_piece.x, input.selected_piece.y, input.selected_piece.piece_value)
 
             dragging_piece(player_move, legal_moves)
 
