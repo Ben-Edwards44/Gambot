@@ -1,8 +1,7 @@
 package moves
 
-
 //array matching piece values to their appropriate move functions
-var moveFunctions [6]func([64]int, int, int, int, *[]Move) = [6]func([64]int, int, int, int, *[]Move) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
+var moveFunctions [6]func(GameState, int, int, int, *[]Move) = [6]func(GameState, int, int, int, *[]Move) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 //array matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
@@ -27,7 +26,7 @@ func canMove(board [64]int, x int, y int, pieceValue int) (bool, bool) {
 }
 
 
-func rookMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+func rookMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -38,7 +37,7 @@ func rookMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move)
 			newX := x + offset * xMults[dir]
 			newY := y + offset * yMults[dir]
 
-			goodSq, capture := canMove(board, newX, newY, pieceValue) 
+			goodSq, capture := canMove(state.Board, newX, newY, pieceValue) 
 
 			if goodSq {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
@@ -52,7 +51,7 @@ func rookMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move)
 }
 
 
-func bishopMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+func bishopMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -63,7 +62,7 @@ func bishopMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Mov
 			newX := x + offset * xMults[dir + 4]
 			newY := y + offset * yMults[dir + 4]
 
-			goodSq, capture := canMove(board, newX, newY, pieceValue) 
+			goodSq, capture := canMove(state.Board, newX, newY, pieceValue) 
 
 			if goodSq {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
@@ -77,14 +76,14 @@ func bishopMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Mov
 }
 
 
-func queenMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+func queenMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	//resultSlice is updated within the functions
-	rookMoves(board, x, y, pieceValue, resultSlice)
-	bishopMoves(board, x, y, pieceValue, resultSlice)
+	rookMoves(state, x, y, pieceValue, resultSlice)
+	bishopMoves(state, x, y, pieceValue, resultSlice)
 }
 
 
-func kingMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+func kingMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	edgeInx := x * 64 + y * 8
 
 	for dir := 0; dir < 8; dir++ {
@@ -94,7 +93,7 @@ func kingMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move)
 			newX := x + xMults[dir]
 			newY := y + yMults[dir]
 			
-			good, _ := canMove(board, newX, newY, pieceValue)
+			good, _ := canMove(state.Board, newX, newY, pieceValue)
 
 			if good {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
@@ -105,7 +104,7 @@ func kingMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move)
 }
 
 
-func knightMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+func knightMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	for xStep := 1; xStep < 3; xStep++ {
 		for xMult := -1; xMult < 2; xMult += 2 {
 			newX := x + xStep * xMult
@@ -119,7 +118,7 @@ func knightMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Mov
 
 				if newY < 0 || newY > 7 {continue}
 
-				good, _ := canMove(board, newX, newY, pieceValue)
+				good, _ := canMove(state.Board, newX, newY, pieceValue)
 
 				if good {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
@@ -131,7 +130,7 @@ func knightMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Mov
 }
 
 
-func pawnMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move) {
+func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	if x == 0 || x == 7 {
 		//on back rank
 		return
@@ -154,7 +153,7 @@ func pawnMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move)
 	for i := 1; i <= maxStep; i++ {
 		newX := x + i * xMult
 
-		good, capture := canMove(board, newX, y, pieceValue)
+		good, capture := canMove(state.Board, newX, y, pieceValue)
 		if good && !capture {
 			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue}
 			*resultSlice = append(*resultSlice, m)
@@ -167,7 +166,7 @@ func pawnMoves(board [64]int, x int, y int, pieceValue int, resultSlice *[]Move)
 		newY := y + i
 
 		if 0 <= newY && newY < 8 {
-			good, capture := canMove(board, newX, newY, pieceValue)
+			good, capture := canMove(state.Board, newX, newY, pieceValue)
 
 			if good && capture {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
@@ -211,7 +210,7 @@ func GetPieceMoves(state GameState, x int, y int, resultSlice *[]Move) {
 		moveFunc := moveFunctions[inx]
 
 		//update resultSlice
-		moveFunc(state.Board, x, y, pieceValue, resultSlice)
+		moveFunc(state, x, y, pieceValue, resultSlice)
 
 		//perform any special moves (en passant, castling etc.). These will be appended to the slice
 		specialMoves(state, x, y, pieceValue, resultSlice)
