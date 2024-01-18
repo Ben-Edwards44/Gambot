@@ -1,5 +1,6 @@
 package moves
 
+
 //array matching piece values to their appropriate move functions
 var moveFunctions [6]func(GameState, int, int, int, *[]Move) = [6]func(GameState, int, int, int, *[]Move) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
@@ -96,8 +97,15 @@ func kingMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 			good, _ := canMove(state.Board, newX, newY, pieceValue)
 
 			if good {
-				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				*resultSlice = append(*resultSlice, m)
+				//ensure not castling into check
+				var moveBitBoard uint64 = 0
+				setBitBoard(&moveBitBoard, newX * 8 + newY)
+
+				//if not moving to an attacked square
+				if moveBitBoard & state.otherMoveBitBoard == 0 {
+					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
+					*resultSlice = append(*resultSlice, m)
+				}
 			}
 		}
 	}
