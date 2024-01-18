@@ -17,3 +17,11 @@ func movesToBitBoard(moves []Move) uint64 {
 
 	return bitBoard
 }
+
+
+func getOtherMoveBitBoard(state GameState) (uint64, []Move) {
+	moves := getPseudoLegalMoves(state, !state.WhiteToMove)
+	bitBoard := movesToBitBoard(moves)
+
+	return bitBoard, moves
+}

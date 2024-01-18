@@ -27,6 +27,23 @@ func canMove(board [64]int, x int, y int, pieceValue int) (bool, bool) {
 }
 
 
+func blockKingAttack(x int, y int, kingAttackBlocks []uint64) bool {
+	if len(kingAttackBlocks) == 0 {return true}  //king not in check
+
+	pos := x * 8 + y
+	var posBB uint64
+
+	setBitBoard(&posBB, pos)
+
+	for _, i := range kingAttackBlocks {
+		//if not moving to a blocking square
+		if posBB & i == 0 {return false}
+	}
+
+	return true
+}
+
+
 func rookMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	dirInx := x * 64 + y * 8
 
@@ -38,9 +55,10 @@ func rookMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 			newX := x + offset * xMults[dir]
 			newY := y + offset * yMults[dir]
 
-			goodSq, capture := canMove(state.Board, newX, newY, pieceValue) 
+			goodSq, capture := canMove(state.Board, newX, newY, pieceValue)
+			blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
 
-			if goodSq {
+			if goodSq && blocking{
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 				*resultSlice = append(*resultSlice, m)
 			}
@@ -63,9 +81,10 @@ func bishopMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]M
 			newX := x + offset * xMults[dir + 4]
 			newY := y + offset * yMults[dir + 4]
 
-			goodSq, capture := canMove(state.Board, newX, newY, pieceValue) 
+			goodSq, capture := canMove(state.Board, newX, newY, pieceValue)
+			blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
 
-			if goodSq {
+			if goodSq && blocking {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 				*resultSlice = append(*resultSlice, m)
 			}
@@ -127,8 +146,9 @@ func knightMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]M
 				if newY < 0 || newY > 7 {continue}
 
 				good, _ := canMove(state.Board, newX, newY, pieceValue)
+				blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
 
-				if good {
+				if good && blocking {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 					*resultSlice = append(*resultSlice, m)
 				}
@@ -162,7 +182,9 @@ func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 		newX := x + i * xMult
 
 		good, capture := canMove(state.Board, newX, y, pieceValue)
-		if good && !capture {
+		blocking := blockKingAttack(newX, y, state.kingAttackBlocks)
+
+		if good && !capture && blocking {
 			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue}
 			*resultSlice = append(*resultSlice, m)
 		}
@@ -175,8 +197,9 @@ func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 
 		if 0 <= newY && newY < 8 {
 			good, capture := canMove(state.Board, newX, newY, pieceValue)
+			blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
 
-			if good && capture {
+			if good && capture && blocking {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 				*resultSlice = append(*resultSlice, m)
 			}
@@ -194,7 +217,10 @@ func specialMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]
 
 		//if move actually is en passant and not just blank
 		if move.EnPassant {
-			*resultSlice = append(*resultSlice, move)
+			//TODO: edge case where en passant is pinned
+
+			blocking := blockKingAttack(move.EndX, move.EndY, state.kingAttackBlocks)
+			if blocking {*resultSlice = append(*resultSlice, move)}
 		}
 	} else if pieceValue == 5 || pieceValue == 11 {
 		//king - check for castle

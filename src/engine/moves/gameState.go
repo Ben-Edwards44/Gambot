@@ -18,6 +18,7 @@ type GameState struct {
 	BlackPiecePos [][2]int
 
 	otherMoveBitBoard uint64
+	kingAttackBlocks []uint64
 }
 
 
@@ -42,9 +43,32 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 
 	state := GameState{Board: b, WhiteToMove: whiteMove, WhiteKingCastle: wkCastle, WhiteQueenCastle: wqCastle, BlackKingCastle: bkCastle, BlackQueenCastle: bqCastle, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
 
-	otherBitBoard := getOtherMoveBitBoard(state)
+	otherBitBoard, otherMoves := getOtherMoveBitBoard(state)
+	kingX, kingY := getPiecePos(state, 5)
+	kAttackBlock := getKingAttackBlock(kingX, kingY, otherMoves)
 
 	state.otherMoveBitBoard = otherBitBoard
+	state.kingAttackBlocks = kAttackBlock
 
 	return state
+}
+
+
+func getPiecePos(state GameState, noColourValue int) (int, int) {
+	possible := state.WhitePiecePos
+	if !state.WhiteToMove {
+		noColourValue += 6
+		possible = state.BlackPiecePos
+	}
+
+	for _, i := range possible {
+		x := i[0]
+		y := i[1]
+
+		if state.Board[x * 8 + y] == noColourValue {
+			return x, y
+		}
+	}
+
+	return -1, -1
 }
