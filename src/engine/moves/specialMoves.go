@@ -2,6 +2,8 @@ package moves
 
 
 func enPassant(state GameState, currentX int, currentY int, pieceValue int) Move {
+	if state.enPassantPin {return Move{}}  //en passant is pinned (edge case)
+
 	otherX := state.PrevPawnDouble[0]
 	otherY := state.PrevPawnDouble[1]
 

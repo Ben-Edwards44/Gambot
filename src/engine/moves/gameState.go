@@ -19,7 +19,9 @@ type GameState struct {
 
 	otherMoveBitBoard uint64
 	kingAttackBlocks []uint64
+
 	pinArray [64]uint64
+	enPassantPin bool
 }
 
 
@@ -46,11 +48,12 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 
 	otherBitBoard, _ := getOtherMoveBitBoard(state)
 	kingX, kingY := getPiecePos(state, 5)
-	kAttackBlock, pinArray := legalFilterBitboards(state.Board, kingX, kingY, state.WhiteToMove)
+	kAttackBlock, pinArray, enPassantPin := legalFilterBitboards(state.Board, kingX, kingY, state.WhiteToMove, state.PrevPawnDouble)
 
 	state.otherMoveBitBoard = otherBitBoard
 	state.kingAttackBlocks = kAttackBlock
 	state.pinArray = pinArray
+	state.enPassantPin = enPassantPin
 
 	return state
 }

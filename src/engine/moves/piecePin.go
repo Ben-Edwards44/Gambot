@@ -198,7 +198,62 @@ func buildPinArray(kingX int, kingY int, pinPieces [][4]int) [64]uint64 {
 }
 
 
-func legalFilterBitboards(board [64]int, kingX int, kingY int, isWhite bool) ([]uint64, [64]uint64) {
+func enPassantPin(board [64]int, kingX int, kingY int, isWhite bool, prevPawnDouble [2]int) bool {
+	if prevPawnDouble[0] != kingX {return false}  //en passant not on right rank (also exits if no en passant)
+
+	friendPawn := 7
+	enemyPawn := 1
+	enemyRook := 4
+	enemyQueen := 6
+	if isWhite {
+		enemyRook = 10
+		enemyQueen = 12
+		friendPawn, enemyPawn = enemyPawn, friendPawn
+	}
+
+	var friendPawnAdj bool
+	for yStep := -1; yStep < 2; yStep += 2 {
+		y := prevPawnDouble[1] + yStep
+		if 0 <= y && y < 8 && board[prevPawnDouble[0] * 8 + y] == friendPawn {friendPawnAdj = true}
+	}
+
+	if !friendPawnAdj {return false}  //no adjacent pawn to do en passant
+	
+	distInx := kingX * 64 + kingY * 8
+
+	yStep := 1
+	edgeDist := dists[distInx + 1]
+	if prevPawnDouble[1] < kingY {
+		yStep = -1
+		edgeDist = dists[distInx]
+	}
+
+	passedFriend := false
+	passedEnemy := false
+	for i := 1; i <= edgeDist; i++ {
+		y := kingY + i * yStep
+
+		val := board[kingX * 8 + y]
+		if val == friendPawn {
+			if passedFriend {return false}  //2 friendly pawns to block pin
+			
+			passedFriend = true
+		} else if val == enemyPawn {
+			if passedEnemy {return false}  //2 enemy pawns to block pin
+			
+			passedEnemy = true
+		} else if val == enemyQueen || val == enemyRook {
+			return passedEnemy && passedFriend  //if we have met both pawns and no other piece, en passant is pinned
+		} else if val != 0 {
+			return false  //some other piece to block pin
+		}
+	}
+
+	return false
+}
+
+
+func legalFilterBitboards(board [64]int, kingX int, kingY int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, bool) {
 	//TODO: edge case with en passant
 	var attackBB []uint64
 
@@ -216,6 +271,7 @@ func legalFilterBitboards(board [64]int, kingX int, kingY int, isWhite bool) ([]
 	addCaptureMoves(pawn, &attackBB)
 
 	pinArray := buildPinArray(kingX, kingY, pinPos)
+	enPassPin := enPassantPin(board, kingX, kingY, isWhite, prevPawnDouble)
 
-	return attackBB, pinArray
+	return attackBB, pinArray, enPassPin
 }
