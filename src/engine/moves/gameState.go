@@ -19,6 +19,7 @@ type GameState struct {
 
 	otherMoveBitBoard uint64
 	kingAttackBlocks []uint64
+	pinArray [64]uint64
 }
 
 
@@ -45,15 +46,11 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 
 	otherBitBoard, _ := getOtherMoveBitBoard(state)
 	kingX, kingY := getPiecePos(state, 5)
-	kAttackBlock := legalFilterBitboards(state.Board, kingX, kingY, state.WhiteToMove)
-	//old := getKingAttackBlock(kingX, kingY, otherMoves)
-
-	//if old != kAttackBlock {
-	//	panic("Bitboards not same")
-	//}
+	kAttackBlock, pinArray := legalFilterBitboards(state.Board, kingX, kingY, state.WhiteToMove)
 
 	state.otherMoveBitBoard = otherBitBoard
 	state.kingAttackBlocks = kAttackBlock
+	state.pinArray = pinArray
 
 	return state
 }

@@ -1,17 +1,18 @@
 package moves
 
 
-func getAtttackPin(board [64]int, x int, y int, isWhite bool) ([][2]int, [][2]int) {
+func getAtttackPin(board [64]int, x int, y int, isWhite bool) ([][2]int, [][4]int) {
 	//shoot rays out from king and check pieces
 	
-	var attackPieces [][2]int
-	var pinPieces [][2]int
+	var attackPieces [][2]int  //(x, y) of attacking piece
+	var pinPieces [][4]int  //(x1, y1, x2, y2) where x1 is for attacking and x2 is for pinned
 
 	dirInx := x * 64 + y * 8
 
 	for dist := 0; dist < 8; dist++ {
 		passedPieces := 0
-		passedPos := [2]int{-1, -1}
+		passedX := -1
+		passedY := -1
 
 		//arrays initialised in moves/pieceMoves
 		edgeDist := dists[dirInx + dist]
@@ -29,7 +30,8 @@ func getAtttackPin(board [64]int, x int, y int, isWhite bool) ([][2]int, [][2]in
 
 					if passedPieces == 0 {
 						passedPieces += 1
-						passedPos = [2]int{newX, newY}
+						passedX = newX
+						passedY = newY
 					} else {
 						break
 					}
@@ -48,7 +50,7 @@ func getAtttackPin(board [64]int, x int, y int, isWhite bool) ([][2]int, [][2]in
 						if passedPieces == 0 {
 							attackPieces = append(attackPieces, [2]int{newX, newY})
 						} else {
-							pinPieces = append(pinPieces, passedPos)
+							pinPieces = append(pinPieces, [4]int{newX, newY, passedX, passedY})
 						}
 					}
 
@@ -147,7 +149,7 @@ func abs(x int) int {
 func fillBitboard(sX int, sY int, eX int, eY int) uint64 {
 	//returns a bitboard with bits on line (sX, sY) to (eX, eY) set (start / end points inclusive)
 
-	xStep := getStep(sX, sY)
+	xStep := getStep(sX, eX)
 	yStep := getStep(sY, eY)
 
 	//get manhattan distance
@@ -178,12 +180,29 @@ func addCaptureMoves(pos [][2]int, bitboards *[]uint64) {
 }
 
 
-func legalFilterBitboards(board [64]int, kingX int, kingY int, isWhite bool) []uint64 {
-	//TODO: pins
-	var attackBB []uint64
-	//var pinBB []uint64
+func buildPinArray(kingX int, kingY int, pinPieces [][4]int) [64]uint64 {
+	var pinArray [64]uint64
+	for _, i := range pinPieces {
+		atkX := i[0]
+		atkY := i[1]
+		pX := i[2]
+		pY := i[3]
 
-	attackPos, _ := getAtttackPin(board, kingX, kingY, isWhite)
+		arrayInx := pX * 8 + pY
+		bitboard := fillBitboard(kingX, kingY, atkX, atkY)
+
+		pinArray[arrayInx] = bitboard
+	}
+
+	return pinArray
+}
+
+
+func legalFilterBitboards(board [64]int, kingX int, kingY int, isWhite bool) ([]uint64, [64]uint64) {
+	//TODO: edge case with en passant
+	var attackBB []uint64
+
+	attackPos, pinPos := getAtttackPin(board, kingX, kingY, isWhite)
 
 	for _, i := range attackPos {
 		bitboard := fillBitboard(kingX, kingY, i[0], i[1])
@@ -196,5 +215,7 @@ func legalFilterBitboards(board [64]int, kingX int, kingY int, isWhite bool) []u
 	addCaptureMoves(knight, &attackBB)
 	addCaptureMoves(pawn, &attackBB)
 
-	return attackBB
+	pinArray := buildPinArray(kingX, kingY, pinPos)
+
+	return attackBB, pinArray
 }

@@ -44,6 +44,20 @@ func blockKingAttack(x int, y int, kingAttackBlocks []uint64) bool {
 }
 
 
+func checkPin(sX int, sY int, eX int, eY int, pinArray [64]uint64) bool {
+	bitboard := pinArray[sX * 8 + sY]
+
+	if bitboard == 0 {return true}  //piece not pinned
+
+	var posBB uint64
+	setBitBoard(&posBB, eX * 8 + eY)
+
+	good := bitboard & posBB
+
+	return good != 0
+}
+
+
 func rookMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	dirInx := x * 64 + y * 8
 
@@ -57,8 +71,9 @@ func rookMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 
 			goodSq, capture := canMove(state.Board, newX, newY, pieceValue)
 			blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
+			pin := checkPin(x, y, newX, newY, state.pinArray)
 
-			if goodSq && blocking{
+			if goodSq && blocking && pin {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 				*resultSlice = append(*resultSlice, m)
 			}
@@ -83,8 +98,9 @@ func bishopMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]M
 
 			goodSq, capture := canMove(state.Board, newX, newY, pieceValue)
 			blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
+			pin := checkPin(x, y, newX, newY, state.pinArray)
 
-			if goodSq && blocking {
+			if goodSq && blocking && pin {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 				*resultSlice = append(*resultSlice, m)
 			}
@@ -147,8 +163,9 @@ func knightMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]M
 
 				good, _ := canMove(state.Board, newX, newY, pieceValue)
 				blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
+				pin := checkPin(x, y, newX, newY, state.pinArray)
 
-				if good && blocking {
+				if good && blocking && pin {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 					*resultSlice = append(*resultSlice, m)
 				}
@@ -183,8 +200,9 @@ func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 
 		good, capture := canMove(state.Board, newX, y, pieceValue)
 		blocking := blockKingAttack(newX, y, state.kingAttackBlocks)
+		pin := checkPin(x, y, newX, y, state.pinArray)
 
-		if good && !capture && blocking {
+		if good && !capture && blocking && pin {
 			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue}
 			*resultSlice = append(*resultSlice, m)
 		}
@@ -198,8 +216,9 @@ func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 		if 0 <= newY && newY < 8 {
 			good, capture := canMove(state.Board, newX, newY, pieceValue)
 			blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
+			pin := checkPin(x, y, newX, newY, state.pinArray)
 
-			if good && capture && blocking {
+			if good && capture && blocking && pin {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 				*resultSlice = append(*resultSlice, m)
 			}
@@ -231,6 +250,7 @@ func specialMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]
 
 func GetPieceMoves(state GameState, x int, y int, resultSlice *[]Move) {
 	pieceValue := state.Board[x * 8 + y]
+
 	if pieceValue != 0 {
 		var inx int
 
@@ -249,6 +269,6 @@ func GetPieceMoves(state GameState, x int, y int, resultSlice *[]Move) {
 		//perform any special moves (en passant, castling etc.). These will be appended to the slice
 		specialMoves(state, x, y, pieceValue, resultSlice)
 	} else {
-		panic("piece value not 0")
+		panic("trying to find move for empty square")
 	}
 }
