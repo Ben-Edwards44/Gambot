@@ -43,9 +43,14 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 
 	state := GameState{Board: b, WhiteToMove: whiteMove, WhiteKingCastle: wkCastle, WhiteQueenCastle: wqCastle, BlackKingCastle: bkCastle, BlackQueenCastle: bqCastle, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
 
-	otherBitBoard, otherMoves := getOtherMoveBitBoard(state)
+	otherBitBoard, _ := getOtherMoveBitBoard(state)
 	kingX, kingY := getPiecePos(state, 5)
-	kAttackBlock := getKingAttackBlock(kingX, kingY, otherMoves)
+	kAttackBlock := legalFilterBitboards(state.Board, kingX, kingY, state.WhiteToMove)
+	//old := getKingAttackBlock(kingX, kingY, otherMoves)
+
+	//if old != kAttackBlock {
+	//	panic("Bitboards not same")
+	//}
 
 	state.otherMoveBitBoard = otherBitBoard
 	state.kingAttackBlocks = kAttackBlock
