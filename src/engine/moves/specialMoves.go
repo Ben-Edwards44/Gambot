@@ -33,6 +33,19 @@ func enPassant(state GameState, currentX int, currentY int, pieceValue int) Move
 }
 
 
+func promotion(x int, y int, pieceValue int, resultSlice *[]Move) {
+	//assume piece is a pawn and is on last rank
+	for i := 1; i < 6; i++ {
+		if i == 4 {continue}  //cannot promote to king
+		
+		value := pieceValue + i
+		move := Move{StartX: x, StartY: y, EndX: x, EndY: y, PieceValue: pieceValue, promotionValue: value}
+
+		*resultSlice = append(*resultSlice, move)
+	}
+}
+
+
 func castle(state GameState, pieceValue int, resultSlice *[]Move) {
 	//black values
 	rookValue := 10

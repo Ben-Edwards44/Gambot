@@ -10,8 +10,9 @@ type Move struct {
 
 	PieceValue int
 
-	//TODO: add flags like en passant, promotions etc.
+	//special moves
 	EnPassant bool
 	KingCastle bool
 	QueenCastle bool
+	promotionValue int
 }

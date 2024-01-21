@@ -178,6 +178,7 @@ func knightMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]M
 func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
 	if x == 0 || x == 7 {
 		//on back rank
+		promotion(x, y, pieceValue, resultSlice)
 		return
 	}
 
