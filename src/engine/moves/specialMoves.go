@@ -89,6 +89,11 @@ func castle(state GameState, pieceValue int, resultSlice *[]Move) {
 				}
 			}
 
+			//extra check for queenside only (other positions will have been checked in above loop)
+			if state.Board[qRookPos + 1] != 0 {
+				pieceInWay = true
+			}
+
 			//bitwise AND the bitboards to ensure no crossover
 			if !pieceInWay && (badBitBoard & state.otherMoveBitBoard == 0) {
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 2, PieceValue: kingPos, QueenCastle: true}

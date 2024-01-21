@@ -46,14 +46,9 @@ def select(board):
         selected_piece = piece
 
 
-def make_move(board, legal_moves, start_x, start_y, end_x, end_y, piece_value):
-    if [end_x, end_y] not in legal_moves:
-        return
-    
-    #move piece
-    board[start_x][start_y] = 0
-    board[end_x][end_y] = piece_value
-    
+def special_moves(board, start_x, start_y, end_y, piece_value):
+    is_white = piece_value < 7
+
     #en passant - capture other pawn
     px, py = game_state.game_state_obj.prev_pawn_double
     if (piece_value == 1 or piece_value == 7) and px == start_x and py == end_y:
@@ -71,6 +66,42 @@ def make_move(board, legal_moves, start_x, start_y, end_x, end_y, piece_value):
             rook_value = board[start_x][0]
             board[start_x][0] = 0
             board[start_x][start_y - 1] = rook_value
+
+        #we are moving king so castling not allowed
+        if is_white:
+            game_state.game_state_obj.white_king_castle = False
+            game_state.game_state_obj.white_queen_castle = False
+        else:
+            game_state.game_state_obj.black_king_castle = False
+            game_state.game_state_obj.black_queen_castle = False
+    elif piece_value == 4 or piece_value == 10:
+        #moving rook so castling no longer allowed
+
+        kingside = start_y == 7
+        queenside = start_y == 0
+
+        if is_white:
+            #cannot use else in case the rook has moved previously
+            if kingside:
+                game_state.game_state_obj.white_king_castle = False
+            elif queenside:
+                game_state.game_state_obj.white_queen_castle = False
+        else:
+            if kingside:
+                game_state.game_state_obj.black_king_castle = False
+            elif queenside:
+                game_state.game_state_obj.black_queen_castle = False
+
+    
+def make_move(board, legal_moves, start_x, start_y, end_x, end_y, piece_value):
+    if [end_x, end_y] not in legal_moves:
+        return
+    
+    #move piece
+    board[start_x][start_y] = 0
+    board[end_x][end_y] = piece_value
+    
+    special_moves(board, start_x, start_y, end_y, piece_value)
 
 
 def move_selected(board, legal_moves):
