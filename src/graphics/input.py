@@ -46,13 +46,19 @@ def select(board):
         selected_piece = piece
 
 
-def special_moves(board, start_x, start_y, end_y, piece_value):
+def special_moves(board, start_x, start_y, end_x, end_y, piece_value):
     is_white = piece_value < 7
 
-    #en passant - capture other pawn
-    px, py = game_state.game_state_obj.prev_pawn_double
-    if (piece_value == 1 or piece_value == 7) and px == start_x and py == end_y:
-        board[start_x][end_y] = 0
+    if piece_value == 1 or piece_value == 7:
+        px, py = game_state.game_state_obj.prev_pawn_double
+        if px == start_x and py == end_y:
+            #en passant - capture other pawn
+            board[start_x][end_y] = 0
+        elif end_x == 0 or end_x == 7:
+            #promotion
+            #TODO: add promotion to GUI
+            promotion_value = int(input("Enter promotion piece value: "))
+            board[end_x][end_y] = promotion_value
 
     #castling - move rook as well
     if piece_value == 5 or piece_value == 11:
@@ -101,7 +107,7 @@ def make_move(board, legal_moves, start_x, start_y, end_x, end_y, piece_value):
     board[start_x][start_y] = 0
     board[end_x][end_y] = piece_value
     
-    special_moves(board, start_x, start_y, end_y, piece_value)
+    special_moves(board, start_x, start_y, end_x, end_y, piece_value)
 
 
 def move_selected(board, legal_moves):
