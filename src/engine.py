@@ -19,6 +19,23 @@ def init():
     api.send_data("move_gen", game_state.game_state_obj)
 
 
+def run_engine():
+    #run go engine
+
+    exit_code = system("chess-engine.exe")
+    if exit_code != 0:
+        raise Exception("Go script resulted in an error")
+
+
+def perft(depth):
+    #do performance test
+
+    game_state.init_game_state(START_BOARD_STATE)
+    api.send_data("perft", game_state.game_state_obj, perft_depth=depth)
+
+    run_engine()
+
+
 def main():
     #perform one loop
 
@@ -34,7 +51,4 @@ def main():
 
     api.send_data("move_gen", graphics.game_state.game_state_obj)
 
-    #run go engine - need to ensure the most up to date version is built
-    exit_code = system("chess-engine.exe")
-    if exit_code != 0:
-        raise Exception("Go script resulted in an error")
+    run_engine()

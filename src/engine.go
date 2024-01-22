@@ -32,6 +32,15 @@ func legalMoves(stateObj moves.GameState, json map[string]string) {
 }
 
 
+func perft(stateObj moves.GameState, json map[string]string) {
+	depth, err := strconv.Atoi(json["perft_depth"])
+
+	if err != nil {panic(err)}
+
+	engine.Perft(stateObj, depth)
+}
+
+
 func Main() {
 	//TODO: not have to precompute at the start of each move (store in a file)
 	engine.PrecomputeValues()
@@ -43,5 +52,7 @@ func Main() {
 		engineMove(stateObj)
 	} else if action == "legal_moves" {
 		legalMoves(stateObj, json)
+	} else if action == "perft" {
+		perft(stateObj, json)
 	}
 }
