@@ -204,7 +204,7 @@ func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 		pin := checkPin(x, y, newX, y, state.pinArray)
 
 		if good && !capture && blocking && pin {
-			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue}
+			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, doublePawnMove: i == 2}
 			*resultSlice = append(*resultSlice, m)
 		}
 	}

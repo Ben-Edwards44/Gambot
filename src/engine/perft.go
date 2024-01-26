@@ -8,47 +8,33 @@ import (
 )
 
 
-var moveCounts map[int]int
-var donePos []map[[64]int]bool
-
-
 func Perft(stateObj moves.GameState, depth int) {
-	moveCounts = make(map[int]int)
+	prevPos := []moves.GameState{stateObj}
 
-	for i := 0; i <= depth; i++ {
-		m := make(map[[64]int]bool)
-		donePos = append(donePos, m)
-	}
+	for i := 1; i <= depth; i++ {
+		prevPos = getMoves(prevPos)
 
-	recordMoves(stateObj, 1, depth)
+		d := strconv.Itoa(i)
+		total := strconv.Itoa(len(prevPos))
 
-	for k, v := range moveCounts {
-		str := "Depth " + strconv.Itoa(k) + " : " + strconv.Itoa(v)
-		
-		fmt.Println(str)
+		fmt.Println("Depth " + d + " : " + total)
 	}
 }
 
 
-func recordMoves(state moves.GameState, depth int, maxDepth int) {
-	if depth > maxDepth {return}
+func getMoves(positions []moves.GameState) []moves.GameState {
+	var newPositions []moves.GameState
 
-	doneMap := donePos[depth]
-	moveList := moves.GenerateAllMoves(state)
+	for _, i := range positions {
+		moveList := moves.GenerateAllMoves(i)
 
-	_, exists := moveCounts[depth]
-	if !exists {moveCounts[depth] = 0}
+		for _, x := range moveList {
+			newState := moves.MakeMoveCopy(i, x)
+			updated := moves.CreateGameState(newState.Board, newState.WhiteToMove, newState.WhiteKingCastle, newState.WhiteQueenCastle, newState.BlackKingCastle, newState.BlackQueenCastle, newState.PrevPawnDouble)
 
-	for _, i := range moveList {
-		newState := moves.MakeMoveCopy(state, i)
-
-		_, doneMove := doneMap[newState.Board]
-
-		if !doneMove {
-			moveCounts[depth] += 1
-			doneMap[newState.Board] = true
+			newPositions = append(newPositions, updated)
 		}
-
-		recordMoves(newState, depth + 1, maxDepth)
 	}
+
+	return newPositions
 }

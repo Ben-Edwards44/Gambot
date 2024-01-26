@@ -11,34 +11,11 @@ type Move struct {
 	PieceValue int
 
 	//special moves
+	doublePawnMove bool
 	EnPassant bool
 	KingCastle bool
 	QueenCastle bool
 	promotionValue int
-}
-
-
-func updatePiecePos(state *GameState) {
-	//TODO: optimise (use map probably) becuase this is really slow
-
-	var whitePiecePos [][2]int 
-	var blackPiecePos [][2]int
-	for x := 0; x < 8; x++ {
-		for y := 0; y < 8; y++ {
-			piece := state.Board[x * 8 + y]
-
-			if piece != 0 {
-				if piece < 7 {
-					whitePiecePos = append(whitePiecePos, [2]int{x, y})
-				} else {
-					blackPiecePos = append(blackPiecePos, [2]int{x, y})
-				}
-			}
-		}
-	}
-
-	state.WhitePiecePos = whitePiecePos
-	state.BlackPiecePos = blackPiecePos
 }
 
 
@@ -67,6 +44,12 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 		state.Board[end - 2] = 0
 		state.Board[end + 1] = rookVal
 	}
+	
+	if move.doublePawnMove {
+		state.PrevPawnDouble = [2]int{move.EndX, move.EndY}
+	} else {
+		state.PrevPawnDouble = [2]int{-1, -1}
+	}
 
 	if move.PieceValue == 5 {
 		//white king moving
@@ -93,7 +76,6 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 	}
 
 	state.WhiteToMove = !state.WhiteToMove  //because we have just made a move
-	updatePiecePos(&state)
 
 	return state
 }
