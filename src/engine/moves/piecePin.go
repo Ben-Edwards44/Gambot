@@ -192,7 +192,7 @@ func pawnAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noK
 
 			if capture && board[pos] == kingValue {
 				var posBB uint64
-				setBitBoard(&posBB, pos)
+				setBitBoard(&posBB, x * 8 + y)
 
 				*attackBB = append(*attackBB, posBB)
 			}
