@@ -68,7 +68,7 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 		} else if move.StartY == 0 {
 			state.WhiteQueenCastle = false
 		}
-	} else if move.PieceValue == 9 {
+	} else if move.PieceValue == 10 {
 		//black rook moving
 		if move.StartY == 7 {
 			state.BlackKingCastle = false
