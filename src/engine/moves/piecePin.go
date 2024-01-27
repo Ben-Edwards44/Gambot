@@ -172,7 +172,7 @@ func knightAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, n
 
 
 func pawnAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
-	//TODO: do this
+	if x == 0 || x == 7 {return}  //on back rank so cannot put king in check
 
 	xMult := 1
 	if pieceValue < 7 {
