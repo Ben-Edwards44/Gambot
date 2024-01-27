@@ -83,7 +83,7 @@ func castle(state GameState, pieceValue int, resultSlice *[]Move) {
 			}
 
 			//bitwise AND the bitboards to ensure no crossover
-			if !pieceInWay && (badBitBoard & state.otherMoveBitBoard == 0) {
+			if !pieceInWay && (badBitBoard & state.noKingMoveBitBoard == 0) {
 				//not going into check
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 6, PieceValue: kingPos, KingCastle: true}
 				*resultSlice = append(*resultSlice, m)
@@ -110,7 +110,7 @@ func castle(state GameState, pieceValue int, resultSlice *[]Move) {
 			}
 
 			//bitwise AND the bitboards to ensure no crossover
-			if !pieceInWay && (badBitBoard & state.otherMoveBitBoard == 0) {
+			if !pieceInWay && (badBitBoard & state.noKingMoveBitBoard == 0) {
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 2, PieceValue: kingPos, QueenCastle: true}
 				*resultSlice = append(*resultSlice, m)
 			}

@@ -137,7 +137,7 @@ func kingMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 				setBitBoard(&moveBitBoard, newX * 8 + newY)
 
 				//if not moving to an attacked square
-				if moveBitBoard & state.otherMoveBitBoard == 0 {
+				if moveBitBoard & state.noKingMoveBitBoard == 0 {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 					*resultSlice = append(*resultSlice, m)
 				}
@@ -206,6 +206,8 @@ func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Mov
 		if good && !capture && blocking && pin {
 			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, doublePawnMove: i == 2}
 			*resultSlice = append(*resultSlice, m)
+		} else if !good || capture {
+			break  //to prevent double pawn move when there is a piece in front
 		}
 	}
 

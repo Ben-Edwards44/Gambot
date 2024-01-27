@@ -18,6 +18,9 @@ def temp(a):
 
 #starting position
 START_BOARD_STATE = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
+PERFT_BOARD = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
+PERFT_WHITE_TO_MOVE = True
+
 PLAYER_WHITE = True
 
 
@@ -40,11 +43,18 @@ def run_engine():
 
 def perft(depth):
     #do performance test
+    board = PERFT_BOARD
 
-    game_state.init_game_state(START_BOARD_STATE)
+    game_state.init_game_state(board)
+    game_state.game_state_obj.white_to_move = PERFT_WHITE_TO_MOVE
     api.send_data("perft", game_state.game_state_obj, perft_depth=depth)
 
     run_engine()
+
+    #temporary
+    game_state.init_game_state(board)
+    graphics.init_graphics()
+    player_move_board = graphics.graphics_loop(graphics.game_state.game_state_obj.board)
 
 
 def main():

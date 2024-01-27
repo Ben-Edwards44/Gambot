@@ -29,6 +29,8 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 	state.Board[start] = 0
 	state.Board[end] = val
 
+	state.WhiteToMove = !state.WhiteToMove  //because we have just made a move
+
 	if move.EnPassant {
 		capturePos := move.StartX * 8 + move.EndY
 		state.Board[capturePos] = 0
@@ -74,8 +76,6 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 			state.BlackQueenCastle = false
 		}
 	}
-
-	state.WhiteToMove = !state.WhiteToMove  //because we have just made a move
 
 	return state
 }
