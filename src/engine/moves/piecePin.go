@@ -5,14 +5,14 @@ var attackFunctions [6]func([64]int, int, int, int, int, *uint64, *[]uint64, *[6
 
 
 func rookAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
-	passedPiece := false
-	passedInx := -1
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
-		//get from precalculated
 		returnAfterStraight := false
-		edgeDist := dists[dirInx + dir]
+		passedPiece := false
+		passedInx := -1
+		
+		edgeDist := dists[dirInx + dir]  //get from precalculated
 
 		var currentStraight uint64
 		setBitBoard(&currentStraight, x * 8 + y)  //because we can always take the rook if it is attacking
@@ -64,14 +64,14 @@ func rookAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noK
 
 
 func bishopAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
-	passedPiece := false
-	passedInx := -1
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
-		//get from precalculated
 		returnAfterStraight := false
-		edgeDist := dists[dirInx + dir + 4]
+		passedPiece := false
+		passedInx := -1
+
+		edgeDist := dists[dirInx + dir + 4]  //get from precalculated
 
 		var currentStraight uint64
 		setBitBoard(&currentStraight, x * 8 + y)  //because we can always take the rook if it is attacking
