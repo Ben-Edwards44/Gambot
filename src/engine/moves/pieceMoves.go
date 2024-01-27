@@ -176,20 +176,23 @@ func knightMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]M
 
 
 func pawnMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
-	if x == 0 || x == 7 {
-		//on back rank
-		promotion(x, y, pieceValue, resultSlice)
-		return
-	}
+	if x == 0 || x == 7 {return}  //on back rank (although this should never happen)
 
 	isWhite := pieceValue < 7
-	onStart := (isWhite && x == 6) || (!isWhite && x == 1)
 
 	xMult := 1
 	if isWhite {
 		xMult = -1
 	}
+
+	if (isWhite && x == 1) || (!isWhite && x == 6) {
+		//promotions
+		promotion(state, x, y, pieceValue, xMult, resultSlice)
+		return
+	}
 	
+	onStart := (isWhite && x == 6) || (!isWhite && x == 1)
+
 	maxStep := 1
 	if onStart {
 		maxStep = 2

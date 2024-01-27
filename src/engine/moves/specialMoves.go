@@ -33,15 +33,32 @@ func enPassant(state GameState, currentX int, currentY int, pieceValue int) Move
 }
 
 
-func promotion(x int, y int, pieceValue int, resultSlice *[]Move) {
-	//assume piece is a pawn and is on last rank
-	for i := 1; i < 6; i++ {
-		if i == 4 {continue}  //cannot promote to king
-		
-		value := pieceValue + i
-		move := Move{StartX: x, StartY: y, EndX: x, EndY: y, PieceValue: pieceValue, promotionValue: value}
+func promotion(state GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move) {
+	//assume piece is a pawn and on second to last rank
+	newX := x + xStep
 
-		*resultSlice = append(*resultSlice, move)
+	for i := -1; i < 2; i++ {
+		newY := y + i
+
+		if newY < 0 || newY > 7 {continue}
+
+		good, capture := canMove(state.Board, newX, newY, pieceValue)
+		blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
+		pin := checkPin(x, y, newX, newY, state.pinArray)
+
+		//check pawn can move to promotion square
+		if !good {continue}
+		if capture != (i != 0) {continue}
+		if !blocking || !pin {continue}
+
+		for i := 1; i < 6; i++ {
+			if i == 4 {continue}  //cannot promote to king
+			
+			value := pieceValue + i
+			move := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue, promotionValue: value}
+
+			*resultSlice = append(*resultSlice, move)
+		}
 	}
 }
 
