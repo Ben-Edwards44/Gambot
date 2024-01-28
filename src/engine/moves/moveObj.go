@@ -53,6 +53,10 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 		state.PrevPawnDouble = [2]int{-1, -1}
 	}
 
+	if move.promotionValue != 0 {
+		state.Board[end] = move.promotionValue
+	}
+
 	if move.PieceValue == 5 {
 		//white king moving
 		state.WhiteKingCastle = false
