@@ -225,10 +225,10 @@ func enPassantPin(board [64]int, kingX int, kingY int, isWhite bool, prevPawnDou
 	distInx := kingX * 64 + kingY * 8
 
 	yStep := 1
-	edgeDist := dists[distInx + 1]
+	edgeDist := dists[distInx + 3]
 	if prevPawnDouble[1] < kingY {
 		yStep = -1
-		edgeDist = dists[distInx]
+		edgeDist = dists[distInx + 2]
 	}
 
 	passedFriend := false

@@ -65,10 +65,9 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 }
 
 
-func getPiecePos(state GameState, noColourValue int) (int, int) {
+func getPiecePos(state GameState, pieceValue int) (int, int) {
 	possible := state.WhitePiecePos
 	if !state.WhiteToMove {
-		noColourValue += 6
 		possible = state.BlackPiecePos
 	}
 
@@ -76,7 +75,7 @@ func getPiecePos(state GameState, noColourValue int) (int, int) {
 		x := i[0]
 		y := i[1]
 
-		if state.Board[x * 8 + y] == noColourValue {
+		if state.Board[x * 8 + y] == pieceValue {
 			return x, y
 		}
 	}
