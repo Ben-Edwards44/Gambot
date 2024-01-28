@@ -43,7 +43,7 @@ func rookAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noK
 						//this rook is directly attacking king (cannot return because we need to finish updating noKingArray)
 						*attackBB = append(*attackBB, currentStraight)
 
-						returnAfterStraight = true
+						returnAfterStraight = offset > 1  //we do not return after straight if a rook/queen is right next to king because other king moves must be blocked
 					}
 
 					setBitBoard(noKingBB, pos)
