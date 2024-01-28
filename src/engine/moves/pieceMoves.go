@@ -238,15 +238,7 @@ func specialMoves(state GameState, x int, y int, pieceValue int, resultSlice *[]
 	
 	if pieceValue == 1 || pieceValue == 7 {
 		//pawn - check for en passant
-		move := enPassant(state, x, y, pieceValue)
-
-		//if move actually is en passant and not just blank
-		if move.EnPassant {
-			//TODO: edge case where en passant is pinned
-
-			blocking := blockKingAttack(move.EndX, move.EndY, state.kingAttackBlocks)
-			if blocking {*resultSlice = append(*resultSlice, move)}
-		}
+		enPassant(state, x, y, pieceValue, resultSlice)
 	} else if pieceValue == 5 || pieceValue == 11 {
 		//king - check for castle
 		castle(state, pieceValue, resultSlice)

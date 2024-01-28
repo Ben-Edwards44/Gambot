@@ -1,8 +1,8 @@
 package moves
 
 
-func enPassant(state GameState, currentX int, currentY int, pieceValue int) Move {
-	if state.enPassantPin {return Move{}}  //en passant is pinned (edge case)
+func enPassant(state GameState, currentX int, currentY int, pieceValue int, resultSlice *[]Move) {
+	if state.enPassantPin {return}  //en passant is pinned (edge case)
 
 	otherX := state.PrevPawnDouble[0]
 	otherY := state.PrevPawnDouble[1]
@@ -25,11 +25,12 @@ func enPassant(state GameState, currentX int, currentY int, pieceValue int) Move
 
 			m := Move{StartX: currentX, StartY: currentY, EndX: newX, EndY: newY, PieceValue: pieceValue, EnPassant: true}
 
-			return m
+			blocking := blockKingAttack(otherX, otherY, state.kingAttackBlocks)  //we check the other pawns pos because we are (in effect) taking it
+			pin := checkPin(currentX, currentY, newX, newY, state.pinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
+			
+			if blocking && pin {*resultSlice = append(*resultSlice, m)}
 		}
 	}
-
-	return Move{}
 }
 
 
