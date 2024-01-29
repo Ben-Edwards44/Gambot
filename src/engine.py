@@ -19,7 +19,7 @@ PLAYER_WHITE = True
 def init():
     #call before first loop
 
-    game_state.init_game_state(PERFT_BOARD)
+    game_state.init_game_state(START_BOARD_STATE)
     graphics.init_graphics()
 
     api.send_data("move_gen", game_state.game_state_obj)
@@ -35,18 +35,12 @@ def run_engine():
 
 def perft(depth):
     #do performance test
-    board = PERFT_BOARD
-
-    game_state.init_game_state(board)
+    
+    game_state.init_game_state(PERFT_BOARD)
     game_state.game_state_obj.white_to_move = PERFT_WHITE_TO_MOVE
     api.send_data("perft", game_state.game_state_obj, perft_depth=depth)
 
     run_engine()
-
-    #temporary
-    game_state.init_game_state(board)
-    graphics.init_graphics()
-    graphics.graphics_loop(graphics.game_state.game_state_obj.board)
 
 
 def main():

@@ -3,6 +3,7 @@ package engine
 
 import (
 	"fmt"
+	"time"
 	"strconv"
 	"chess-engine/src/engine/moves"
 )
@@ -12,6 +13,7 @@ var fileNames [8]string = [8]string{"a", "b", "c", "d", "e", "f", "g", "h"}
 
 
 func Perft(stateObj moves.GameState, maxDepth int) {
+	start := time.Now()
 	initMoves := moves.GenerateAllMoves(stateObj)
 
 	var totals []int
@@ -55,6 +57,12 @@ func Perft(stateObj moves.GameState, maxDepth int) {
 	}
 
 	fmt.Println(totals)
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+
+	fmt.Print("Time taken: ")
+	fmt.Println(elapsed)
 }
 
 
