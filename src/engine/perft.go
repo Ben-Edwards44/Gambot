@@ -33,7 +33,7 @@ func Perft(stateObj moves.GameState, maxDepth int) {
 
 		//add the depth 1 move
 		totals[0]++
-		addToMap(key, 1, movesFromStart[0])
+		movesFromStart[0][key] += 1
 
 		new := makeMove(stateObj, move)
 		prevPos := []moves.GameState{new}
@@ -42,7 +42,7 @@ func Perft(stateObj moves.GameState, maxDepth int) {
 			prevPos = getMoves(prevPos)
 
 			totals[depth] += len(prevPos)
-			addToMap(key, len(prevPos), movesFromStart[depth])
+			movesFromStart[depth][key] += len(prevPos)
 		}
 	}
 	
@@ -66,22 +66,18 @@ func Perft(stateObj moves.GameState, maxDepth int) {
 }
 
 
-func addToMap(key string, value int, m map[string]int) {
-	_, exists := m[key]
-
-	if exists {
-		m[key] += value
-	} else {
-		m[key] = value
-	}
-}
-
-
 func makeMove(currentState moves.GameState, move moves.Move) moves.GameState {
 	newState := moves.MakeMoveCopy(currentState, move)
-	updated := moves.CreateGameState(newState.Board, newState.WhiteToMove, newState.WhiteKingCastle, newState.WhiteQueenCastle, newState.BlackKingCastle, newState.BlackQueenCastle, newState.PrevPawnDouble)
+	//old := newState.BlackPiecePos
+	//updated := moves.CreateGameState(newState.Board, newState.WhiteToMove, newState.WhiteKingCastle, newState.WhiteQueenCastle, newState.BlackKingCastle, newState.BlackQueenCastle, newState.PrevPawnDouble)
 
-	return updated
+	//fmt.Print("Old: ")
+	//fmt.Println(old)
+	//fmt.Print("New: ")
+	//fmt.Println(updated.BlackPiecePos)
+	//fmt.Println(updated.WhiteToMove)
+
+	return newState
 }
 
 

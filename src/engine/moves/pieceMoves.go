@@ -1,6 +1,9 @@
 package moves
 
 
+import "fmt"
+
+
 //array matching piece values to their appropriate move functions
 var moveFunctions [6]func(GameState, int, int, int, *[]Move) = [6]func(GameState, int, int, int, *[]Move) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
@@ -279,10 +282,17 @@ func GenerateAllMoves(state GameState) []Move {
 	if state.WhiteToMove {
 		piecePos = state.WhitePiecePos
 	}
-	
+
+
+	fmt.Println(state.Board)
+	fmt.Println(piecePos)
+	fmt.Println(state.WhiteToMove)
+
 	var moves []Move
-	for _, i := range piecePos {	
-		GetPieceMoves(state, i[0], i[1], &moves)
+	for _, moveList := range piecePos {	
+		for _, i := range moveList {
+			GetPieceMoves(state, i[0], i[1], &moves)
+		}
 	}
 
 	return moves
