@@ -25,6 +25,19 @@ func removeFromSlice(s [][2]int, inx int) [][2]int {
 }
 
 
+func movePos(slice [][2]int, sX int, sY int, eX int, eY int) {
+	//Note that slices are passed by reference, so no need for pointer
+	for i, x := range slice {
+		if x[0] == sX && x[1] == sY {
+			//update the piece to the new position
+			slice[i][0] = eX
+			slice[i][1] = eY
+			break
+		}
+	}
+}
+
+
 func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 	isWhite := sVal < 7
 
@@ -33,32 +46,34 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 
 		eVal := state.Board[ePos]
 
-		var friend [][2]int
+		var friend [6][][2]int
 		var enemy [6][][2]int
+		var friendInx int
 		var enemyInx int
 		if isWhite {
-			friend = state.WhitePiecePos[sVal - 1]
+			friend = state.WhitePiecePos
 			enemy = state.BlackPiecePos
+			friendInx = sVal - 1
 			enemyInx = eVal - 7
 		} else {
-			friend = state.BlackPiecePos[sVal - 7]
+			friend = state.BlackPiecePos
 			enemy = state.WhitePiecePos
+			friendInx = sVal - 7
 			enemyInx = eVal - 1
 		}
 
-		for i, x := range friend {
-			if x[0] == move.StartX && x[1] == move.StartY {
-				//update the piece to the new position
-				friend[i][0] = move.EndX
-				friend[i][1] = move.EndY
-				break
-			}
+		movePos(friend[friendInx], move.StartX, move.StartY, move.EndX, move.EndY)  //move piece
+
+		if move.KingCastle {
+			movePos(friend[3], move.StartX, 7, move.EndX, 5)  //move the rook as well
+		} else if move.QueenCastle {
+			movePos(friend[3], move.StartX, 0, move.EndX, 3)  //move the rook as well
 		}
 
 		if isWhite {
-			state.WhitePiecePos[sVal - 1] = friend
+			state.WhitePiecePos = friend
 		} else {
-			state.BlackPiecePos[sVal - 7] = friend
+			state.BlackPiecePos = friend
 		}
 
 		captX := -1
@@ -114,7 +129,7 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 			}
 
 			//add the new piece
-			state.BlackPiecePos[move.promotionValue - 1] = append(state.BlackPiecePos[move.promotionValue - 1], newPos)
+			state.BlackPiecePos[move.promotionValue - 7] = append(state.BlackPiecePos[move.promotionValue - 7], newPos)
 		}
 	}
 } 
