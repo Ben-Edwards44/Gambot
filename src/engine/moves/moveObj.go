@@ -1,9 +1,6 @@
 package moves
 
 
-import "fmt"
-
-
 type Move struct {
 	StartX int
 	StartY int
@@ -70,7 +67,6 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 				if x[0] == move.EndX && x[1] == move.EndY {
 					//update the piece to the new position
 					enemy[enemyInx] = removeFromSlice(enemy[enemyInx], i)
-					fmt.Println("Capture")
 					break
 				}
 			}
@@ -108,10 +104,6 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 			state.BlackPiecePos[move.promotionValue - 1] = append(state.BlackPiecePos[move.promotionValue - 1], newPos)
 		}
 	}
-
-	fmt.Println(move)
-	fmt.Println(state.WhitePiecePos)
-	fmt.Println(state.BlackPiecePos)
 } 
 
 
@@ -119,11 +111,11 @@ func updateBitboards(state *GameState) {
 	//TODO: make faster??
 
 	kingVal := 11
-	kingPos := state.BlackPiecePos[5][0]
+	kingPos := state.BlackPiecePos[4][0]  //4 not 5 because we are converting from piece value to index
 	otherPieces := state.WhitePiecePos
 	if state.WhiteToMove {
 		kingVal = 5
-		kingPos = state.WhitePiecePos[5][0]
+		kingPos = state.WhitePiecePos[4][0]  //4 not 5 because we are converting from piece value to index
 		otherPieces = state.BlackPiecePos
 	}
 
@@ -138,14 +130,16 @@ func updateBitboards(state *GameState) {
 }
 
 
-func MakeMoveCopy(state GameState, move Move) GameState {
-	//returns a new copy of a game state
+func MakeMove(state *GameState, move Move) {
+	//updates game state
+
+	state.SetPrevVals()  //so that we can restore later
 
 	start := move.StartX * 8 + move.StartY
 	end := move.EndX * 8 + move.EndY
 	val := move.PieceValue
 
-	updatePiecePos(move, start, end, val, &state)
+	updatePiecePos(move, start, end, val, state)
 
 	state.Board[start] = 0
 	state.Board[end] = val
@@ -202,7 +196,10 @@ func MakeMoveCopy(state GameState, move Move) GameState {
 		}
 	}
 
-	updateBitboards(&state)
+	updateBitboards(state)
+}
 
-	return state
+
+func UnMakeLastMove(state *GameState) {
+	state.RestorePrev()
 }

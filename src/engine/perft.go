@@ -4,94 +4,60 @@ package engine
 import (
 	"fmt"
 	"time"
-	"strconv"
 	"chess-engine/src/engine/moves"
 )
 
 
-var fileNames [8]string = [8]string{"a", "b", "c", "d", "e", "f", "g", "h"}
-
-
 func Perft(stateObj moves.GameState, maxDepth int) {
+	//test(&stateObj, maxDepth)
+	//return
 	start := time.Now()
-	initMoves := moves.GenerateAllMoves(stateObj)
-
-	var totals []int
-	var movesFromStart []map[string]int
-	for i := 0; i < maxDepth; i++ {
-		totals = append(totals, 0)
-		movesFromStart = append(movesFromStart, make(map[string]int))
-	}
-
-	for _, move := range initMoves {
-		startRank := strconv.Itoa(8 - move.StartX)
-		startFile := fileNames[move.StartY]
-		endRank := strconv.Itoa(8 - move.EndX)
-		endFile := fileNames[move.EndY]
-
-		key := startFile + startRank + endFile + endRank
-
-		//add the depth 1 move
-		totals[0]++
-		movesFromStart[0][key] += 1
-
-		new := makeMove(stateObj, move)
-		prevPos := []moves.GameState{new}
-
-		for depth := 1; depth < maxDepth; depth++ {
-			prevPos = getMoves(prevPos)
-
-			totals[depth] += len(prevPos)
-			movesFromStart[depth][key] += len(prevPos)
-		}
-	}
 	
-	for i, x := range movesFromStart {
-		fmt.Println("Depth " + strconv.Itoa(i + 1) + ":")
-		
-		for k, v := range x {
-			fmt.Println(k + ": " + strconv.Itoa(v))
-		}
-
-		fmt.Println()
-	}
-
-	fmt.Println(totals)
+	nodes := bulkCount(&stateObj, maxDepth)
 
 	end := time.Now()
 	elapsed := end.Sub(start)
+
+	fmt.Print("Nodes searched: ")
+	fmt.Println(nodes)
 
 	fmt.Print("Time taken: ")
 	fmt.Println(elapsed)
 }
 
 
-func makeMove(currentState moves.GameState, move moves.Move) moves.GameState {
-	newState := moves.MakeMoveCopy(currentState, move)
-	//old := newState.BlackPiecePos
-	//updated := moves.CreateGameState(newState.Board, newState.WhiteToMove, newState.WhiteKingCastle, newState.WhiteQueenCastle, newState.BlackKingCastle, newState.BlackQueenCastle, newState.PrevPawnDouble)
+func test(state *moves.GameState, depth int) {
+	for i := 0; i < depth; i++ {
+		m := moves.GenerateAllMoves(*state)
+		moves.MakeMove(state, m[0])
 
-	//fmt.Print("Old: ")
-	//fmt.Println(old)
-	//fmt.Print("New: ")
-	//fmt.Println(updated.BlackPiecePos)
-	//fmt.Println(updated.WhiteToMove)
+		fmt.Println(i)
+		fmt.Println(state.PrvWhitePiecePos)
+		fmt.Println(state.PrvBlackPiecePos)
+		fmt.Print("\n\n")
+	}
+	for i := 0; i < depth; i++ {
+		moves.UnMakeLastMove(state)
 
-	return newState
+		fmt.Println(i)
+		fmt.Println(state.WhitePiecePos)
+		fmt.Println(state.BlackPiecePos)
+		fmt.Print("\n\n")
+	}
 }
 
 
-func getMoves(positions []moves.GameState) []moves.GameState {
-	var newPositions []moves.GameState
+func bulkCount(position *moves.GameState, depth int) int {	
+	moveList := moves.GenerateAllMoves(*position)
 
-	for _, i := range positions {
-		moveList := moves.GenerateAllMoves(i)
+	if depth == 1 {return len(moveList)}
 
-		for _, x := range moveList {
-			new := makeMove(i, x)
-			newPositions = append(newPositions, new)
-		}
+	total := 0
+	for _, i := range moveList {
+		moves.MakeMove(position, i)
+		total += bulkCount(position, depth - 1)
+		moves.UnMakeLastMove(position)
 	}
 
-	return newPositions
+	return total
 }
