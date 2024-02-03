@@ -6,13 +6,13 @@ import (
 )
 
 
-func CalculateMove(stateObj moves.GameState) moves.GameState {
+func CalculateMove(stateObj *moves.GameState) moves.GameState {
 	//TODO: return a new game state with the engine's move
-	return stateObj
+	return *stateObj
 }
 
 
-func GetLegalMoves(stateObj moves.GameState, x int, y int) [][2]int {
+func GetLegalMoves(stateObj *moves.GameState, x int, y int) [][2]int {
 	var legalMoves []moves.Move
 	
 	moves.GetPieceMoves(stateObj, x, y, &legalMoves)

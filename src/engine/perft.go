@@ -8,10 +8,10 @@ import (
 )
 
 
-func Perft(stateObj moves.GameState, maxDepth int) {
+func Perft(stateObj *moves.GameState, maxDepth int) {
 	start := time.Now()
 	
-	nodes := bulkCount(&stateObj, maxDepth)
+	nodes := bulkCount(stateObj, maxDepth)
 
 	end := time.Now()
 	elapsed := end.Sub(start)
@@ -25,7 +25,7 @@ func Perft(stateObj moves.GameState, maxDepth int) {
 
 
 func bulkCount(position *moves.GameState, depth int) int {	
-	moveList := moves.GenerateAllMoves(*position)
+	moveList := moves.GenerateAllMoves(position)
 
 	if depth == 1 {return len(moveList)}
 

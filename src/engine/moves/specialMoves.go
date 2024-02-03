@@ -1,7 +1,7 @@
 package moves
 
 
-func enPassant(state GameState, currentX int, currentY int, pieceValue int, resultSlice *[]Move) {
+func enPassant(state *GameState, currentX int, currentY int, pieceValue int, resultSlice *[]Move) {
 	if state.enPassantPin {return}  //en passant is pinned (edge case)
 
 	otherX := state.PrevPawnDouble[0]
@@ -34,7 +34,7 @@ func enPassant(state GameState, currentX int, currentY int, pieceValue int, resu
 }
 
 
-func promotion(state GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move) {
+func promotion(state *GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move) {
 	//assume piece is a pawn and on second to last rank
 	newX := x + xStep
 
@@ -64,7 +64,7 @@ func promotion(state GameState, x int, y int, pieceValue int, xStep int, resultS
 }
 
 
-func castle(state GameState, pieceValue int, resultSlice *[]Move) {
+func castle(state *GameState, pieceValue int, resultSlice *[]Move) {
 	//black values
 	rookValue := 10
 	kingValue := 11

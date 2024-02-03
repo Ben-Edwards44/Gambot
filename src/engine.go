@@ -9,14 +9,14 @@ import (
 )
 
 
-func engineMove(stateObj moves.GameState) {
+func engineMove(stateObj *moves.GameState) {
 	newState := engine.CalculateMove(stateObj)
 
 	api.WriteState(newState)
 }
 
 
-func legalMoves(stateObj moves.GameState, json map[string]string) {
+func legalMoves(stateObj *moves.GameState, json map[string]string) {
 	x, err1 := strconv.Atoi(json["piece_x"])
 	y, err2 := strconv.Atoi(json["piece_y"])
 
@@ -32,7 +32,7 @@ func legalMoves(stateObj moves.GameState, json map[string]string) {
 }
 
 
-func perft(stateObj moves.GameState, json map[string]string) {
+func perft(stateObj *moves.GameState, json map[string]string) {
 	depth, err := strconv.Atoi(json["perft_depth"])
 
 	if err != nil {panic(err)}
@@ -49,10 +49,10 @@ func Main() {
 	action := json["task"]
 
 	if action == "move_gen" {
-		engineMove(stateObj)
+		engineMove(&stateObj)
 	} else if action == "legal_moves" {
-		legalMoves(stateObj, json)
+		legalMoves(&stateObj, json)
 	} else if action == "perft" {
-		perft(stateObj, json)
+		perft(&stateObj, json)
 	}
 }
