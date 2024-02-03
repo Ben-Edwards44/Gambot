@@ -61,10 +61,23 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 			state.BlackPiecePos[sVal - 7] = friend
 		}
 
-		//if needed, remove position of captured piece
+		captX := -1
+		captY := -1
+
 		if eVal != 0 {
+			captX = move.EndX
+			captY = move.EndY
+		} else if move.EnPassant {
+			captX = move.StartX
+			captY = move.EndY
+
+			enemyInx = 0  //the en passant capture must be a pawn
+		}
+
+		//if needed, remove position of captured piece
+		if captX != -1 {
 			for i, x := range enemy[enemyInx] {
-				if x[0] == move.EndX && x[1] == move.EndY {
+				if x[0] == captX && x[1] == captY {
 					//update the piece to the new position
 					enemy[enemyInx] = removeFromSlice(enemy[enemyInx], i)
 					break
