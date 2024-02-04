@@ -3,11 +3,17 @@ package engine
 
 import (
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/search"
 )
 
 
 func CalculateMove(stateObj *moves.GameState) moves.GameState {
-	//TODO: return a new game state with the engine's move
+	//TODO: use pointer for return rather than value
+
+	move := search.GetBestMove(stateObj)
+
+	moves.MakeMove(stateObj, move)
+	
 	return *stateObj
 }
 
