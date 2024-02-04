@@ -3,11 +3,20 @@ import src.graphics.main as graphics
 import src.graphics.game_state as game_state
 
 from os import system
+from time import time
 
 
-#starting position
 START_BOARD_STATE = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
-PERFT_BOARD = [[10, 0, 0, 0, 11, 0, 0, 10], [7, 0, 7, 7, 12, 7, 9, 0], [9, 8, 0, 0, 7, 8, 7, 0], [0, 0, 0, 1, 2, 0, 0, 0], [0, 7, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 6, 0, 7], [1, 1, 1, 3, 3, 1, 1, 1], [4, 0, 0, 0, 5, 0, 0, 4]]
+
+PERFT_BOARDS = [
+    [[10, 0, 0, 0, 11, 0, 0, 10], [7, 0, 7, 7, 12, 7, 9, 0], [9, 8, 0, 0, 7, 8, 7, 0], [0, 0, 0, 1, 2, 0, 0, 0], [0, 7, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 6, 0, 7], [1, 1, 1, 3, 3, 1, 1, 1], [4, 0, 0, 0, 5, 0, 0, 4]],
+    [[10, 0, 0, 0, 11, 0, 0, 10], [7, 0, 7, 7, 12, 7, 9, 0], [9, 8, 0, 0, 7, 8, 7, 0], [0, 0, 0, 1, 2, 0, 0, 0], [0, 7, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 6, 0, 7], [1, 1, 1, 3, 3, 1, 1, 1], [4, 0, 0, 0, 5, 0, 0, 4]],
+    [[0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 7, 0, 0, 0, 0, 0], [0, 0, 0, 7, 0, 0, 0, 0], [5, 1, 0, 0, 0, 0, 0, 10], [0, 4, 0, 0, 0, 7, 0, 11], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0]],
+    [[10, 0, 0, 0, 11, 0, 0, 10], [1, 7, 7, 7, 0, 7, 7, 7], [0, 9, 0, 0, 0, 8, 9, 2], [8, 1, 0, 0, 0, 0, 0, 0], [3, 3, 1, 0, 1, 0, 0, 0], [12, 0, 0, 0, 0, 2, 0, 0], [1, 7, 0, 1, 0, 0, 1, 1], [4, 0, 0, 6, 0, 4, 5, 0]],
+    [[10, 8, 9, 12, 0, 11, 0, 10], [7, 7, 0, 1, 9, 7, 7, 7], [0, 0, 7, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 2, 8, 1, 1], [4, 2, 3, 6, 5, 0, 0, 4]],
+    [[10, 0, 0, 0, 0, 10, 11, 0], [0, 7, 7, 0, 12, 7, 7, 7], [7, 0, 8, 7, 0, 8, 0, 0], [0, 0, 9, 0, 7, 0, 3, 0], [0, 0, 3, 0, 1, 0, 9, 0], [1, 0, 2, 1, 0, 2, 0, 0], [0, 1, 1, 0, 6, 1, 1, 1], [4, 0, 0, 0, 0, 4, 5, 0]]
+]
+
 PERFT_WHITE_TO_MOVE = True
 
 PLAYER_WHITE = True
@@ -31,13 +40,20 @@ def run_engine():
 
 
 def perft(depth):
-    #do performance test
+    #do performance test. NOTE: white to move is assumed
     
-    game_state.init_game_state(PERFT_BOARD)
-    game_state.game_state_obj.white_to_move = PERFT_WHITE_TO_MOVE
-    api.send_data("perft", game_state.game_state_obj, perft_depth=depth)
+    start = time()
 
-    run_engine()
+    for pos_num, board in enumerate(PERFT_BOARDS):
+        game_state.init_game_state(board)
+        api.send_data("perft", game_state.game_state_obj, perft_depth=depth)
+
+        print(f"Position {pos_num}:")
+        run_engine()
+
+    end = time()
+
+    print(f"Total time: {end - start :.3f}s")
 
 
 def main():
