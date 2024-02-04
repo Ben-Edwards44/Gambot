@@ -156,7 +156,7 @@ func updateBitboards(state *GameState) {
 	kingY := kingPos[1]
 	kAttackBlock, pinArray, noKingMove, enPassantPin := getFilterBitboards(state.Board, kingX, kingY, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
 
-	state.noKingMoveBitBoard = noKingMove
+	state.NoKingMoveBitBoard = noKingMove
 	state.kingAttackBlocks = kAttackBlock
 	state.pinArray = pinArray
 	state.enPassantPin = enPassantPin

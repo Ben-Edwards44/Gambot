@@ -17,7 +17,7 @@ type GameState struct {
 	WhitePiecePos [6][][2]int
 	BlackPiecePos [6][][2]int
 
-	noKingMoveBitBoard uint64
+	NoKingMoveBitBoard uint64
 	kingAttackBlocks []uint64
 
 	pinArray [64]uint64
@@ -72,7 +72,7 @@ func (state *GameState) SetPrevVals() {
 	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
 	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, cpyWhitePiecePos)
 	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, cpyBlackPiecePos)
-	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.noKingMoveBitBoard)
+	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.NoKingMoveBitBoard)
 	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
 	state.prvPinArray = append(state.prvPinArray, state.pinArray)
 	state.prvEnPassantPin = append(state.prvEnPassantPin, state.enPassantPin)
@@ -92,7 +92,7 @@ func (state *GameState) RestorePrev() {
 	state.PrevPawnDouble = state.prvPrevPawnDouble[len(state.prvPrevPawnDouble) - 1]
 	state.WhitePiecePos = state.PrvWhitePiecePos[len(state.PrvWhitePiecePos) - 1]//cpyWhitePiecePos
 	state.BlackPiecePos = state.PrvBlackPiecePos[len(state.PrvBlackPiecePos) - 1]//cpyBlackPiecePos
-	state.noKingMoveBitBoard = state.prvNoKingMoveBitBoard[len(state.prvNoKingMoveBitBoard) - 1]
+	state.NoKingMoveBitBoard = state.prvNoKingMoveBitBoard[len(state.prvNoKingMoveBitBoard) - 1]
 	state.kingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
 	state.pinArray = state.prvPinArray[len(state.prvPinArray) - 1]
 	state.enPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
@@ -150,7 +150,7 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 	kingY := kingPos[1]
 	kAttackBlock, pinArray, noKingMove, enPassantPin := getFilterBitboards(state.Board, kingX, kingY, kingVal, otherPieces, whiteMove, pDouble)
 
-	state.noKingMoveBitBoard = noKingMove
+	state.NoKingMoveBitBoard = noKingMove
 	state.kingAttackBlocks = kAttackBlock
 	state.pinArray = pinArray
 	state.enPassantPin = enPassantPin

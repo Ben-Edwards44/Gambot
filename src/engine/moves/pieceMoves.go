@@ -137,7 +137,7 @@ func kingMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 				setBitBoard(&moveBitBoard, newX * 8 + newY)
 
 				//if not moving to an attacked square
-				if moveBitBoard & state.noKingMoveBitBoard == 0 {
+				if moveBitBoard & state.NoKingMoveBitBoard == 0 {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
 					*resultSlice = append(*resultSlice, m)
 				}
