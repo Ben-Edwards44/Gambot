@@ -55,7 +55,7 @@ def get_images():
         img_names = listdir(path)
 
         #images in form {name : path} e.g. {"queen" : "Images/White/queen.png"}
-        images.append({x[:-4] : f"{path}\\{x}" for x in img_names})
+        images.append({x[:-4] : f"{path}/{x}" for x in img_names})
 
     return images
 
