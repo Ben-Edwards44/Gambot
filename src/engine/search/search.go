@@ -71,39 +71,48 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 }
 
 
-func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int) int {
+func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int) (int, moves.Move) {
 	//NOTE: white is the max player
-	if depth == 0 {return eval(state)}
+	if depth == 0 {return eval(state), moves.Move{}}
 
 	moveList := moves.GenerateAllMoves(state)
 	orderMoves(state, moveList)
 
-	if len(moveList) == 0 {return checkWin(state, isWhite)}  //terminal node
+	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //terminal node
 
 	bestScore := INF
 	if isWhite {
 		bestScore = -INF
 	} 
 
+	var bestMove moves.Move
 	for _, i := range moveList {
 		moves.MakeMove(state, i)
-		score := minimax(state, !isWhite, depth - 1, alpha, beta)
+		score, _ := minimax(state, !isWhite, depth - 1, alpha, beta)
 		moves.UnMakeLastMove(state)
 
 		if isWhite {
 			//max player
-			if score > bestScore {bestScore = score}
+			if score > bestScore {
+				bestScore = score
+				bestMove = i
+			}
+
 			if score > alpha {alpha = score}
 		} else {
 			//min player
-			if score < bestScore {bestScore = score}
+			if score < bestScore {
+				bestScore = score
+				bestMove = i
+			}
+
 			if score < beta {beta = score}
 		}
 
 		if beta <= alpha {break}  //prune position (opponent already has a better position)
 	}
 
-	return bestScore
+	return bestScore, bestMove
 }
 
 
@@ -112,24 +121,7 @@ func GetBestMove(state *moves.GameState) moves.Move {
 
 	maxDepth := 4  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
 
-	possibleMoves := moves.GenerateAllMoves(state)  //NOTE: it is faster not to order these moves because it does not really do much
-
-	chosen := false
-	maxPlayer := state.WhiteToMove
-
-	var bestMove moves.Move
-	var bestScore int
-	for _, i := range possibleMoves {
-		moves.MakeMove(state, i)
-		score := minimax(state, state.WhiteToMove, maxDepth - 1, -INF, INF)  //-1 because we are already searching at depth 1
-		moves.UnMakeLastMove(state)
-
-		if !chosen || ((maxPlayer && score > bestScore) || (!maxPlayer && score < bestScore)) {
-			bestMove = i
-			bestScore = score
-			chosen = true
-		}
-	}
+	_, bestMove := minimax(state, state.WhiteToMove, maxDepth, -INF, INF)
 
 	end := time.Now()
 	elapsed := end.Sub(start)
