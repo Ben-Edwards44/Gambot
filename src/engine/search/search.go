@@ -33,49 +33,56 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 }
 
 
-func minimax(state *moves.GameState, isWhite bool, depth int) (int, moves.Move) {
+func minimax(state *moves.GameState, isWhite bool, depth int) int {
 	//NOTE: white is the max player
-	if depth == 0 {return eval(state), moves.Move{}}
+	if depth == 0 {return eval(state)}
 
 	moveList := moves.GenerateAllMoves(state)
 
-	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //terminal node
+	if len(moveList) == 0 {return checkWin(state, isWhite)}  //terminal node
 
 	var scores []int
 	for _, i := range moveList {
 		moves.MakeMove(state, i)
-		score, _ := minimax(state, !isWhite, depth - 1)
+		score := minimax(state, !isWhite, depth - 1)
 		moves.UnMakeLastMove(state)
 
 		scores = append(scores, score)
 	}
 
 	bestScore := scores[0]
-	bestMove := moveList[0]
 
-	for i, score := range scores[1:] {
-		if isWhite {
-			//max player
-			if score > bestScore {
-				bestScore = score
-				bestMove = moveList[i + 1]  //+1 because we exclude the first move from the loop
-			}
-		} else {
-			//min player
-			if score < bestScore {
-				bestScore = score
-				bestMove = moveList[i + 1]  //+1 because we exclude the first move from the loop
-			}
+	for _, score := range scores[1:] {
+		if (isWhite && score > bestScore) || (!isWhite && score < bestScore) {
+			bestScore = score
 		}
 	}
 
-	return bestScore, bestMove
+	return bestScore
 }
 
 
 func GetBestMove(state *moves.GameState) moves.Move {
-	maxDepth := 3
-	_, move := minimax(state, state.WhiteToMove, maxDepth)
+	maxDepth := 3  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
 
-	return move
+	possibleMoves := moves.GenerateAllMoves(state)
+
+	chosen := false
+	maxPlayer := state.WhiteToMove
+
+	var bestMove moves.Move
+	var bestScore int
+	for _, i := range possibleMoves {
+		moves.MakeMove(state, i)
+		score := minimax(state, state.WhiteToMove, maxDepth - 1)  //-1 because we are already searching at depth 1
+		moves.UnMakeLastMove(state)
+
+		if !chosen || ((maxPlayer && score > bestScore) || (!maxPlayer && score < bestScore)) {
+			bestMove = i
+			bestScore = score
+			chosen = true
+		}
+	}
+
+	return bestMove
 }
