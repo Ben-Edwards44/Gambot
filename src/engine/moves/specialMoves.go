@@ -56,7 +56,7 @@ func promotion(state *GameState, x int, y int, pieceValue int, xStep int, result
 			if i == 4 {continue}  //cannot promote to king
 			
 			value := pieceValue + i
-			move := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue, promotionValue: value}
+			move := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue, PromotionValue: value}
 
 			*resultSlice = append(*resultSlice, move)
 		}

@@ -1,10 +1,45 @@
 package search
 
 
-import "chess-engine/src/engine/moves"
-
+import (
+	"fmt"
+	"time"
+	"chess-engine/src/engine/moves"
+)
 
 const INF int = 100000
+
+
+func getMoveOrder(state *moves.GameState, move moves.Move) int {
+	score := 0
+
+	currentPiece := move.PieceValue
+	promotion := move.PromotionValue
+	captPiece := state.Board[move.EndX * 8 + move.EndY] - 6  //-6 because it is opposite colour to current
+	if currentPiece > 6 {
+		currentPiece -= 6
+		promotion -= 6
+		captPiece += 6
+	}
+
+	if captPiece > 0 {score += captPiece - currentPiece}  //capturing high value pieces with low value ones is good
+
+	score += promotion  //promotions are good (if not promotion, this will just add 0 to score)
+
+	return score
+}
+
+
+func orderMoves(state *moves.GameState, moveList []moves.Move) {
+	//slices are passed by reference, so no need to return
+
+	var moveScores []int
+	for _, i := range moveList {
+		moveScores = append(moveScores, getMoveOrder(state, i))
+	}
+
+	quickSort(moveList, moveScores, 0, len(moveList) - 1)
+}
 
 
 func checkWin(state *moves.GameState, isWhite bool) int {
@@ -41,6 +76,7 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 	if depth == 0 {return eval(state)}
 
 	moveList := moves.GenerateAllMoves(state)
+	orderMoves(state, moveList)
 
 	if len(moveList) == 0 {return checkWin(state, isWhite)}  //terminal node
 
@@ -72,9 +108,11 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 
 
 func GetBestMove(state *moves.GameState) moves.Move {
-	maxDepth := 3  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
+	start := time.Now()
 
-	possibleMoves := moves.GenerateAllMoves(state)
+	maxDepth := 4  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
+
+	possibleMoves := moves.GenerateAllMoves(state)  //NOTE: it is faster not to order these moves because it does not really do much
 
 	chosen := false
 	maxPlayer := state.WhiteToMove
@@ -92,6 +130,12 @@ func GetBestMove(state *moves.GameState) moves.Move {
 			chosen = true
 		}
 	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+
+	fmt.Print("Time elapsed: ")
+	fmt.Println(elapsed)
 
 	return bestMove
 }

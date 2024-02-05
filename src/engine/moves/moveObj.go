@@ -15,7 +15,7 @@ type Move struct {
 	EnPassant bool
 	KingCastle bool
 	QueenCastle bool
-	promotionValue int
+	PromotionValue int
 }
 
 
@@ -84,7 +84,7 @@ func updateCapture(state *GameState, move Move, ePos int, isWhite bool) {
 func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 	isWhite := sVal < 7
 
-	if move.promotionValue == 0 {
+	if move.PromotionValue == 0 {
 		//not a promotion
 		var friend [6][][2]int
 		var friendInx int
@@ -122,7 +122,7 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 			}
 
 			//add the new piece
-			state.WhitePiecePos[move.promotionValue - 1] = append(state.WhitePiecePos[move.promotionValue - 1], newPos)
+			state.WhitePiecePos[move.PromotionValue - 1] = append(state.WhitePiecePos[move.PromotionValue - 1], newPos)
 		} else {
 			//remove the pawn
 			for i, x := range state.BlackPiecePos[0] {
@@ -132,7 +132,7 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 			}
 
 			//add the new piece
-			state.BlackPiecePos[move.promotionValue - 7] = append(state.BlackPiecePos[move.promotionValue - 7], newPos)
+			state.BlackPiecePos[move.PromotionValue - 7] = append(state.BlackPiecePos[move.PromotionValue - 7], newPos)
 		}
 	}
 
@@ -201,8 +201,8 @@ func MakeMove(state *GameState, move Move) {
 		state.PrevPawnDouble = [2]int{-1, -1}
 	}
 
-	if move.promotionValue != 0 {
-		state.Board[end] = move.promotionValue
+	if move.PromotionValue != 0 {
+		state.Board[end] = move.PromotionValue
 	}
 
 	if move.PieceValue == 5 {
