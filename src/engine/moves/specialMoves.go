@@ -43,7 +43,7 @@ func promotion(state *GameState, x int, y int, pieceValue int, xStep int, result
 
 		if newY < 0 || newY > 7 {continue}
 
-		good, capture := canMove(state.Board, newX, newY, pieceValue)
+		good, capture := canMove(&state.Board, newX, newY, pieceValue)
 		blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
 		pin := checkPin(x, y, newX, newY, state.pinArray)
 

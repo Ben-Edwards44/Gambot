@@ -148,7 +148,7 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 
 	kingX := kingPos[0]
 	kingY := kingPos[1]
-	kAttackBlock, pinArray, noKingMove, enPassantPin := getFilterBitboards(state.Board, kingX, kingY, kingVal, otherPieces, whiteMove, pDouble)
+	kAttackBlock, pinArray, noKingMove, enPassantPin := getFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, whiteMove, pDouble)
 
 	state.NoKingMoveBitBoard = noKingMove
 	state.kingAttackBlocks = kAttackBlock

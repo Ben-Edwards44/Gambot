@@ -26,6 +26,11 @@ func getMoveOrder(state *moves.GameState, move moves.Move) int {
 
 	score += promotion  //promotions are good (if not promotion, this will just add 0 to score)
 
+	var posBB uint64
+	posBB |= 1 << (move.StartX * 8 + move.StartY)
+
+	if posBB & state.NoKingMoveBitBoard != 0 {score -= currentPiece}  //moving to an attacked square is not good
+
 	return score
 }
 

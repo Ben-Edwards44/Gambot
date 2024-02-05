@@ -1,10 +1,10 @@
 package moves
 
 
-var attackFunctions [6]func([64]int, int, int, int, int, *uint64, *[]uint64, *[64]uint64) = [6]func([64]int, int, int, int, int, *uint64, *[]uint64, *[64]uint64){pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, kingAttacks, queenAttacks}
+var attackFunctions [6]func(*[64]int, int, int, int, int, *uint64, *[]uint64, *[64]uint64) = [6]func(*[64]int, int, int, int, int, *uint64, *[]uint64, *[64]uint64){pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, kingAttacks, queenAttacks}
 
 
-func rookAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func rookAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -63,7 +63,7 @@ func rookAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noK
 }
 
 
-func bishopAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func bishopAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -122,13 +122,13 @@ func bishopAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, n
 }
 
 
-func queenAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func queenAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
 	rookAttacks(board, x, y, pieceValue, kingValue, noKingBB, attackBB, pinBB)
 	bishopAttacks(board, x, y, pieceValue, kingValue, noKingBB, attackBB, pinBB)
 }
 
 
-func kingAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func kingAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
 	edgeInx := x * 64 + y * 8
 
 	for dir := 0; dir < 8; dir++ {
@@ -145,7 +145,7 @@ func kingAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noK
 }
 
 
-func knightAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func knightAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
 	var posBB uint64
 	setBitBoard(&posBB, x * 8 + y)
 	
@@ -171,7 +171,7 @@ func knightAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, n
 }
 
 
-func pawnAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func pawnAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
 	if x == 0 || x == 7 {return}  //on back rank so cannot put king in check
 
 	xMult := 1
@@ -201,7 +201,7 @@ func pawnAttacks(board [64]int, x int, y int, pieceValue int, kingValue int, noK
 }
 
 
-func enPassantPin(board [64]int, kingX int, kingY int, isWhite bool, prevPawnDouble [2]int) bool {
+func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDouble [2]int) bool {
 	if prevPawnDouble[0] != kingX || prevPawnDouble[0] == -1 {return false}  //en passant not on right rank (also exits if no en passant)
 
 	friendPawn := 7
@@ -256,7 +256,7 @@ func enPassantPin(board [64]int, kingX int, kingY int, isWhite bool, prevPawnDou
 }
 
 
-func getFilterBitboards(board [64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
+func getFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
 	//return the attack, pin, and no king move bitboards, as well as whether en passant is pinned
 
 	var attackBB []uint64

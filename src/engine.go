@@ -2,7 +2,9 @@ package src
 
 
 import (
+	"os"
 	"strconv"
+	"runtime/pprof"
 	"chess-engine/src/api"
 	"chess-engine/src/engine"
 	"chess-engine/src/engine/moves"
@@ -36,6 +38,15 @@ func perft(stateObj *moves.GameState, json map[string]string) {
 	depth, err := strconv.Atoi(json["perft_depth"])
 
 	if err != nil {panic(err)}
+
+	file, err := os.Create("profile.prof")
+
+	if err != nil {panic(err)}
+
+	pprof.StartCPUProfile(file)
+	defer pprof.StopCPUProfile()
+
+	//use: go tool pprof -http=:8080 profile.prof
 
 	engine.Perft(stateObj, depth)
 }
