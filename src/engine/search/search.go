@@ -4,6 +4,9 @@ package search
 import "chess-engine/src/engine/moves"
 
 
+const INF int = 100000
+
+
 func checkWin(state *moves.GameState, isWhite bool) int {
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
@@ -21,10 +24,10 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 	if inCheck {
 		if isWhite {
 			//white is checkmated
-			return -10000
+			return -INF
 		} else {
 			//black is checkmated
-			return 10000
+			return INF
 		}
 	} else {
 		//draw
@@ -33,7 +36,7 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 }
 
 
-func minimax(state *moves.GameState, isWhite bool, depth int) int {
+func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int) int {
 	//NOTE: white is the max player
 	if depth == 0 {return eval(state)}
 
@@ -41,21 +44,27 @@ func minimax(state *moves.GameState, isWhite bool, depth int) int {
 
 	if len(moveList) == 0 {return checkWin(state, isWhite)}  //terminal node
 
-	var scores []int
+	bestScore := INF
+	if isWhite {
+		bestScore = -INF
+	} 
+
 	for _, i := range moveList {
 		moves.MakeMove(state, i)
-		score := minimax(state, !isWhite, depth - 1)
+		score := minimax(state, !isWhite, depth - 1, alpha, beta)
 		moves.UnMakeLastMove(state)
 
-		scores = append(scores, score)
-	}
-
-	bestScore := scores[0]
-
-	for _, score := range scores[1:] {
-		if (isWhite && score > bestScore) || (!isWhite && score < bestScore) {
-			bestScore = score
+		if isWhite {
+			//max player
+			if score > bestScore {bestScore = score}
+			if score > alpha {alpha = score}
+		} else {
+			//min player
+			if score < bestScore {bestScore = score}
+			if score < beta {beta = score}
 		}
+
+		if beta <= alpha {break}  //prune position (opponent already has a better position)
 	}
 
 	return bestScore
@@ -74,7 +83,7 @@ func GetBestMove(state *moves.GameState) moves.Move {
 	var bestScore int
 	for _, i := range possibleMoves {
 		moves.MakeMove(state, i)
-		score := minimax(state, state.WhiteToMove, maxDepth - 1)  //-1 because we are already searching at depth 1
+		score := minimax(state, state.WhiteToMove, maxDepth - 1, -INF, INF)  //-1 because we are already searching at depth 1
 		moves.UnMakeLastMove(state)
 
 		if !chosen || ((maxPlayer && score > bestScore) || (!maxPlayer && score < bestScore)) {
