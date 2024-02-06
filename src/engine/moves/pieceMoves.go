@@ -280,7 +280,7 @@ func GenerateAllMoves(state *GameState) []Move {
 		piecePos = state.WhitePiecePos
 	}
 
-	var moves []Move
+	moves := make([]Move, 0, 64)  //need to experiment with how much memory to preallocate (max is 218, but this takes longer to allocate)
 	for _, moveList := range piecePos {	
 		for _, i := range moveList {
 			GetPieceMoves(state, i[0], i[1], &moves)
