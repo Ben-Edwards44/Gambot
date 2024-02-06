@@ -26,7 +26,7 @@ func enPassant(state *GameState, currentX int, currentY int, pieceValue int, res
 			m := Move{StartX: currentX, StartY: currentY, EndX: newX, EndY: newY, PieceValue: pieceValue, EnPassant: true}
 
 			blocking := blockKingAttack(otherX, otherY, state.kingAttackBlocks)  //we check the other pawns pos because we are (in effect) taking it
-			pin := checkPin(currentX, currentY, newX, newY, state.pinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
+			pin := checkPin(currentX, currentY, newX, newY, &state.pinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
 			
 			if blocking && pin {*resultSlice = append(*resultSlice, m)}
 		}
@@ -45,7 +45,7 @@ func promotion(state *GameState, x int, y int, pieceValue int, xStep int, result
 
 		good, capture := canMove(&state.Board, newX, newY, pieceValue)
 		blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
-		pin := checkPin(x, y, newX, newY, state.pinArray)
+		pin := checkPin(x, y, newX, newY, &state.pinArray)
 
 		//check pawn can move to promotion square
 		if !good {continue}
