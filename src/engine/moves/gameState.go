@@ -51,12 +51,18 @@ func (state *GameState) SetPrevVals() {
 
 	var cpyWhitePiecePos [6][][2]int
 	for i, x := range state.WhitePiecePos {
-		cpyWhitePiecePos[i] = append(cpyWhitePiecePos[i], x...)
+		dst := make([][2]int, len(x))
+		copy(dst, x)
+
+		cpyWhitePiecePos[i] = dst
 	}
 
 	var cpyBlackPiecePos [6][][2]int
 	for i, x := range state.BlackPiecePos {
-		cpyBlackPiecePos[i] = append(cpyBlackPiecePos[i], x...)
+		dst := make([][2]int, len(x))
+		copy(dst, x)
+
+		cpyBlackPiecePos[i] = dst
 	}
 
 	cpyKingAttackBlocks := make([]uint64, len(state.kingAttackBlocks))
