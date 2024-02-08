@@ -12,6 +12,13 @@ import (
 
 
 func engineMove(stateObj *moves.GameState) {
+	file, err := os.Create("profile.prof")
+
+	if err != nil {panic(err)}
+
+	pprof.StartCPUProfile(file)
+	defer pprof.StopCPUProfile()
+
 	newState := engine.CalculateMove(stateObj)
 
 	api.WriteState(newState)
@@ -38,13 +45,6 @@ func perft(stateObj *moves.GameState, json map[string]string) {
 	depth, err := strconv.Atoi(json["perft_depth"])
 
 	if err != nil {panic(err)}
-
-	file, err := os.Create("profile.prof")
-
-	if err != nil {panic(err)}
-
-	pprof.StartCPUProfile(file)
-	defer pprof.StopCPUProfile()
 
 	//use: go tool pprof -http=:8080 profile.prof
 

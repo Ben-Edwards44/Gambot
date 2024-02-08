@@ -283,6 +283,8 @@ func GenerateAllMoves(state *GameState) []Move {
 	moves := make([]Move, 0, 64)  //need to experiment with how much memory to preallocate (max is 218, but this takes longer to allocate)
 	for _, moveList := range piecePos {	
 		for _, i := range moveList {
+			if i[0] == -1 {break}  //because we are using fixed length array
+			
 			GetPieceMoves(state, i[0], i[1], &moves)
 		}
 	}

@@ -256,7 +256,7 @@ func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDo
 }
 
 
-func getFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
+func getFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][8][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
 	//return the attack, pin, and no king move bitboards, as well as whether en passant is pinned
 
 	var attackBB []uint64
@@ -268,6 +268,8 @@ func getFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, oth
 		if isWhite {pieceValue += 6}  //counter-intuitive way around because we are looking at the enemy moves
 
 		for _, i := range posList {	
+			if i[0] == -1 {break}  //because we are using fixed length array
+
 			inx := pieceValue - 1
 			if isWhite {inx = pieceValue - 7}  //counter-intuitive way around because we are looking at the enemy moves
 	

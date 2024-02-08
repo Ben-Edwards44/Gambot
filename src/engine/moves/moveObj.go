@@ -19,28 +19,60 @@ type Move struct {
 }
 
 
-func removeFromSlice(s [][2]int, inx int) [][2]int {
-    s[inx] = s[len(s)-1]
-    return s[:len(s)-1]
+func removeFromArray(arr [8][2]int, x int, y int) [8][2]int {
+	removed := false
+    for i, j := range arr {
+		if j[0] == -1 {
+			break
+		} else if j[0] == x && j[1] == y {
+			//remove element
+			arr[i][0] = -1
+			arr[i][1] = -1
+			removed = true
+		} else if removed {
+			//shift subsequent elements left
+			arr[i - 1][0] = j[0]
+			arr[i - 1][1] = j[1]
+			arr[i - 1][0] = -1
+			arr[i - 1][1] = -1
+		}
+	}
+
+	return arr
 }
 
 
-func movePos(slice [][2]int, sX int, sY int, eX int, eY int) {
-	//Note that slices are passed by reference, so no need for pointer
-	for i, x := range slice {
-		if x[0] == sX && x[1] == sY {
-			//update the piece to the new position
-			slice[i][0] = eX
-			slice[i][1] = eY
+func appendToArray(arr [8][2]int, x int, y int) [8][2]int {
+	for i, j := range arr {
+		if j[0] == -1 {
+			arr[i][0] = x
+			arr[i][1] = y
 			break
 		}
 	}
+
+	return arr
+}
+
+
+func movePos(arr [8][2]int, sX int, sY int, eX int, eY int) [8][2]int {
+	for i, x := range arr {
+		if x[0] == sX && x[1] == sY {
+			//update the piece to the new position
+			arr[i][0] = eX
+			arr[i][1] = eY
+			break
+		}
+	}
+
+	return arr
 }
 
 
 func updateCapture(state *GameState, move Move, ePos int, isWhite bool) {
+	//TODO: work with fixed length array
 	eVal := state.Board[ePos]
-	var enemy [6][][2]int
+	var enemy [6][8][2]int
 	var enemyInx int
 	if isWhite {
 		enemy = state.BlackPiecePos
@@ -64,13 +96,7 @@ func updateCapture(state *GameState, move Move, ePos int, isWhite bool) {
 
 	//if needed, remove position of captured piece
 	if captX != -1 {
-		for i, x := range enemy[enemyInx] {
-			if x[0] == captX && x[1] == captY {
-				//update the piece to the new position
-				enemy[enemyInx] = removeFromSlice(enemy[enemyInx], i)
-				break
-			}
-		}
+		enemy[enemyInx] = removeFromArray(enemy[enemyInx], captX, captY)
 
 		if isWhite {
 			state.BlackPiecePos = enemy
@@ -86,7 +112,7 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 
 	if move.PromotionValue == 0 {
 		//not a promotion
-		var friend [6][][2]int
+		var friend [6][8][2]int
 		var friendInx int
 		if isWhite {
 			friend = state.WhitePiecePos
@@ -96,12 +122,12 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 			friendInx = sVal - 7
 		}
 
-		movePos(friend[friendInx], move.StartX, move.StartY, move.EndX, move.EndY)  //move piece
+		friend[friendInx] = movePos(friend[friendInx], move.StartX, move.StartY, move.EndX, move.EndY)  //move piece
 
 		if move.KingCastle {
-			movePos(friend[3], move.StartX, 7, move.EndX, 5)  //move the rook as well
+			friend[3] = movePos(friend[3], move.StartX, 7, move.EndX, 5)  //move the rook as well
 		} else if move.QueenCastle {
-			movePos(friend[3], move.StartX, 0, move.EndX, 3)  //move the rook as well
+			friend[3] = movePos(friend[3], move.StartX, 0, move.EndX, 3)  //move the rook as well
 		}
 
 		if isWhite {
@@ -111,28 +137,18 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 		}
 	} else {
 		//promotion
-		newPos := [2]int{move.EndX, move.EndY}
-
 		if isWhite {
 			//remove the pawn
-			for i, x := range state.WhitePiecePos[0] {
-				if x[0] == move.StartX && x[1] == move.StartY {
-					state.WhitePiecePos[0] = removeFromSlice(state.WhitePiecePos[0], i)
-				}
-			}
+			state.WhitePiecePos[0] = removeFromArray(state.WhitePiecePos[0], move.StartX, move.StartY)
 
 			//add the new piece
-			state.WhitePiecePos[move.PromotionValue - 1] = append(state.WhitePiecePos[move.PromotionValue - 1], newPos)
+			state.WhitePiecePos[move.PromotionValue - 1] = appendToArray(state.WhitePiecePos[move.PromotionValue - 1], move.EndX, move.EndY)
 		} else {
 			//remove the pawn
-			for i, x := range state.BlackPiecePos[0] {
-				if x[0] == move.StartX && x[1] == move.StartY {
-					state.BlackPiecePos[0] = removeFromSlice(state.BlackPiecePos[0], i)
-				}
-			}
+			state.BlackPiecePos[0] = removeFromArray(state.BlackPiecePos[0], move.StartX, move.StartY)
 
 			//add the new piece
-			state.BlackPiecePos[move.PromotionValue - 7] = append(state.BlackPiecePos[move.PromotionValue - 7], newPos)
+			state.BlackPiecePos[move.PromotionValue - 7] = appendToArray(state.BlackPiecePos[move.PromotionValue - 7], move.EndX, move.EndY)
 		}
 	}
 

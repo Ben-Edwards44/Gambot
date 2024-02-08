@@ -14,8 +14,8 @@ type GameState struct {
 
 	PrevPawnDouble [2]int
 
-	WhitePiecePos [6][][2]int
-	BlackPiecePos [6][][2]int
+	WhitePiecePos [6][8][2]int
+	BlackPiecePos [6][8][2]int
 
 	NoKingMoveBitBoard uint64
 	kingAttackBlocks []uint64
@@ -35,8 +35,8 @@ type GameState struct {
 
 	prvPrevPawnDouble [][2]int
 
-	PrvWhitePiecePos [][6][][2]int
-	PrvBlackPiecePos [][6][][2]int
+	PrvWhitePiecePos [][6][8][2]int
+	PrvBlackPiecePos [][6][8][2]int
 
 	prvNoKingMoveBitBoard []uint64
 	prvKingAttackBlocks [][]uint64
@@ -49,21 +49,21 @@ type GameState struct {
 func (state *GameState) SetPrevVals() {
 	//slices are passed by reference, so need to be manually copied (even nested slices)
 
-	var cpyWhitePiecePos [6][][2]int
-	for i, x := range state.WhitePiecePos {
-		dst := make([][2]int, len(x))
-		copy(dst, x)
+	//var cpyWhitePiecePos [6][][2]int
+	//for i, x := range state.WhitePiecePos {
+	//	dst := make([][2]int, len(x))
+	//	copy(dst, x)
+//
+	//	cpyWhitePiecePos[i] = dst
+	//}
 
-		cpyWhitePiecePos[i] = dst
-	}
-
-	var cpyBlackPiecePos [6][][2]int
-	for i, x := range state.BlackPiecePos {
-		dst := make([][2]int, len(x))
-		copy(dst, x)
-
-		cpyBlackPiecePos[i] = dst
-	}
+	//var cpyBlackPiecePos [6][][2]int
+	//for i, x := range state.BlackPiecePos {
+	//	dst := make([][2]int, len(x))
+	//	copy(dst, x)
+//
+	//	cpyBlackPiecePos[i] = dst
+	//}
 
 	cpyKingAttackBlocks := make([]uint64, len(state.kingAttackBlocks))
 	copy(cpyKingAttackBlocks, state.kingAttackBlocks)
@@ -76,8 +76,8 @@ func (state *GameState) SetPrevVals() {
 	state.prvBlackKingCastle = append(state.prvBlackKingCastle, state.BlackKingCastle)
 	state.prvBlackQueenCastle = append(state.prvBlackQueenCastle, state.BlackQueenCastle)
 	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
-	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, cpyWhitePiecePos)
-	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, cpyBlackPiecePos)
+	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, state.WhitePiecePos)//cpyWhitePiecePos)
+	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, state.BlackPiecePos)//cpyBlackPiecePos)
 	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.NoKingMoveBitBoard)
 	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
 	state.prvPinArray = append(state.prvPinArray, state.pinArray)
@@ -123,20 +123,34 @@ func (state *GameState) RestorePrev() {
 func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bkCastle bool, bqCastle bool, pDouble [2]int) GameState {
 	//to be called whenever new game state obj is created
 
-	var whitePiecePos [6][][2]int
-	var blackPiecePos [6][][2]int
+	var whitePiecePos [6][8][2]int
+	var blackPiecePos [6][8][2]int
+	for i := 0; i < 6; i++ {
+		for x := 0; x < 8; x++ {
+			for y := 0; y < 2; y++ {
+				//default values
+				whitePiecePos[i][x][y] = -1
+				blackPiecePos[i][x][y] = -1
+			}
+		}
+	}
+
+	var inxs [12]int
 	for x := 0; x < 8; x++ {
 		for y := 0; y < 8; y++ {
 			piece := b[x * 8 + y]
 
 			if piece != 0 {
+				inx := inxs[piece - 1]
 				pos := [2]int{x, y}
 
 				if piece < 7 {
-					whitePiecePos[piece - 1] = append(whitePiecePos[piece - 1], pos)
+					whitePiecePos[piece - 1][inx] = pos
 				} else {
-					blackPiecePos[piece - 7] = append(blackPiecePos[piece - 7], pos)
+					blackPiecePos[piece - 7][inx] = pos
 				}
+
+				inxs[piece - 1]++
 			}
 		}
 	}
