@@ -47,24 +47,7 @@ type GameState struct {
 
 
 func (state *GameState) SetPrevVals() {
-	//slices are passed by reference, so need to be manually copied (even nested slices)
-
-	//var cpyWhitePiecePos [6][][2]int
-	//for i, x := range state.WhitePiecePos {
-	//	dst := make([][2]int, len(x))
-	//	copy(dst, x)
-//
-	//	cpyWhitePiecePos[i] = dst
-	//}
-
-	//var cpyBlackPiecePos [6][][2]int
-	//for i, x := range state.BlackPiecePos {
-	//	dst := make([][2]int, len(x))
-	//	copy(dst, x)
-//
-	//	cpyBlackPiecePos[i] = dst
-	//}
-
+	//copy the slice (because slices are passed by reference)
 	cpyKingAttackBlocks := make([]uint64, len(state.kingAttackBlocks))
 	copy(cpyKingAttackBlocks, state.kingAttackBlocks)
 
@@ -76,8 +59,8 @@ func (state *GameState) SetPrevVals() {
 	state.prvBlackKingCastle = append(state.prvBlackKingCastle, state.BlackKingCastle)
 	state.prvBlackQueenCastle = append(state.prvBlackQueenCastle, state.BlackQueenCastle)
 	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
-	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, state.WhitePiecePos)//cpyWhitePiecePos)
-	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, state.BlackPiecePos)//cpyBlackPiecePos)
+	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, state.WhitePiecePos)
+	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, state.BlackPiecePos)
 	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.NoKingMoveBitBoard)
 	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
 	state.prvPinArray = append(state.prvPinArray, state.pinArray)
