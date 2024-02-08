@@ -11,8 +11,13 @@ def run_engine():
 
 def perft():
     depth = int(argv[2])
+
+    if len(argv) == 4:
+        test = argv[3] == "test"
+    else:
+        test = False
     
-    engine.perft(depth)
+    engine.perft(depth, test)
 
 
 def main():

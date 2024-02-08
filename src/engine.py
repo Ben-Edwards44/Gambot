@@ -41,14 +41,15 @@ def run_engine():
         raise Exception("Go script resulted in an error")
 
 
-def perft(depth):
+def perft(depth, test):
     #do performance test. NOTE: white to move is assumed
     
     start = time()
 
     for pos_num, board in enumerate(PERFT_BOARDS):
         game_state.init_game_state(board)
-        api.send_data("perft", game_state.game_state_obj, perft_depth=depth)
+        game_state.game_state_obj.white_to_move = PERFT_WHITE_TO_MOVE
+        api.send_data("perft", game_state.game_state_obj, perft_depth=depth, perft_test=test)
 
         print(f"Position {pos_num}:")
         run_engine()

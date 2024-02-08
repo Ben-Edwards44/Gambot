@@ -124,7 +124,7 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 func GetBestMove(state *moves.GameState) moves.Move {
 	start := time.Now()
 
-	maxDepth := 6  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
+	maxDepth := 4  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
 
 	_, bestMove := minimax(state, state.WhiteToMove, maxDepth, -INF, INF)
 

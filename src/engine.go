@@ -1,13 +1,12 @@
 package src
 
-
 import (
-	"os"
-	"strconv"
-	"runtime/pprof"
 	"chess-engine/src/api"
 	"chess-engine/src/engine"
 	"chess-engine/src/engine/moves"
+	"os"
+	"runtime/pprof"
+	"strconv"	
 )
 
 
@@ -43,12 +42,13 @@ func legalMoves(stateObj *moves.GameState, json map[string]string) {
 
 func perft(stateObj *moves.GameState, json map[string]string) {
 	depth, err := strconv.Atoi(json["perft_depth"])
+	test := json["perft_test"] == "true"
 
 	if err != nil {panic(err)}
 
 	//use: go tool pprof -http=:8080 profile.prof
 
-	engine.Perft(stateObj, depth)
+	engine.Perft(stateObj, depth, test)
 }
 
 

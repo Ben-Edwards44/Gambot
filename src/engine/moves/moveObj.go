@@ -33,8 +33,8 @@ func removeFromArray(arr [8][2]int, x int, y int) [8][2]int {
 			//shift subsequent elements left
 			arr[i - 1][0] = j[0]
 			arr[i - 1][1] = j[1]
-			arr[i - 1][0] = -1
-			arr[i - 1][1] = -1
+			arr[i][0] = -1
+			arr[i][1] = -1
 		}
 	}
 
@@ -180,6 +180,12 @@ func updateBitboards(state *GameState) {
 
 
 func MakeMove(state *GameState, move Move) {
+	//t := [8][2]int{{1, 2}, {3, 4}, {5, 6}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}}
+	//t = removeFromArray(t, 3, 4)
+	//fmt.Println(t)
+	//panic(t)
+
+
 	//updates game state
 
 	state.SetPrevVals()  //so that we can restore later
