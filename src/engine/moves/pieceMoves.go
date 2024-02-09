@@ -2,7 +2,7 @@ package moves
 
 
 //array matching piece values to their appropriate move functions
-var moveFunctions [6]func(*GameState, int, int, int, *[]Move) = [6]func(*GameState, int, int, int, *[]Move) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
+var moveFunctions [6]func(*GameState, int, int, int, *[]Move, bool) = [6]func(*GameState, int, int, int, *[]Move, bool) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
 //array matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
@@ -58,7 +58,7 @@ func checkPin(sX int, sY int, eX int, eY int, pinArray *[64]uint64) bool {
 }
 
 
-func rookMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func rookMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -75,7 +75,7 @@ func rookMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 
 			if goodSq && blocking && pin {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				*resultSlice = append(*resultSlice, m)
+				if !onlyCaptures || capture {*resultSlice = append(*resultSlice, m)}
 			}
 			if capture {
 				break
@@ -85,7 +85,7 @@ func rookMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 }
 
 
-func bishopMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func bishopMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -102,7 +102,7 @@ func bishopMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]
 
 			if goodSq && blocking && pin {
 				m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-				*resultSlice = append(*resultSlice, m)
+				if !onlyCaptures || capture {*resultSlice = append(*resultSlice, m)}
 			}
 			if capture {
 				break
@@ -112,14 +112,14 @@ func bishopMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]
 }
 
 
-func queenMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func queenMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	//resultSlice is updated within the functions
-	rookMoves(state, x, y, pieceValue, resultSlice)
-	bishopMoves(state, x, y, pieceValue, resultSlice)
+	rookMoves(state, x, y, pieceValue, resultSlice, onlyCaptures)
+	bishopMoves(state, x, y, pieceValue, resultSlice, onlyCaptures)
 }
 
 
-func kingMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func kingMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	edgeInx := x * 64 + y * 8
 
 	for dir := 0; dir < 8; dir++ {
@@ -129,7 +129,7 @@ func kingMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 			newX := x + xMults[dir]
 			newY := y + yMults[dir]
 			
-			good, _ := canMove(&state.Board, newX, newY, pieceValue)
+			good, capture := canMove(&state.Board, newX, newY, pieceValue)
 
 			if good {
 				//ensure not castling into check
@@ -139,7 +139,7 @@ func kingMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 				//if not moving to an attacked square
 				if moveBitBoard & state.NoKingMoveBitBoard == 0 {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-					*resultSlice = append(*resultSlice, m)
+					if !onlyCaptures || capture {*resultSlice = append(*resultSlice, m)}
 				}
 			}
 		}
@@ -147,7 +147,7 @@ func kingMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 }
 
 
-func knightMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func knightMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	for xStep := 1; xStep < 3; xStep++ {
 		for xMult := -1; xMult < 2; xMult += 2 {
 			newX := x + xStep * xMult
@@ -161,13 +161,13 @@ func knightMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]
 
 				if newY < 0 || newY > 7 {continue}
 
-				good, _ := canMove(&state.Board, newX, newY, pieceValue)
+				good, capture := canMove(&state.Board, newX, newY, pieceValue)
 				blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
 				pin := checkPin(x, y, newX, newY, &state.pinArray)
 
 				if good && blocking && pin {
 					m := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue}
-					*resultSlice = append(*resultSlice, m)
+					if !onlyCaptures || capture {*resultSlice = append(*resultSlice, m)}
 				}
 			}
 		}
@@ -175,7 +175,7 @@ func knightMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]
 }
 
 
-func pawnMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func pawnMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	if x == 0 || x == 7 {return}  //on back rank (although this should never happen)
 
 	isWhite := pieceValue < 7
@@ -187,30 +187,32 @@ func pawnMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 
 	if (isWhite && x == 1) || (!isWhite && x == 6) {
 		//promotions
-		promotion(state, x, y, pieceValue, xMult, resultSlice)
+		promotion(state, x, y, pieceValue, xMult, resultSlice, onlyCaptures)
 		return
 	}
+
+	if !onlyCaptures {
+		onStart := (isWhite && x == 6) || (!isWhite && x == 1)
+
+		maxStep := 1
+		if onStart {
+			maxStep = 2
+		}
 	
-	onStart := (isWhite && x == 6) || (!isWhite && x == 1)
-
-	maxStep := 1
-	if onStart {
-		maxStep = 2
-	}
-
-	//normal moves - no capture
-	for i := 1; i <= maxStep; i++ {
-		newX := x + i * xMult
-
-		good, capture := canMove(&state.Board, newX, y, pieceValue)
-		blocking := blockKingAttack(newX, y, state.kingAttackBlocks)
-		pin := checkPin(x, y, newX, y, &state.pinArray)
-
-		if good && !capture && blocking && pin {
-			m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, doublePawnMove: i == 2}
-			*resultSlice = append(*resultSlice, m)
-		} else if !good || capture {
-			break  //to prevent double pawn move when there is a piece in front
+		//normal moves - no capture
+		for i := 1; i <= maxStep; i++ {
+			newX := x + i * xMult
+	
+			good, capture := canMove(&state.Board, newX, y, pieceValue)
+			blocking := blockKingAttack(newX, y, state.kingAttackBlocks)
+			pin := checkPin(x, y, newX, y, &state.pinArray)
+	
+			if good && !capture && blocking && pin {
+				m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, doublePawnMove: i == 2}
+				*resultSlice = append(*resultSlice, m)
+			} else if !good || capture {
+				break  //to prevent double pawn move when there is a piece in front
+			}
 		}
 	}
 
@@ -233,20 +235,20 @@ func pawnMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 }
 
 
-func specialMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move) {
+func specialMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Move, onlyCaptures bool) {
 	//a pointer is used for moves to ensure it is passed by reference
 	
 	if pieceValue == 1 || pieceValue == 7 {
 		//pawn - check for en passant
 		enPassant(state, x, y, pieceValue, resultSlice)
-	} else if pieceValue == 5 || pieceValue == 11 {
+	} else if !onlyCaptures && (pieceValue == 5 || pieceValue == 11) {
 		//king - check for castle
 		castle(state, pieceValue, resultSlice)
 	}
 } 
 
 
-func GetPieceMoves(state *GameState, x int, y int, resultSlice *[]Move) {
+func GetPieceMoves(state *GameState, x int, y int, resultSlice *[]Move, onlyCaptures bool) {
 	pieceValue := state.Board[x * 8 + y]
 
 	if pieceValue != 0 {
@@ -262,17 +264,17 @@ func GetPieceMoves(state *GameState, x int, y int, resultSlice *[]Move) {
 		moveFunc := moveFunctions[inx]
 
 		//update resultSlice
-		moveFunc(state, x, y, pieceValue, resultSlice)
+		moveFunc(state, x, y, pieceValue, resultSlice, onlyCaptures)
 
 		//perform any special moves (en passant, castling etc.). These will be appended to the slice
-		specialMoves(state, x, y, pieceValue, resultSlice)
+		specialMoves(state, x, y, pieceValue, resultSlice, onlyCaptures)
 	} else {
 		panic("trying to find move for empty square")
 	}
 }
 
 
-func GenerateAllMoves(state *GameState) []Move {
+func GenerateAllMoves(state *GameState, onlyCaptures bool) []Move {
 	//assumes state has been properly initialised etc.
 
 	piecePos := state.BlackPiecePos
@@ -285,7 +287,7 @@ func GenerateAllMoves(state *GameState) []Move {
 		for _, i := range moveList {
 			if i[0] == -1 {break}  //because we are using fixed length array
 			
-			GetPieceMoves(state, i[0], i[1], &moves)
+			GetPieceMoves(state, i[0], i[1], &moves, onlyCaptures)
 		}
 	}
 

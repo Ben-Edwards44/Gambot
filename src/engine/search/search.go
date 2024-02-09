@@ -81,7 +81,7 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 	//NOTE: white is the max player
 	if depth == 0 {return eval(state), moves.Move{}}
 
-	moveList := moves.GenerateAllMoves(state)
+	moveList := moves.GenerateAllMoves(state, false)
 	orderMoves(state, moveList)
 
 	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //terminal node
@@ -125,7 +125,7 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 func GetBestMove(state *moves.GameState) moves.Move {
 	start := time.Now()
 
-	maxDepth := 4  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
+	maxDepth := 1  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
 
 	_, bestMove := minimax(state, state.WhiteToMove, maxDepth, -INF, INF)
 

@@ -34,7 +34,7 @@ func Perft(stateObj *moves.GameState, maxDepth int, test bool) {
 
 
 func testPerft(stateObj *moves.GameState, maxDepth int) int {
-	initMoves := moves.GenerateAllMoves(stateObj)
+	initMoves := moves.GenerateAllMoves(stateObj, false)
 
 	total := 0
 	for _, i := range initMoves {
@@ -75,7 +75,7 @@ func getMoveStr(move moves.Move) string {
 
 
 func bulkCount(position *moves.GameState, depth int) int {	
-	moveList := moves.GenerateAllMoves(position)
+	moveList := moves.GenerateAllMoves(position, false)
 
 	if depth == 1 {return len(moveList)}
 

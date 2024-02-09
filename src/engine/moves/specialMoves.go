@@ -34,7 +34,7 @@ func enPassant(state *GameState, currentX int, currentY int, pieceValue int, res
 }
 
 
-func promotion(state *GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move) {
+func promotion(state *GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move, onlyCaptures bool) {
 	//assume piece is a pawn and on second to last rank
 	newX := x + xStep
 
@@ -58,7 +58,7 @@ func promotion(state *GameState, x int, y int, pieceValue int, xStep int, result
 			value := pieceValue + i
 			move := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue, PromotionValue: value}
 
-			*resultSlice = append(*resultSlice, move)
+			if !onlyCaptures || capture {*resultSlice = append(*resultSlice, move)}
 		}
 	}
 }

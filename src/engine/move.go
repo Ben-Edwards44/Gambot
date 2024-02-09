@@ -21,7 +21,7 @@ func CalculateMove(stateObj *moves.GameState) moves.GameState {
 func GetLegalMoves(stateObj *moves.GameState, x int, y int) [][2]int {
 	var legalMoves []moves.Move
 	
-	moves.GetPieceMoves(stateObj, x, y, &legalMoves)
+	moves.GetPieceMoves(stateObj, x, y, &legalMoves, false)
 
 	//convert move structs to list of coords
 	var coords [][2]int
