@@ -12,7 +12,7 @@ func CalculateMove(stateObj *moves.GameState) moves.GameState {
 
 	move := search.GetBestMove(stateObj)
 
-	moves.MakeMove(stateObj, move)
+	if move.PieceValue != 0 {moves.MakeMove(stateObj, move)}  //If in checkmate, the piece value will be 0
 	
 	return *stateObj
 }

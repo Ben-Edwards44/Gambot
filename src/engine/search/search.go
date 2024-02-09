@@ -86,9 +86,9 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 
 	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //terminal node
 
-	bestScore := INF
+	bestScore := INF + 1  //+1 so that engine will still move if in forced mate
 	if isWhite {
-		bestScore = -INF
+		bestScore = -INF - 1  //-1 so that engine will still move if in forced mate
 	} 
 
 	var bestMove moves.Move
