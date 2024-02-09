@@ -14,8 +14,8 @@ type GameState struct {
 
 	PrevPawnDouble [2]int
 
-	WhitePiecePos [6][8][2]int
-	BlackPiecePos [6][8][2]int
+	WhitePiecePos [6][10][2]int
+	BlackPiecePos [6][10][2]int
 
 	NoKingMoveBitBoard uint64
 	kingAttackBlocks []uint64
@@ -35,8 +35,8 @@ type GameState struct {
 
 	prvPrevPawnDouble [][2]int
 
-	PrvWhitePiecePos [][6][8][2]int
-	PrvBlackPiecePos [][6][8][2]int
+	PrvWhitePiecePos [][6][10][2]int
+	PrvBlackPiecePos [][6][10][2]int
 
 	prvNoKingMoveBitBoard []uint64
 	prvKingAttackBlocks [][]uint64
@@ -106,10 +106,10 @@ func (state *GameState) RestorePrev() {
 func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bkCastle bool, bqCastle bool, pDouble [2]int) GameState {
 	//to be called whenever new game state obj is created
 
-	var whitePiecePos [6][8][2]int
-	var blackPiecePos [6][8][2]int
+	var whitePiecePos [6][10][2]int
+	var blackPiecePos [6][10][2]int
 	for i := 0; i < 6; i++ {
-		for x := 0; x < 8; x++ {
+		for x := 0; x < 10; x++ {
 			for y := 0; y < 2; y++ {
 				//default values
 				whitePiecePos[i][x][y] = -1

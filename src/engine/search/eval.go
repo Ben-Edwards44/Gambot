@@ -11,11 +11,13 @@ func countMaterial(state *moves.GameState) int {
 	white := 0
 	black := 0
 	for inx := 0; inx < 6; inx++ {
-		for i := 0; i < len(state.WhitePiecePos[inx]); i++ {
+		for _, i := range state.WhitePiecePos[inx] {
+			if i[0] == -1 {break}  //because we are using fixed length array
 			white += pieceWeight[inx]
 		}
 
-		for i := 0; i < len(state.BlackPiecePos[inx]); i++ {
+		for _, i := range state.BlackPiecePos[inx] {
+			if i[0] == -1 {break}  //because we are using fixed length array
 			black += pieceWeight[inx]
 		}
 	}

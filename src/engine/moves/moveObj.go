@@ -19,7 +19,7 @@ type Move struct {
 }
 
 
-func removeFromArray(arr [8][2]int, x int, y int) [8][2]int {
+func removeFromArray(arr [10][2]int, x int, y int) [10][2]int {
 	removed := false
     for i, j := range arr {
 		if j[0] == -1 {
@@ -42,7 +42,7 @@ func removeFromArray(arr [8][2]int, x int, y int) [8][2]int {
 }
 
 
-func appendToArray(arr [8][2]int, x int, y int) [8][2]int {
+func appendToArray(arr [10][2]int, x int, y int) [10][2]int {
 	for i, j := range arr {
 		if j[0] == -1 {
 			arr[i][0] = x
@@ -55,7 +55,7 @@ func appendToArray(arr [8][2]int, x int, y int) [8][2]int {
 }
 
 
-func movePos(arr [8][2]int, sX int, sY int, eX int, eY int) [8][2]int {
+func movePos(arr [10][2]int, sX int, sY int, eX int, eY int) [10][2]int {
 	for i, x := range arr {
 		if x[0] == sX && x[1] == sY {
 			//update the piece to the new position
@@ -72,7 +72,7 @@ func movePos(arr [8][2]int, sX int, sY int, eX int, eY int) [8][2]int {
 func updateCapture(state *GameState, move Move, ePos int, isWhite bool) {
 	//TODO: work with fixed length array
 	eVal := state.Board[ePos]
-	var enemy [6][8][2]int
+	var enemy [6][10][2]int
 	var enemyInx int
 	if isWhite {
 		enemy = state.BlackPiecePos
@@ -112,7 +112,7 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 
 	if move.PromotionValue == 0 {
 		//not a promotion
-		var friend [6][8][2]int
+		var friend [6][10][2]int
 		var friendInx int
 		if isWhite {
 			friend = state.WhitePiecePos
