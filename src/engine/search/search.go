@@ -48,7 +48,7 @@ func orderMoves(state *moves.GameState, moveList []moves.Move) {
 }
 
 
-func checkWin(state *moves.GameState, isWhite bool) int {
+func checkWin(state *moves.GameState, isWhite bool, depth int) int {
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
 	kingPos := state.BlackPiecePos[4][0]
@@ -65,10 +65,10 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 	if inCheck {
 		if isWhite {
 			//white is checkmated
-			return -INF
+			return -INF - depth
 		} else {
 			//black is checkmated
-			return INF
+			return INF + depth
 		}
 	} else {
 		//draw
@@ -79,18 +79,16 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 
 func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int) (int, moves.Move) {
 	//NOTE: white is the max player
-	if depth == 0 {return eval(state), moves.Move{}}
+	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta),  moves.Move{}}  //TODO: do this (figure out whether we should be white/black)
 
 	moveList := moves.GenerateAllMoves(state, false)
 	orderMoves(state, moveList)
 
-	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //terminal node
+	if len(moveList) == 0 {return checkWin(state, isWhite, depth), moves.Move{}}  //terminal node
 
-	bestScore := INF + 1  //+1 so that engine will still move if in forced mate
-	if isWhite {
-		bestScore = -INF - 1  //-1 so that engine will still move if in forced mate
-	} 
+	allocatedBestMove := false
 
+	var bestScore int
 	var bestMove moves.Move
 	for _, i := range moveList {
 		moves.MakeMove(state, i)
@@ -99,17 +97,19 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 
 		if isWhite {
 			//max player
-			if score > bestScore {
+			if score > bestScore || !allocatedBestMove {
 				bestScore = score
 				bestMove = i
+				allocatedBestMove = true
 			}
 
 			if score > alpha {alpha = score}
 		} else {
 			//min player
-			if score < bestScore {
+			if score < bestScore || !allocatedBestMove {
 				bestScore = score
 				bestMove = i
+				allocatedBestMove = true
 			}
 
 			if score < beta {beta = score}
@@ -122,10 +122,63 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 }
 
 
+func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int) int {
+	//this does not work :(
+	staticEval := eval(state)
+
+	return staticEval
+
+	if isWhite {
+		//max player
+		if staticEval > alpha {alpha = staticEval}
+	} else {
+		//min player
+		if staticEval < beta {beta = staticEval}
+	}
+
+	if staticEval >= beta {return beta}  //prune
+
+	captMoves := moves.GenerateAllMoves(state, true)
+
+	if len(captMoves) == 0 {return staticEval}  //quiet position reached - return the evalutation
+
+	bestScore := INF + 1  //+1 so that engine will still move if in forced mate
+	if isWhite {
+		bestScore = -INF - 1  //-1 so that engine will still move if in forced mate
+	} 
+
+	for _, i := range captMoves {
+		moves.MakeMove(state, i)
+		score := quiescenceSearch(state, !isWhite, -alpha, -beta)
+		moves.UnMakeLastMove(state)
+
+		if isWhite {
+			//max player
+			if score > bestScore {
+				bestScore = score
+			}
+
+			if score > alpha {alpha = score}
+		} else {
+			//min player
+			if score < bestScore {
+				bestScore = score
+			}
+
+			if score < beta {beta = score}
+		}
+
+		if beta <= alpha {break}  //prune position (opponent already has a better position)
+	}
+
+	return bestScore
+}
+
+
 func GetBestMove(state *moves.GameState) moves.Move {
 	start := time.Now()
 
-	maxDepth := 1  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
+	maxDepth := 5  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
 
 	_, bestMove := minimax(state, state.WhiteToMove, maxDepth, -INF, INF)
 
