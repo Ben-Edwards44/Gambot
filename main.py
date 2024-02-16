@@ -1,5 +1,7 @@
-from sys import argv
 import src.engine as engine
+import src.test_engines as test_engines
+
+from sys import argv
 
 
 def run_engine():
@@ -20,6 +22,14 @@ def perft():
     engine.perft(depth, test)
 
 
+def engine_game():
+    engine1 = argv[2]
+    engine2 = argv[3]
+    num_games = int(argv[4])
+
+    test_engines.engine_game(engine1, engine2, num_games)
+
+
 def main():
     mode = argv[1]
 
@@ -27,6 +37,8 @@ def main():
         run_engine()
     elif mode == "perft":
         perft()
+    elif mode == "engine_game":
+        engine_game()
 
 
 if __name__ == "__main__":
