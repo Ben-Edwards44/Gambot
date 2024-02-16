@@ -359,3 +359,10 @@ func WriteLegalMoves(moveCoords [][2]int) {
 
 	writeToJson(writeStr)
 }
+
+
+func WriteCheckWin(winState string) {
+	writeStr := "{\"win_state\": \"" + winState + "\"}"
+
+	writeToJson(writeStr)
+}

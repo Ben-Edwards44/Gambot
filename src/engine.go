@@ -52,6 +52,13 @@ func perft(stateObj *moves.GameState, json map[string]string) {
 }
 
 
+func checkWin(stateObj *moves.GameState) {
+	writeValue := engine.CheckWin(stateObj)
+
+	api.WriteCheckWin(writeValue)
+}
+
+
 func Main() {
 	//TODO: not have to precompute at the start of each move (store in a file)
 	engine.PrecomputeValues()
@@ -65,5 +72,9 @@ func Main() {
 		legalMoves(&stateObj, json)
 	} else if action == "perft" {
 		perft(&stateObj, json)
+	} else if action == "check_win" {
+		checkWin(&stateObj)
+	} else {
+		panic("Invalid task from API")
 	}
 }

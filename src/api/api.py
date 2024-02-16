@@ -100,6 +100,13 @@ def load_legal_moves():
     return moves
 
 
+def load_check_win():
+    data_dict = read_json()
+    terminal_state = data_dict["win_state"]
+
+    return terminal_state
+
+
 def concat_dict(og_dict, add_dict):
     for k, v in add_dict.items():
         #go side of api needs everything as string
