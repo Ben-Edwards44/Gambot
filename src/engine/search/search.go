@@ -2,13 +2,14 @@ package search
 
 
 import (
-	"fmt"
 	"time"
 	"chess-engine/src/engine/moves"
 )
 
 
 const INF int = 100000
+
+var searchAbandoned bool
 
 
 func getMoveOrder(state *moves.GameState, move moves.Move) int {
@@ -77,9 +78,16 @@ func checkWin(state *moves.GameState, isWhite bool, depth int) int {
 }
 
 
-func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int) (int, moves.Move) {
+func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
+	if timeLeft < 0 {
+		searchAbandoned = true
+		return 0, moves.Move{}
+	}
+
+	startTime := time.Now()
+	
 	//NOTE: white is the max player
-	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta),  moves.Move{}}  //TODO: do this (figure out whether we should be white/black)
+	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta), moves.Move{}}
 
 	moveList := moves.GenerateAllMoves(state, false)
 	orderMoves(state, moveList)
@@ -92,7 +100,10 @@ func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 	var bestMove moves.Move
 	for _, i := range moveList {
 		moves.MakeMove(state, i)
-		score, _ := minimax(state, !isWhite, depth - 1, alpha, beta)
+
+		elapsed := time.Since(startTime)
+		score, _ := minimax(state, !isWhite, depth - 1, alpha, beta, timeLeft - elapsed)
+
 		moves.UnMakeLastMove(state)
 
 		if isWhite {
@@ -128,42 +139,44 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int)
 
 	return staticEval
 
+	//IMPORTANT: this will not work with checkmates becauseeval does ont return the checkmate values
+
 	if isWhite {
 		//max player
-		if staticEval > alpha {alpha = staticEval}
+		if staticEval > alpha {
+			alpha = staticEval
+		}
 	} else {
 		//min player
-		if staticEval < beta {beta = staticEval}
+		if staticEval < beta {
+			beta = staticEval
+		}
 	}
 
-	if staticEval >= beta {return beta}  //prune
+	if staticEval >= beta {
+		return beta
+	} //prune
 
 	captMoves := moves.GenerateAllMoves(state, true)
 
 	if len(captMoves) == 0 {return staticEval}  //quiet position reached - return the evalutation
 
 	bestScore := INF + 1  //+1 so that engine will still move if in forced mate
-	if isWhite {
-		bestScore = -INF - 1  //-1 so that engine will still move if in forced mate
-	} 
+	if isWhite {bestScore = -INF - 1}  //-1 so that engine will still move if in forced mate
 
 	for _, i := range captMoves {
 		moves.MakeMove(state, i)
-		score := quiescenceSearch(state, !isWhite, -alpha, -beta)
+		score := quiescenceSearch(state, !isWhite, alpha, beta)
 		moves.UnMakeLastMove(state)
 
 		if isWhite {
 			//max player
-			if score > bestScore {
-				bestScore = score
-			}
+			if score > bestScore {bestScore = score}
 
 			if score > alpha {alpha = score}
 		} else {
 			//min player
-			if score < bestScore {
-				bestScore = score
-			}
+			if score < bestScore {bestScore = score}
 
 			if score < beta {beta = score}
 		}
@@ -176,17 +189,28 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int)
 
 
 func GetBestMove(state *moves.GameState) moves.Move {
-	start := time.Now()
+	searchAbandoned = false
 
-	maxDepth := 5  //total moves from current position (so depth=1 means just look at our moves not opponent responses)
+	startTime := time.Now()
+	timeLeft := time.Duration(time.Millisecond * 1000)
 
-	_, bestMove := minimax(state, state.WhiteToMove, maxDepth, -INF, INF)
+	depth := 1
+	var bestMove moves.Move
+	var elapsed time.Duration
+	for timeLeft > 0 {
+		elapsed = time.Since(startTime)
+		timeLeft -= elapsed
 
-	end := time.Now()
-	elapsed := end.Sub(start)
+		_, searchBestMove := minimax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)
 
-	fmt.Print("Time elapsed: ")
-	fmt.Println(elapsed)
+		if !searchAbandoned {
+			bestMove = searchBestMove
+		} else {
+			break
+		}
+
+		depth++
+	}
 
 	return bestMove
 }
