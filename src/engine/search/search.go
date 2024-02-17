@@ -13,43 +13,6 @@ const MATESCORE int = 100000
 var searchAbandoned bool
 
 
-func getMoveOrder(state *moves.GameState, move moves.Move) int {
-	score := 0
-
-	currentPiece := move.PieceValue
-	promotion := move.PromotionValue
-	captPiece := state.Board[move.EndX * 8 + move.EndY] - 6  //-6 because it is opposite colour to current
-	if currentPiece > 6 {
-		currentPiece -= 6
-		promotion -= 6
-		captPiece += 6
-	}
-
-	if captPiece > 0 {score += captPiece - currentPiece}  //capturing high value pieces with low value ones is good
-
-	score += promotion  //promotions are good (if not promotion, this will just add 0 to score)
-
-	var posBB uint64
-	posBB |= 1 << (move.StartX * 8 + move.StartY)
-
-	if posBB & state.NoKingMoveBitBoard != 0 {score -= currentPiece}  //moving to an attacked square is not good
-
-	return score
-}
-
-
-func orderMoves(state *moves.GameState, moveList []moves.Move) {
-	//slices are passed by reference, so no need to return
-
-	var moveScores []int
-	for _, i := range moveList {
-		moveScores = append(moveScores, getMoveOrder(state, i))
-	}
-
-	quickSort(moveList, moveScores, 0, len(moveList) - 1)
-}
-
-
 func checkWin(state *moves.GameState, isWhite bool) int {
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
@@ -118,8 +81,8 @@ func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 }
 
 
-
 func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int, timeLeft time.Duration) int {
+	//TODO: include checks here
 	//IMPORTANT: this will not work with checkmates because eval does not return the checkmate values
 	if timeLeft < 0 {
 		searchAbandoned = true
