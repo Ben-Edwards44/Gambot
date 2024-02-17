@@ -12,6 +12,8 @@ FILES = ["a", "b", "c", "d", "e", "f", "g", "h"]
 
 FEN_FILEPATH = "data/equal_fens.txt"
 
+SHOW_GRAPHICS = False
+
 
 def parse_board(board_fen):
     ranks = board_fen.split("/")
@@ -135,9 +137,10 @@ def play_game(white, black):
                 break
         else:
             seen_pos[hash_board] = 1
-            
-        graphics.draw_board(graphics.game_state.game_state_obj.board)  #temporary
-        graphics.pygame.display.update()  #temporary
+
+        if SHOW_GRAPHICS: 
+            graphics.draw_board(graphics.game_state.game_state_obj.board)
+            graphics.pygame.display.update()
 
         game_end = check_win()
 
@@ -147,27 +150,33 @@ def play_game(white, black):
 def engine_game(engine1, engine2, num_games):
     #play 2 different versions of the engine
 
+    engine1 = engine1.replace("/", "\\")  #for when the scripts are in a different directory. TODO: make it work for linux
+    engine2 = engine2.replace("/", "\\")  #for when the scripts are in a different directory. TODO: make it work for linux
+
     graphics.game_state.init_game_state(None)
-    graphics.init_graphics()  #temporary
+
+    if SHOW_GRAPHICS:
+        graphics.init_graphics()
 
     fens = choose_fens(num_games)
 
     win1 = 0
     draw = 0
     win2 = 0
-    for i in fens:
+    for i, x in enumerate(fens):
         #update game state obj
-        parse_fen(i)
+        parse_fen(x)
 
         #randomly assign white/black
-        white_player = engine1
-        black_player = engine2
+        if randint(0, 1) == 0:
+            white_player = engine1
+            black_player = engine2
+        else:
+            white_player = engine2
+            black_player = engine1
 
         game_end = play_game(white_player, black_player)
         
-
-        print(game_end)
-
         if game_end == "draw":
             draw += 1
         elif game_end == "white_win":
@@ -181,4 +190,6 @@ def engine_game(engine1, engine2, num_games):
             else:
                 win2 += 1
 
-    print(f"{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws {draw}")
+        print(f"Games Played: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\n")
+
+    print(f"End result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}")
