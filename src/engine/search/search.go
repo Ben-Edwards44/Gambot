@@ -78,64 +78,52 @@ func checkWin(state *moves.GameState, isWhite bool, depth int) int {
 }
 
 
-func minimax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
+func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
 	if timeLeft < 0 {
+		//out of time
 		searchAbandoned = true
 		return 0, moves.Move{}
 	}
 
 	startTime := time.Now()
 	
-	//NOTE: white is the max player
 	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta), moves.Move{}}
 
 	moveList := moves.GenerateAllMoves(state, false)
 	orderMoves(state, moveList)
 
-	if len(moveList) == 0 {return checkWin(state, isWhite, depth), moves.Move{}}  //terminal node
-
+	bestScore := -INF
 	allocatedBestMove := false
-
-	var bestScore int
 	var bestMove moves.Move
+
 	for _, i := range moveList {
 		moves.MakeMove(state, i)
 
 		elapsed := time.Since(startTime)
-		score, _ := minimax(state, !isWhite, depth - 1, alpha, beta, timeLeft - elapsed)
+		negScore, _ := negamax(state, !isWhite, depth - 1, -beta, -alpha, timeLeft - elapsed)
+		score := -negScore
 
 		moves.UnMakeLastMove(state)
 
-		if isWhite {
-			//max player
-			if score > bestScore || !allocatedBestMove {
-				bestScore = score
-				bestMove = i
-				allocatedBestMove = true
-			}
-
-			if score > alpha {alpha = score}
-		} else {
-			//min player
-			if score < bestScore || !allocatedBestMove {
-				bestScore = score
-				bestMove = i
-				allocatedBestMove = true
-			}
-
-			if score < beta {beta = score}
+		if score > bestScore || !allocatedBestMove {
+			bestMove = i
+			bestScore = score
+			allocatedBestMove = true
 		}
 
-		if beta <= alpha {break}  //prune position (opponent already has a better position)
+		if score >= beta {return beta, moves.Move{}}
+
+		if score > alpha {alpha = score}
 	}
 
 	return bestScore, bestMove
 }
 
 
+
 func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int) int {
 	//this does not work :(
-	staticEval := eval(state)
+	staticEval := eval(state, isWhite)
 
 	return staticEval
 
@@ -201,8 +189,8 @@ func GetBestMove(state *moves.GameState) moves.Move {
 		elapsed = time.Since(startTime)
 		timeLeft -= elapsed
 
-		_, searchBestMove := minimax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)
-
+		_, searchBestMove := negamax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)
+		
 		if !searchAbandoned {
 			bestMove = searchBestMove
 		} else {

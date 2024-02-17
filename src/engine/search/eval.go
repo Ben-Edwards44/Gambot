@@ -26,8 +26,14 @@ func countMaterial(state *moves.GameState) int {
 }
 
 
-func eval(state *moves.GameState) int {
+func eval(state *moves.GameState, whiteToMove bool) int {
+	//NOTE: with negamax, the eval should always be in the perspective of the current player (so times by -1 for black)
 	material := countMaterial(state)
 
-	return material
+	perspective := -1
+	if whiteToMove {perspective = 1}
+
+	//eval = (good for white - good for black) * perspective
+
+	return material * perspective
 }
