@@ -1,7 +1,10 @@
 package engine
 
 
-import "chess-engine/src/engine/moves"
+import (
+	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
+)
 
 
 func findDistToEdge() [512]int {
@@ -36,4 +39,6 @@ func PrecomputeValues() {
 	//to be called at start of execution
 	edgeDists := findDistToEdge()
 	moves.InitPrecalculate(edgeDists)
+
+	board.PrecalculateZobristNums()
 }

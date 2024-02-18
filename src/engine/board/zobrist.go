@@ -4,6 +4,9 @@ package board
 import "math/rand"
 
 
+var zobNums zobristNums
+
+
 type zobristNums struct {
 	pieceVals [64 * 6]uint64
 	sideToMove uint64
@@ -12,7 +15,7 @@ type zobristNums struct {
 }
 
 
-func generateZobristNums() zobristNums {
+func PrecalculateZobristNums() {
 	//This should be called at the start of execution
 
 	var pieceVals [64 * 6]uint64
@@ -35,13 +38,11 @@ func generateZobristNums() zobristNums {
 		epFiles[i] = num
 	}
 
-	obj := zobristNums{pieceVals: pieceVals, sideToMove: sideToMove, castlingRights: castlingRights, epFiles: epFiles}
-
-	return obj
+	zobNums = zobristNums{pieceVals: pieceVals, sideToMove: sideToMove, castlingRights: castlingRights, epFiles: epFiles}
 }
 
 
-func hashState(state *GameState, nums zobristNums) uint64 {
+func hashState(state *GameState) uint64 {
 	//This should only be called once because it is slow. Use XORs after the initial generation.
 	var hash uint64
 
@@ -52,20 +53,20 @@ func hashState(state *GameState, nums zobristNums) uint64 {
 
 		if pieceVal > 0 {
 			inx := i * 6 + (pieceVal - 1)
-			hash ^= nums.pieceVals[inx]
+			hash ^= zobNums.pieceVals[inx]
 		}
 	}
 
 	//hash castling
-	if state.WhiteKingCastle {hash ^= nums.castlingRights[0]}
-	if state.WhiteQueenCastle {hash ^= nums.castlingRights[1]}
-	if state.BlackKingCastle {hash ^= nums.castlingRights[2]}
-	if state.BlackQueenCastle {hash ^= nums.castlingRights[3]}
+	if state.WhiteKingCastle {hash ^= zobNums.castlingRights[0]}
+	if state.WhiteQueenCastle {hash ^= zobNums.castlingRights[1]}
+	if state.BlackKingCastle {hash ^= zobNums.castlingRights[2]}
+	if state.BlackQueenCastle {hash ^= zobNums.castlingRights[3]}
 
 	//hash en passant file
 	epFile := state.PrevPawnDouble[1]
 	if epFile != -1 {
-		hash ^= nums.epFiles[epFile]
+		hash ^= zobNums.epFiles[epFile]
 	}
 
 	return hash
