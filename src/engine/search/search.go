@@ -1,8 +1,8 @@
 package search
 
-
 import (
 	"chess-engine/src/engine/moves"
+	"fmt"
 	"time"
 )
 
@@ -11,6 +11,8 @@ const INF int = 9999999
 const MATESCORE int = 100000
 
 var searchAbandoned bool
+
+var bestMoves map[[64]int]moves.Move
 
 var posSearched int
 
@@ -38,7 +40,7 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 }
 
 
-func negamax(state *moves.GameState, isWhite bool, depth int, depthInx int, alpha int, beta int, moveChain string, timeLeft time.Duration) (int, moves.Move) {
+func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
@@ -51,15 +53,8 @@ func negamax(state *moves.GameState, isWhite bool, depth int, depthInx int, alph
 
 	posSearched++
 
-	moveList, exists := getMoveList(depthInx, moveChain)
-
-	if !exists {
-		//moves were not cached, so we need to actually calculate them
-		moveList = moves.GenerateAllMoves(state, false)
-		orderMoves(state, moveList)
-
-		appendToCache(depthInx, moveChain, moveList)  //Add the move to the cache
-	}
+	moveList := moves.GenerateAllMoves(state, false)
+	orderMoves(state, moveList, bestMoves[state.Board])
 
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //deal with checkmates and draws
@@ -68,14 +63,12 @@ func negamax(state *moves.GameState, isWhite bool, depth int, depthInx int, alph
 	allocatedBestMove := false
 
 	var bestMove moves.Move
-	var bestInx int
 
-	for inx, move := range moveList {
+	for _, move := range moveList {
 		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
-		newChain := moveChain + hashMove(move)
-		negScore, _ := negamax(state, !isWhite, depth - 1, depthInx + 1, -beta, -alpha, newChain, timeLeft - elapsed)
+		negScore, _ := negamax(state, !isWhite, depth - 1, -beta, -alpha, timeLeft - elapsed)
 		score := -negScore
 
 		moves.UnMakeLastMove(state)
@@ -83,7 +76,6 @@ func negamax(state *moves.GameState, isWhite bool, depth int, depthInx int, alph
 		if score > bestScore || !allocatedBestMove {
 			bestMove = move
 			bestScore = score
-			bestInx = inx
 			allocatedBestMove = true
 		}
 
@@ -92,10 +84,8 @@ func negamax(state *moves.GameState, isWhite bool, depth int, depthInx int, alph
 		if score > alpha {alpha = score}
 	}
 
-	if bestInx != 0 {
-		//change the move we search first
-		updateFirstMove(depthInx, moveChain, bestInx)
-	}
+	//update the best moves (because we will be searching at a greater depth)
+	bestMoves[state.Board] = bestMove
 
 	return bestScore, bestMove
 }
@@ -119,10 +109,10 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int,
 	posSearched++
 	
 	moveList := moves.GenerateAllMoves(state, true)
-	orderMoves(state, moveList)
+	orderMoves(state, moveList, moves.Move{})//bestMoves[state.Board])
 
-	for _, i := range moveList {
-		moves.MakeMove(state, i)
+	for _, move := range moveList {
+		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
 		score := -quiescenceSearch(state, !isWhite, -beta, -alpha, timeLeft - elapsed)
@@ -139,12 +129,15 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int,
 
 func GetBestMove(state *moves.GameState) moves.Move {
 	searchAbandoned = false
-	clearCache()
+	bestMoves = make(map[[64]int]moves.Move)
 
 	startTime := time.Now()
 	timeLeft := time.Duration(time.Millisecond * 500)  //NOTE: change back to 500ms for testing
 
 	depth := 1
+
+	searchedDepthOne := false
+
 	var bestMove moves.Move
 	var elapsed time.Duration
 	for timeLeft > 0 {
@@ -153,19 +146,35 @@ func GetBestMove(state *moves.GameState) moves.Move {
 
 		timeLeft -= elapsed
 
-		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -INF, INF, "", timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+		score, searchBestMove := negamax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+
+		//fmt.Print("Depth: ")
+		//fmt.Println(depth)
+		//fmt.Print("Elapsed: ")
+		//fmt.Println(elapsed)
+		//fmt.Print("Searched: ")
+		//fmt.Println(posSearched)
 
 		if !searchAbandoned {
 			bestMove = searchBestMove
+			searchedDepthOne = true
 		} else {
 			break
 		}
 
-		if score == MATESCORE {
-			break
-		}  //we have found a mate, so don't search any deeper
+		if score == MATESCORE {break}  //we have found a mate, so don't search any deeper
 
 		depth++
+	}
+
+	if !searchedDepthOne {
+		//could not even search to depth one, just play the first available move
+		fmt.Println("Failed to search to depth 1")
+
+		moveList := moves.GenerateAllMoves(state, false)
+		orderMoves(state, moveList, moves.Move{})  //order so that a reasonable looking move is played
+
+		bestMove = moveList[0]
 	}
 
 	if (bestMove == moves.Move{}) {

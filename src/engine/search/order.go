@@ -61,12 +61,16 @@ func getMoveOrder(state *moves.GameState, move moves.Move) int {
 }
 
 
-func orderMoves(state *moves.GameState, moveList []moves.Move) {
+func orderMoves(state *moves.GameState, moveList []moves.Move, prevBestMove moves.Move) {
 	//slices are passed by reference, so no need to return
 
 	var moveScores []int
 	for _, i := range moveList {
-		moveScores = append(moveScores, getMoveOrder(state, i))
+		if i == prevBestMove {
+			moveScores = append(moveScores, INF)  //we want to evaluate the best move from the last search first
+		} else {
+			moveScores = append(moveScores, getMoveOrder(state, i))
+		}
 	}
 
 	quickSort(moveList, moveScores, 0, len(moveList) - 1)
