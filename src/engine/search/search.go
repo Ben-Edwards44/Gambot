@@ -2,8 +2,8 @@ package search
 
 
 import (
-	"time"
 	"chess-engine/src/engine/moves"
+	"time"
 )
 
 
@@ -11,6 +11,8 @@ const INF int = 9999999
 const MATESCORE int = 100000
 
 var searchAbandoned bool
+
+var posSearched int
 
 
 func checkWin(state *moves.GameState, isWhite bool) int {
@@ -36,7 +38,7 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 }
 
 
-func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
+func negamax(state *moves.GameState, isWhite bool, depth int, depthInx int, alpha int, beta int, moveChain string, timeLeft time.Duration) (int, moves.Move) {
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
@@ -47,34 +49,52 @@ func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 	
 	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta, timeLeft), moves.Move{}}
 
-	moveList := moves.GenerateAllMoves(state, false)
-	orderMoves(state, moveList)
+	posSearched++
+
+	moveList, exists := getMoveList(depthInx, moveChain)
+
+	if !exists {
+		//moves were not cached, so we need to actually calculate them
+		moveList = moves.GenerateAllMoves(state, false)
+		orderMoves(state, moveList)
+
+		appendToCache(depthInx, moveChain, moveList)  //Add the move to the cache
+	}
 
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //deal with checkmates and draws
 
 	bestScore := -INF
 	allocatedBestMove := false
-	var bestMove moves.Move
 
-	for _, i := range moveList {
-		moves.MakeMove(state, i)
+	var bestMove moves.Move
+	var bestInx int
+
+	for inx, move := range moveList {
+		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
-		negScore, _ := negamax(state, !isWhite, depth - 1, -beta, -alpha, timeLeft - elapsed)
+		newChain := moveChain + hashMove(move)
+		negScore, _ := negamax(state, !isWhite, depth - 1, depthInx + 1, -beta, -alpha, newChain, timeLeft - elapsed)
 		score := -negScore
 
 		moves.UnMakeLastMove(state)
 
 		if score > bestScore || !allocatedBestMove {
-			bestMove = i
+			bestMove = move
 			bestScore = score
+			bestInx = inx
 			allocatedBestMove = true
 		}
 
 		if score >= beta {break}  //prune
 
 		if score > alpha {alpha = score}
+	}
+
+	if bestInx != 0 {
+		//change the move we search first
+		updateFirstMove(depthInx, moveChain, bestInx)
 	}
 
 	return bestScore, bestMove
@@ -95,6 +115,8 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int,
 
 	if staticEval >= beta {return beta}  //prune
 	if staticEval > alpha {alpha = staticEval}
+
+	posSearched++
 	
 	moveList := moves.GenerateAllMoves(state, true)
 	orderMoves(state, moveList)
@@ -117,26 +139,31 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int,
 
 func GetBestMove(state *moves.GameState) moves.Move {
 	searchAbandoned = false
+	clearCache()
 
 	startTime := time.Now()
-	timeLeft := time.Duration(time.Millisecond * 500)
+	timeLeft := time.Duration(time.Millisecond * 500)  //NOTE: change back to 500ms for testing
 
 	depth := 1
 	var bestMove moves.Move
 	var elapsed time.Duration
 	for timeLeft > 0 {
+		posSearched = 0
 		elapsed = time.Since(startTime)
+
 		timeLeft -= elapsed
 
-		score, searchBestMove := negamax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
-		
+		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -INF, INF, "", timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+
 		if !searchAbandoned {
 			bestMove = searchBestMove
 		} else {
 			break
 		}
 
-		if score == MATESCORE {break}  //we have found a mate, so don't search any deeper
+		if score == MATESCORE {
+			break
+		}  //we have found a mate, so don't search any deeper
 
 		depth++
 	}

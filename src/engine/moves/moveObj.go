@@ -11,7 +11,7 @@ type Move struct {
 	PieceValue int
 
 	//special moves
-	doublePawnMove bool
+	DoublePawnMove bool
 	EnPassant bool
 	KingCastle bool
 	QueenCastle bool
@@ -217,7 +217,7 @@ func MakeMove(state *GameState, move Move) {
 		state.Board[end + 1] = rookVal
 	}
 	
-	if move.doublePawnMove {
+	if move.DoublePawnMove {
 		state.PrevPawnDouble = [2]int{move.EndX, move.EndY}
 	} else {
 		state.PrevPawnDouble = [2]int{-1, -1}

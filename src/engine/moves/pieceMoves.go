@@ -1,6 +1,9 @@
 package moves
 
 
+import "fmt"
+
+
 //array matching piece values to their appropriate move functions
 var moveFunctions [6]func(*GameState, int, int, int, *[]Move, bool) = [6]func(*GameState, int, int, int, *[]Move, bool) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
@@ -208,7 +211,7 @@ func pawnMoves(state *GameState, x int, y int, pieceValue int, resultSlice *[]Mo
 			pin := checkPin(x, y, newX, y, &state.pinArray)
 	
 			if good && !capture && blocking && pin {
-				m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, doublePawnMove: i == 2}
+				m := Move{StartX: x, StartY: y, EndX: newX, EndY: y, PieceValue: pieceValue, DoublePawnMove: i == 2}
 				*resultSlice = append(*resultSlice, m)
 			} else if !good || capture {
 				break  //to prevent double pawn move when there is a piece in front
@@ -269,6 +272,7 @@ func GetPieceMoves(state *GameState, x int, y int, resultSlice *[]Move, onlyCapt
 		//perform any special moves (en passant, castling etc.). These will be appended to the slice
 		specialMoves(state, x, y, pieceValue, resultSlice, onlyCaptures)
 	} else {
+		fmt.Println(*state)
 		panic("trying to find move for empty square")
 	}
 }
