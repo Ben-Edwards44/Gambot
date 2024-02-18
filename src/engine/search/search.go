@@ -2,6 +2,7 @@ package search
 
 import (
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
 	"fmt"
 	"time"
 )
@@ -17,7 +18,7 @@ var bestMoves map[[64]int]moves.Move
 var posSearched int
 
 
-func checkWin(state *moves.GameState, isWhite bool) int {
+func checkWin(state *board.GameState, isWhite bool) int {
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
 	kingPos := state.BlackPiecePos[4][0]
@@ -40,7 +41,7 @@ func checkWin(state *moves.GameState, isWhite bool) int {
 }
 
 
-func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
+func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
@@ -91,7 +92,7 @@ func negamax(state *moves.GameState, isWhite bool, depth int, alpha int, beta in
 }
 
 
-func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int, timeLeft time.Duration) int {
+func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int, timeLeft time.Duration) int {
 	//TODO: include checks here
 	//IMPORTANT: this will not work with checkmates because eval does not return the checkmate values
 	if timeLeft < 0 {
@@ -127,7 +128,7 @@ func quiescenceSearch(state *moves.GameState, isWhite bool, alpha int, beta int,
 }
 
 
-func GetBestMove(state *moves.GameState) moves.Move {
+func GetBestMove(state *board.GameState) moves.Move {
 	searchAbandoned = false
 	bestMoves = make(map[[64]int]moves.Move)
 

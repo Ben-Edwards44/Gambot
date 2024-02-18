@@ -3,11 +3,12 @@ package engine
 
 import (
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
 	"chess-engine/src/engine/search"
 )
 
 
-func CheckWin(stateObj *moves.GameState) string {
+func CheckWin(stateObj *board.GameState) string {
 	legalMoves := moves.GenerateAllMoves(stateObj, false)
 
 	if len(legalMoves) > 0 {return "not_terminal"}
@@ -35,7 +36,7 @@ func CheckWin(stateObj *moves.GameState) string {
 }
 
 
-func CalculateMove(stateObj *moves.GameState) moves.GameState {
+func CalculateMove(stateObj *board.GameState) board.GameState {
 	//TODO: use pointer for return rather than value
 
 	move := search.GetBestMove(stateObj)
@@ -46,7 +47,7 @@ func CalculateMove(stateObj *moves.GameState) moves.GameState {
 }
 
 
-func GetLegalMoves(stateObj *moves.GameState, x int, y int) [][2]int {
+func GetLegalMoves(stateObj *board.GameState, x int, y int) [][2]int {
 	var legalMoves []moves.Move
 	
 	moves.GetPieceMoves(stateObj, x, y, &legalMoves, false)

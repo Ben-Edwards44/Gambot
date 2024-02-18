@@ -1,6 +1,9 @@
 package moves
 
 
+import "chess-engine/src/engine/board"
+
+
 type Move struct {
 	StartX int
 	StartY int
@@ -69,7 +72,7 @@ func movePos(arr [10][2]int, sX int, sY int, eX int, eY int) [10][2]int {
 }
 
 
-func updateCapture(state *GameState, move Move, ePos int, isWhite bool) {
+func updateCapture(state *board.GameState, move Move, ePos int, isWhite bool) {
 	//TODO: work with fixed length array
 	eVal := state.Board[ePos]
 	var enemy [6][10][2]int
@@ -107,7 +110,7 @@ func updateCapture(state *GameState, move Move, ePos int, isWhite bool) {
 }
 
 
-func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
+func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *board.GameState) {
 	isWhite := sVal < 7
 
 	if move.PromotionValue == 0 {
@@ -156,7 +159,7 @@ func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *GameState) {
 } 
 
 
-func updateBitboards(state *GameState) {
+func updateBitboards(state *board.GameState) {
 	//TODO: make faster??
 
 	kingVal := 11
@@ -170,16 +173,16 @@ func updateBitboards(state *GameState) {
 
 	kingX := kingPos[0]
 	kingY := kingPos[1]
-	kAttackBlock, pinArray, noKingMove, enPassantPin := getFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
+	kAttackBlock, pinArray, noKingMove, enPassantPin := GetFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
 
 	state.NoKingMoveBitBoard = noKingMove
-	state.kingAttackBlocks = kAttackBlock
-	state.pinArray = pinArray
-	state.enPassantPin = enPassantPin
+	state.KingAttackBlocks = kAttackBlock
+	state.PinArray = pinArray
+	state.EnPassantPin = enPassantPin
 }
 
 
-func MakeMove(state *GameState, move Move) {
+func MakeMove(state *board.GameState, move Move) {
 	//t := [8][2]int{{1, 2}, {3, 4}, {5, 6}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}}
 	//t = removeFromArray(t, 3, 4)
 	//fmt.Println(t)
@@ -255,6 +258,65 @@ func MakeMove(state *GameState, move Move) {
 }
 
 
-func UnMakeLastMove(state *GameState) {
+func UnMakeLastMove(state *board.GameState) {
 	state.RestorePrev()
+}
+
+
+func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bkCastle bool, bqCastle bool, pDouble [2]int) board.GameState {
+	//to be called whenever new game state obj is created
+
+	var whitePiecePos [6][10][2]int
+	var blackPiecePos [6][10][2]int
+	for i := 0; i < 6; i++ {
+		for x := 0; x < 10; x++ {
+			for y := 0; y < 2; y++ {
+				//default values
+				whitePiecePos[i][x][y] = -1
+				blackPiecePos[i][x][y] = -1
+			}
+		}
+	}
+
+	var inxs [12]int
+	for x := 0; x < 8; x++ {
+		for y := 0; y < 8; y++ {
+			piece := b[x * 8 + y]
+
+			if piece != 0 {
+				inx := inxs[piece - 1]
+				pos := [2]int{x, y}
+
+				if piece < 7 {
+					whitePiecePos[piece - 1][inx] = pos
+				} else {
+					blackPiecePos[piece - 7][inx] = pos
+				}
+
+				inxs[piece - 1]++
+			}
+		}
+	}
+
+	state := board.GameState{Board: b, WhiteToMove: whiteMove, WhiteKingCastle: wkCastle, WhiteQueenCastle: wqCastle, BlackKingCastle: bkCastle, BlackQueenCastle: bqCastle, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
+
+	kingVal := 11
+	kingPos := blackPiecePos[4][0]  //4 not 5 because we convert from piece value to index
+	otherPieces := whitePiecePos
+	if whiteMove {
+		kingVal = 5
+		kingPos = whitePiecePos[4][0]  //4 not 5 because we convert from piece value to index
+		otherPieces = blackPiecePos
+	}
+
+	kingX := kingPos[0]
+	kingY := kingPos[1]
+	kAttackBlock, PinArray, noKingMove, EnPassantPin := GetFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, whiteMove, pDouble)
+
+	state.NoKingMoveBitBoard = noKingMove
+	state.KingAttackBlocks = kAttackBlock
+	state.PinArray = PinArray
+	state.EnPassantPin = EnPassantPin
+
+	return state
 }

@@ -1,7 +1,10 @@
 package search
 
 
-import "chess-engine/src/engine/moves"
+import (
+	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
+)
 
 
 func quickSort(moveList []moves.Move, moveScores []int, low int, high int) {
@@ -36,7 +39,7 @@ func partition(moveList []moves.Move, moveScores []int, low int, high int) int {
 }
 
 
-func getMoveOrder(state *moves.GameState, move moves.Move) int {
+func getMoveOrder(state *board.GameState, move moves.Move) int {
 	score := 0
 
 	currentPiece := move.PieceValue
@@ -61,7 +64,7 @@ func getMoveOrder(state *moves.GameState, move moves.Move) int {
 }
 
 
-func orderMoves(state *moves.GameState, moveList []moves.Move, prevBestMove moves.Move) {
+func orderMoves(state *board.GameState, moveList []moves.Move, prevBestMove moves.Move) {
 	//slices are passed by reference, so no need to return
 
 	var moveScores []int

@@ -6,13 +6,14 @@ import (
 	"time"
 	"strconv"
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
 )
 
 
 var fileNames [8]string = [8]string{"a", "b", "c", "d", "e", "f", "g", "h"}
 
 
-func Perft(stateObj *moves.GameState, maxDepth int, test bool) {
+func Perft(stateObj *board.GameState, maxDepth int, test bool) {
 	start := time.Now()
 	
 	var nodes int
@@ -33,7 +34,7 @@ func Perft(stateObj *moves.GameState, maxDepth int, test bool) {
 }
 
 
-func testPerft(stateObj *moves.GameState, maxDepth int) int {
+func testPerft(stateObj *board.GameState, maxDepth int) int {
 	initMoves := moves.GenerateAllMoves(stateObj, false)
 
 	total := 0
@@ -74,7 +75,7 @@ func getMoveStr(move moves.Move) string {
 }
 
 
-func bulkCount(position *moves.GameState, depth int) int {	
+func bulkCount(position *board.GameState, depth int) int {	
 	moveList := moves.GenerateAllMoves(position, false)
 
 	if depth == 1 {return len(moveList)}

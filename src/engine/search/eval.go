@@ -1,13 +1,13 @@
 package search
 
 
-import "chess-engine/src/engine/moves"
+import "chess-engine/src/engine/board"
 
 
 var pieceWeight [6]int = [6]int{10, 30, 30, 50, 100, 90}
 
 
-func countMaterial(state *moves.GameState) int {
+func countMaterial(state *board.GameState) int {
 	white := 0
 	black := 0
 	for inx := 0; inx < 6; inx++ {
@@ -26,7 +26,7 @@ func countMaterial(state *moves.GameState) int {
 }
 
 
-func eval(state *moves.GameState, whiteToMove bool) int {
+func eval(state *board.GameState, whiteToMove bool) int {
 	//NOTE: with negamax, the eval should always be in the perspective of the current player (so times by -1 for black)
 	material := countMaterial(state)
 

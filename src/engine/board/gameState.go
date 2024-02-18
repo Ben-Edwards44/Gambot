@@ -1,4 +1,4 @@
-package moves
+package board
 
 
 type GameState struct {
@@ -18,10 +18,10 @@ type GameState struct {
 	BlackPiecePos [6][10][2]int
 
 	NoKingMoveBitBoard uint64
-	kingAttackBlocks []uint64
+	KingAttackBlocks []uint64
 
-	pinArray [64]uint64
-	enPassantPin bool
+	PinArray [64]uint64
+	EnPassantPin bool
 
 	//for unmaking moves (end index is the most recent)
 	prvBoard [][64]int
@@ -48,8 +48,8 @@ type GameState struct {
 
 func (state *GameState) SetPrevVals() {
 	//copy the slice (because slices are passed by reference)
-	cpyKingAttackBlocks := make([]uint64, len(state.kingAttackBlocks))
-	copy(cpyKingAttackBlocks, state.kingAttackBlocks)
+	cpyKingAttackBlocks := make([]uint64, len(state.KingAttackBlocks))
+	copy(cpyKingAttackBlocks, state.KingAttackBlocks)
 
 	//set prev values
 	state.prvBoard = append(state.prvBoard, state.Board)
@@ -63,8 +63,8 @@ func (state *GameState) SetPrevVals() {
 	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, state.BlackPiecePos)
 	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.NoKingMoveBitBoard)
 	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
-	state.prvPinArray = append(state.prvPinArray, state.pinArray)
-	state.prvEnPassantPin = append(state.prvEnPassantPin, state.enPassantPin)
+	state.prvPinArray = append(state.prvPinArray, state.PinArray)
+	state.prvEnPassantPin = append(state.prvEnPassantPin, state.EnPassantPin)
 }
 
 
@@ -82,9 +82,9 @@ func (state *GameState) RestorePrev() {
 	state.WhitePiecePos = state.PrvWhitePiecePos[len(state.PrvWhitePiecePos) - 1]//cpyWhitePiecePos
 	state.BlackPiecePos = state.PrvBlackPiecePos[len(state.PrvBlackPiecePos) - 1]//cpyBlackPiecePos
 	state.NoKingMoveBitBoard = state.prvNoKingMoveBitBoard[len(state.prvNoKingMoveBitBoard) - 1]
-	state.kingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
-	state.pinArray = state.prvPinArray[len(state.prvPinArray) - 1]
-	state.enPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
+	state.KingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
+	state.PinArray = state.prvPinArray[len(state.prvPinArray) - 1]
+	state.EnPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
 
 	//pop end of slice
 	state.prvBoard = state.prvBoard[:len(state.prvBoard) - 1]
@@ -100,63 +100,4 @@ func (state *GameState) RestorePrev() {
 	state.prvKingAttackBlocks = state.prvKingAttackBlocks[:len(state.prvKingAttackBlocks) - 1]
 	state.prvPinArray = state.prvPinArray[:len(state.prvPinArray) - 1]
 	state.prvEnPassantPin = state.prvEnPassantPin[:len(state.prvEnPassantPin) - 1]
-}
-
-
-func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bkCastle bool, bqCastle bool, pDouble [2]int) GameState {
-	//to be called whenever new game state obj is created
-
-	var whitePiecePos [6][10][2]int
-	var blackPiecePos [6][10][2]int
-	for i := 0; i < 6; i++ {
-		for x := 0; x < 10; x++ {
-			for y := 0; y < 2; y++ {
-				//default values
-				whitePiecePos[i][x][y] = -1
-				blackPiecePos[i][x][y] = -1
-			}
-		}
-	}
-
-	var inxs [12]int
-	for x := 0; x < 8; x++ {
-		for y := 0; y < 8; y++ {
-			piece := b[x * 8 + y]
-
-			if piece != 0 {
-				inx := inxs[piece - 1]
-				pos := [2]int{x, y}
-
-				if piece < 7 {
-					whitePiecePos[piece - 1][inx] = pos
-				} else {
-					blackPiecePos[piece - 7][inx] = pos
-				}
-
-				inxs[piece - 1]++
-			}
-		}
-	}
-
-	state := GameState{Board: b, WhiteToMove: whiteMove, WhiteKingCastle: wkCastle, WhiteQueenCastle: wqCastle, BlackKingCastle: bkCastle, BlackQueenCastle: bqCastle, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
-
-	kingVal := 11
-	kingPos := blackPiecePos[4][0]  //4 not 5 because we convert from piece value to index
-	otherPieces := whitePiecePos
-	if whiteMove {
-		kingVal = 5
-		kingPos = whitePiecePos[4][0]  //4 not 5 because we convert from piece value to index
-		otherPieces = blackPiecePos
-	}
-
-	kingX := kingPos[0]
-	kingY := kingPos[1]
-	kAttackBlock, pinArray, noKingMove, enPassantPin := getFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, whiteMove, pDouble)
-
-	state.NoKingMoveBitBoard = noKingMove
-	state.kingAttackBlocks = kAttackBlock
-	state.pinArray = pinArray
-	state.enPassantPin = enPassantPin
-
-	return state
 }

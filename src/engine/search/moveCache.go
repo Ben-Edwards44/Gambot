@@ -2,6 +2,7 @@ package search
 
 import (
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
 	"fmt"
 	"strconv"
 )
@@ -29,7 +30,7 @@ func hashMove(move moves.Move) string {
 }
 
 
-func getMoveList(state *moves.GameState, depthInx int, moveChain string, onlyCaptures bool) []moves.Move {
+func getMoveList(state *board.GameState, depthInx int, moveChain string, onlyCaptures bool) []moves.Move {
 	//get the ordered list of moves from a previous iteration of iterative deepening
 
 	cache := moveCache
@@ -50,7 +51,7 @@ func getMoveList(state *moves.GameState, depthInx int, moveChain string, onlyCap
 }
 
 
-func manuallyGenerateMoves(state *moves.GameState, depthInx int, moveChain string, onlyCaptures bool) []moves.Move {
+func manuallyGenerateMoves(state *board.GameState, depthInx int, moveChain string, onlyCaptures bool) []moves.Move {
 	moveList := moves.GenerateAllMoves(state, onlyCaptures)
 	orderMoves(state, moveList, moves.Move{})
 

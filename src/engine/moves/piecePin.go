@@ -256,7 +256,7 @@ func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDo
 }
 
 
-func getFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][10][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
+func GetFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][10][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
 	//return the attack, pin, and no king move bitboards, as well as whether en passant is pinned
 
 	var attackBB []uint64

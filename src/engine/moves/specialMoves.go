@@ -1,8 +1,11 @@
 package moves
 
 
-func enPassant(state *GameState, currentX int, currentY int, pieceValue int, resultSlice *[]Move) {
-	if state.enPassantPin {return}  //en passant is pinned (edge case)
+import "chess-engine/src/engine/board"
+
+
+func enPassant(state *board.GameState, currentX int, currentY int, pieceValue int, resultSlice *[]Move) {
+	if state.EnPassantPin {return}  //en passant is pinned (edge case)
 
 	otherX := state.PrevPawnDouble[0]
 	otherY := state.PrevPawnDouble[1]
@@ -25,8 +28,8 @@ func enPassant(state *GameState, currentX int, currentY int, pieceValue int, res
 
 			m := Move{StartX: currentX, StartY: currentY, EndX: newX, EndY: newY, PieceValue: pieceValue, EnPassant: true}
 
-			blocking := blockKingAttack(otherX, otherY, state.kingAttackBlocks)  //we check the other pawns pos because we are (in effect) taking it
-			pin := checkPin(currentX, currentY, newX, newY, &state.pinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
+			blocking := blockKingAttack(otherX, otherY, state.KingAttackBlocks)  //we check the other pawns pos because we are (in effect) taking it
+			pin := checkPin(currentX, currentY, newX, newY, &state.PinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
 			
 			if blocking && pin {*resultSlice = append(*resultSlice, m)}
 		}
@@ -34,7 +37,7 @@ func enPassant(state *GameState, currentX int, currentY int, pieceValue int, res
 }
 
 
-func promotion(state *GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move, onlyCaptures bool) {
+func promotion(state *board.GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move, onlyCaptures bool) {
 	//assume piece is a pawn and on second to last rank
 	newX := x + xStep
 
@@ -44,8 +47,8 @@ func promotion(state *GameState, x int, y int, pieceValue int, xStep int, result
 		if newY < 0 || newY > 7 {continue}
 
 		good, capture := canMove(&state.Board, newX, newY, pieceValue)
-		blocking := blockKingAttack(newX, newY, state.kingAttackBlocks)
-		pin := checkPin(x, y, newX, newY, &state.pinArray)
+		blocking := blockKingAttack(newX, newY, state.KingAttackBlocks)
+		pin := checkPin(x, y, newX, newY, &state.PinArray)
 
 		//check pawn can move to promotion square
 		if !good {continue}
@@ -64,7 +67,7 @@ func promotion(state *GameState, x int, y int, pieceValue int, xStep int, result
 }
 
 
-func castle(state *GameState, pieceValue int, resultSlice *[]Move) {
+func castle(state *board.GameState, pieceValue int, resultSlice *[]Move) {
 	//black values
 	rookValue := 10
 	kingValue := 11

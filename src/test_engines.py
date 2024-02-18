@@ -94,7 +94,7 @@ def run_engine(script_name):
 
     exit_code = system(f"{script_name}.exe")
     if exit_code != 0:
-        raise Exception("Go script resulted in an error")
+        raise Exception(f"Go script ({script_name}) resulted in an error")
 
 
 def check_win():
@@ -117,10 +117,15 @@ def play_game(white, black):
         #make move
         api.send_data("move_gen", graphics.game_state.game_state_obj)
 
-        if graphics.game_state.game_state_obj.white_to_move:
-            run_engine(white)
-        else:
-            run_engine(black)
+        try:
+            if graphics.game_state.game_state_obj.white_to_move:
+                run_engine(white)
+            else:
+                run_engine(black)
+        except Exception:
+            game_end = "aborted"
+            print(graphics.game_state.game_state_obj.board)
+            quit()
 
         #recieve the made moved
         new_state = api.load_game_state()
@@ -161,8 +166,9 @@ def engine_game(engine1, engine2, num_games):
     fens = choose_fens(num_games)
 
     win1 = 0
-    draw = 0
     win2 = 0
+    draw = 0
+    aborted = 0
     for i, x in enumerate(fens):
         #update game state obj
         parse_fen(x)
@@ -184,12 +190,14 @@ def engine_game(engine1, engine2, num_games):
                 win1 += 1
             else:
                 win2 += 1
-        else:
+        elif game_end == "black_win":
             if black_player == engine1:
                 win1 += 1
             else:
                 win2 += 1
+        else:
+            aborted += 1
 
-        print(f"Games Played: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\n")
+        print(f"Games Played: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}\n")
 
-    print(f"End result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}")
+    print(f"End result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}")

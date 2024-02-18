@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
 )
 
 
@@ -254,7 +255,7 @@ func formatAttr(name string, value string) string {
 }
 
 
-func jsonToState(json map[string]string) moves.GameState {
+func jsonToState(json map[string]string) board.GameState {
 	board := boardStrToList(json["board"])
 	whiteMove := json["white_to_move"] == "true"
 	whiteKingCastle := json["white_king_castle"] == "true"
@@ -269,7 +270,7 @@ func jsonToState(json map[string]string) moves.GameState {
 }
 
 
-func stateToJson(stateObj moves.GameState) string {
+func stateToJson(stateObj board.GameState) string {
 	board := boardToString(stateObj.Board)
 	whiteMove := strconv.FormatBool(stateObj.WhiteToMove)
 	whiteKingCastle := strconv.FormatBool(stateObj.WhiteKingCastle)
@@ -321,7 +322,7 @@ func readFile() string {
 }
 
 
-func LoadGameState() (map[string]string, moves.GameState) {
+func LoadGameState() (map[string]string, board.GameState) {
 	str := readFile()
 	json := jsonLoad(str)
 	
@@ -345,7 +346,7 @@ func writeToJson(writeStr string) {
 }
 
 
-func WriteState(stateObj moves.GameState) {
+func WriteState(stateObj board.GameState) {
 	str := stateToJson(stateObj)
 	writeStr := "{" + str + "}"
 

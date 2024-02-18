@@ -3,14 +3,14 @@ package src
 import (
 	"chess-engine/src/api"
 	"chess-engine/src/engine"
-	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
 	"os"
 	"runtime/pprof"
 	"strconv"	
 )
 
 
-func engineMove(stateObj *moves.GameState) {
+func engineMove(stateObj *board.GameState) {
 	file, err := os.Create("profile.prof")
 
 	if err != nil {panic(err)}
@@ -24,7 +24,7 @@ func engineMove(stateObj *moves.GameState) {
 }
 
 
-func legalMoves(stateObj *moves.GameState, json map[string]string) {
+func legalMoves(stateObj *board.GameState, json map[string]string) {
 	x, err1 := strconv.Atoi(json["piece_x"])
 	y, err2 := strconv.Atoi(json["piece_y"])
 
@@ -40,7 +40,7 @@ func legalMoves(stateObj *moves.GameState, json map[string]string) {
 }
 
 
-func perft(stateObj *moves.GameState, json map[string]string) {
+func perft(stateObj *board.GameState, json map[string]string) {
 	depth, err := strconv.Atoi(json["perft_depth"])
 	test := json["perft_test"] == "true"
 
@@ -52,7 +52,7 @@ func perft(stateObj *moves.GameState, json map[string]string) {
 }
 
 
-func checkWin(stateObj *moves.GameState) {
+func checkWin(stateObj *board.GameState) {
 	writeValue := engine.CheckWin(stateObj)
 
 	api.WriteCheckWin(writeValue)
