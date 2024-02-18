@@ -79,8 +79,8 @@ func (state *GameState) RestorePrev() {
 	state.BlackKingCastle = state.prvBlackKingCastle[len(state.prvBlackKingCastle) - 1]
 	state.BlackQueenCastle = state.prvBlackQueenCastle[len(state.prvBlackQueenCastle) - 1]
 	state.PrevPawnDouble = state.prvPrevPawnDouble[len(state.prvPrevPawnDouble) - 1]
-	state.WhitePiecePos = state.PrvWhitePiecePos[len(state.PrvWhitePiecePos) - 1]//cpyWhitePiecePos
-	state.BlackPiecePos = state.PrvBlackPiecePos[len(state.PrvBlackPiecePos) - 1]//cpyBlackPiecePos
+	state.WhitePiecePos = state.PrvWhitePiecePos[len(state.PrvWhitePiecePos) - 1]
+	state.BlackPiecePos = state.PrvBlackPiecePos[len(state.PrvBlackPiecePos) - 1]
 	state.NoKingMoveBitBoard = state.prvNoKingMoveBitBoard[len(state.prvNoKingMoveBitBoard) - 1]
 	state.KingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
 	state.PinArray = state.prvPinArray[len(state.prvPinArray) - 1]
