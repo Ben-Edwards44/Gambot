@@ -1,4 +1,4 @@
-package search
+package evaluation
 
 
 import "chess-engine/src/engine/board"
@@ -26,7 +26,7 @@ func countMaterial(state *board.GameState) int {
 }
 
 
-func eval(state *board.GameState, whiteToMove bool) int {
+func Eval(state *board.GameState, whiteToMove bool) int {
 	//NOTE: with negamax, the eval should always be in the perspective of the current player (so times by -1 for black)
 	material := countMaterial(state)
 

@@ -1,10 +1,12 @@
 package search
 
+
 import (
-	"chess-engine/src/engine/moves"
-	"chess-engine/src/engine/board"
 	"fmt"
 	"time"
+	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/board"
+	"chess-engine/src/engine/evaluation"
 )
 
 
@@ -102,7 +104,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 	
 	startTime := time.Now()
 
-	staticEval := eval(state, isWhite)
+	staticEval := evaluation.Eval(state, isWhite)
 
 	if staticEval >= beta {return beta}  //prune
 	if staticEval > alpha {alpha = staticEval}
@@ -170,7 +172,6 @@ func GetBestMove(state *board.GameState) moves.Move {
 
 	if !searchedDepthOne {
 		//could not even search to depth one, just play the first available move
-		//fmt.Println("Failed to search to depth 1")
 
 		moveList := moves.GenerateAllMoves(state, false)
 		orderMoves(state, moveList, moves.Move{})  //order so that a reasonable looking move is played
