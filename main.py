@@ -30,6 +30,14 @@ def engine_game():
     test_engines.engine_game(engine1, engine2, num_games)
 
 
+def speed_test():
+    engine1 = argv[2]
+    engine2 = argv[3]
+    num_games = int(argv[4])
+
+    test_engines.speed_test(engine1, engine2, num_games)
+
+
 def main():
     mode = argv[1]
 
@@ -39,6 +47,8 @@ def main():
         perft()
     elif mode == "engine_game":
         engine_game()
+    elif mode == "speed_test":
+        speed_test()
 
 
 if __name__ == "__main__":

@@ -8,8 +8,8 @@ import (
 )
 
 //TODO: use bits to represent moves and use array instead of map
-var moveCache []map[string][]moves.Move
-var captureCache []map[string][]moves.Move
+var moveCache map[string][]moves.Move
+var captureCache map[string][]moves.Move
 
 
 func hashMove(move moves.Move) string {
@@ -30,52 +30,38 @@ func hashMove(move moves.Move) string {
 }
 
 
-func getMoveList(state *board.GameState, depthInx int, moveChain string, onlyCaptures bool) []moves.Move {
+func getMoveList(state *board.GameState, moveChain string, onlyCaptures bool) []moves.Move {
 	//get the ordered list of moves from a previous iteration of iterative deepening
 
 	cache := moveCache
 	if onlyCaptures {cache = captureCache}
 
-	if depthInx >= len(cache) {
-		return manuallyGenerateMoves(state, depthInx, moveChain, onlyCaptures)
-	} else {
-		moveList, exists := cache[depthInx][moveChain]
+	moveList, exists := cache[moveChain]
 
-		if !exists {
-			//moves were not cached, so we need to actually calculate them
-			moveList = manuallyGenerateMoves(state, depthInx, moveChain, onlyCaptures)
-		}
-
-		return moveList
+	if !exists {
+		//moves were not cached, so we need to actually calculate them
+		moveList = manuallyGenerateMoves(state, moveChain, onlyCaptures)
 	}
-}
-
-
-func manuallyGenerateMoves(state *board.GameState, depthInx int, moveChain string, onlyCaptures bool) []moves.Move {
-	moveList := moves.GenerateAllMoves(state, onlyCaptures)
-	orderMoves(state, moveList, moves.Move{})
-
-	appendToCache(depthInx, moveChain, moveList, onlyCaptures)  //Add the move to the cache
 
 	return moveList
 }
 
 
-func appendToCache(depthInx int, moveChain string, moveList []moves.Move, onlyCaptures bool) {
+func manuallyGenerateMoves(state *board.GameState, moveChain string, onlyCaptures bool) []moves.Move {
+	moveList := moves.GenerateAllMoves(state, onlyCaptures)
+	orderMoves(state, moveList, moves.Move{})
+
+	appendToCache(moveChain, moveList, onlyCaptures)  //Add the move to the cache
+
+	return moveList
+}
+
+
+func appendToCache(moveChain string, moveList []moves.Move, onlyCaptures bool) {
 	cache := moveCache
 	if onlyCaptures {cache = captureCache}
-	
-	if depthInx < len(cache) {
-		//just adding a new move onto an existing depth
-		cache[depthInx][moveChain] = moveList
-	} else {
-		//first move on a new depth
 
-		newMap := make(map[string][]moves.Move)
-		newMap[moveChain] = moveList
-
-		cache = append(cache, newMap)
-	}
+	cache[moveChain] = moveList
 
 	if onlyCaptures {
 		captureCache = cache
@@ -85,15 +71,15 @@ func appendToCache(depthInx int, moveChain string, moveList []moves.Move, onlyCa
 }
 
 
-func updateFirstMove(depthInx int, moveChain string, newFirstInx int, onlyCaptures bool) {
+func updateFirstMove(moveChain string, newFirstInx int, onlyCaptures bool) {
 	//update the move order with the new best move at the front
 
 	var list []moves.Move
 	if onlyCaptures {
-		list = captureCache[depthInx][moveChain]
+		list = captureCache[moveChain]
 		fmt.Println(list)
 	} else {
-		list = moveCache[depthInx][moveChain]
+		list = moveCache[moveChain]
 	}
 
 	moveVal := list[newFirstInx]
@@ -106,20 +92,14 @@ func updateFirstMove(depthInx int, moveChain string, newFirstInx int, onlyCaptur
 	list[0] = moveVal  //shift the new best into first place
 
 	if onlyCaptures {
-		captureCache[depthInx][moveChain] = list
+		captureCache[moveChain] = list
 	} else {
-		moveCache[depthInx][moveChain] = list
+		moveCache[moveChain] = list
 	}
 }
 
 
 func clearCaches() {
-	moveCache = make([]map[string][]moves.Move, 1)
-	captureCache = make([]map[string][]moves.Move, 1)
-
-	map1 := make(map[string][]moves.Move)
-	map2 := make(map[string][]moves.Move)
-
-	moveCache[0] = map1
-	captureCache[0] = map2
+	moveCache = make(map[string][]moves.Move)
+	captureCache = make(map[string][]moves.Move)
 }

@@ -1,6 +1,7 @@
 import src.api.api as api
 import src.graphics.main as graphics
 
+import subprocess
 from os import system
 from random import randint
 
@@ -201,3 +202,77 @@ def engine_game(engine1, engine2, num_games):
         print(f"Games Played: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}\n")
 
     print(f"End result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}")
+
+
+def get_time(engine):
+    #assumes state pos obj has been updated with the position
+
+    api.send_data("move_gen", graphics.game_state.game_state_obj)
+
+    output = subprocess.check_output(f"{engine}.exe").decode()
+
+    search_results = output.split("\n")
+    times = [i.split(" ")[-1] for i in search_results]
+
+    milisecs = []
+    for time in times:
+        if time == "":
+            continue
+
+        num = ""
+        end = ""
+        for i in time:
+            if i in "0123456789.":
+                num += i
+            else:
+                end += i
+
+        num = float(num)
+
+        if end == "ms":
+            milisecs.append(num)
+        elif end == "s":
+            milisecs.append(num * 1000)
+        elif end == "µs":
+            milisecs.append(num / 1000)
+        else:
+            raise Exception(f"Invalid time {time}")
+        
+    return milisecs
+
+
+def speed_test(engine1, engine2, num_games):
+    engine1 = engine1.replace("/", "\\")  #for when the scripts are in a different directory. TODO: make it work for linux
+    engine2 = engine2.replace("/", "\\")  #for when the scripts are in a different directory. TODO: make it work for linux
+
+    graphics.game_state.init_game_state(None)
+
+    fens = choose_fens(num_games)
+
+    win1 = 0
+    win2 = 0
+    for i, x in enumerate(fens):
+        #update game state obj
+        parse_fen(x)
+
+        time_depths1 = get_time(engine1)
+        time_depths2 = get_time(engine2)
+
+        if len(time_depths1) == len(time_depths2):
+            #look at time taken for second to last depth (last full search)
+            if len(time_depths1) == 1:
+                time_depths1.append(0)
+                time_depths2.append(0)
+ 
+            if time_depths1[-2] < time_depths2[-2]:
+                win1 += 1
+            else:
+                win2 += 1
+        elif len(time_depths1) > len(time_depths2):
+            win1 += 1
+        else:
+            win2 += 1
+
+        print(f"Evalutated: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}")
+
+    print(f"End Result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}")

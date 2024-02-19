@@ -133,7 +133,7 @@ func GetBestMove(state *board.GameState) moves.Move {
 	bestMoves = make(map[[64]int]moves.Move)
 
 	startTime := time.Now()
-	timeLeft := time.Duration(time.Millisecond * 500)  //NOTE: change back to 500ms for testing
+	timeLeft := time.Duration(time.Millisecond * 500)  //NOTE: change to 500ms for testing
 
 	depth := 1
 
@@ -149,12 +149,12 @@ func GetBestMove(state *board.GameState) moves.Move {
 
 		score, searchBestMove := negamax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
-		//fmt.Print("Depth: ")
-		//fmt.Println(depth)
-		//fmt.Print("Elapsed: ")
-		//fmt.Println(elapsed)
-		//fmt.Print("Searched: ")
-		//fmt.Println(posSearched)
+		fmt.Print("Depth: ")
+		fmt.Print(depth)
+		fmt.Print(", Searched: ")
+		fmt.Print(posSearched)
+		fmt.Print(", Elapsed: ")
+		fmt.Println(elapsed)  //time taken must be last for speed test
 
 		if !searchAbandoned {
 			bestMove = searchBestMove
@@ -170,7 +170,7 @@ func GetBestMove(state *board.GameState) moves.Move {
 
 	if !searchedDepthOne {
 		//could not even search to depth one, just play the first available move
-		fmt.Println("Failed to search to depth 1")
+		//fmt.Println("Failed to search to depth 1")
 
 		moveList := moves.GenerateAllMoves(state, false)
 		orderMoves(state, moveList, moves.Move{})  //order so that a reasonable looking move is played
