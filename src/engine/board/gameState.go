@@ -49,6 +49,8 @@ type GameState struct {
 
 	prvPinArray [][64]uint64
 	prvEnPassantPin []bool
+
+	prvZobHash []uint64
 }
 
 
@@ -68,6 +70,7 @@ func (state *GameState) SetPrevVals() {
 	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
 	state.prvPinArray = append(state.prvPinArray, state.PinArray)
 	state.prvEnPassantPin = append(state.prvEnPassantPin, state.EnPassantPin)
+	state.prvZobHash = append(state.prvZobHash, state.ZobristHash)
 }
 
 
@@ -85,6 +88,7 @@ func (state *GameState) RestorePrev() {
 	state.KingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
 	state.PinArray = state.prvPinArray[len(state.prvPinArray) - 1]
 	state.EnPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
+	state.ZobristHash = state.prvZobHash[len(state.prvZobHash) - 1]
 
 	//pop end of slice
 	state.prvBoard = state.prvBoard[:len(state.prvBoard) - 1]
@@ -97,4 +101,5 @@ func (state *GameState) RestorePrev() {
 	state.prvKingAttackBlocks = state.prvKingAttackBlocks[:len(state.prvKingAttackBlocks) - 1]
 	state.prvPinArray = state.prvPinArray[:len(state.prvPinArray) - 1]
 	state.prvEnPassantPin = state.prvEnPassantPin[:len(state.prvEnPassantPin) - 1]
+	state.prvZobHash = state.prvZobHash[:len(state.prvZobHash) - 1]
 }
