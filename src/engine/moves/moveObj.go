@@ -182,13 +182,59 @@ func updateBitboards(state *board.GameState) {
 }
 
 
+func updateHash(state *board.GameState, move Move, start int, end int, pieceVal int, captVal int, prevCastle uint8, newCastle uint8, prevEpFile int) {
+	newZobHash := state.ZobristHash
+
+	//Update hash with new piece pos
+	newZobHash ^= board.ZobNums.PieceVals[start * 6 + pieceVal]  //get rid of piece from start square
+	newZobHash ^= board.ZobNums.PieceVals[end * 6 + pieceVal]  //place piece on new square
+
+	if captVal != 0 {
+		newZobHash ^= board.ZobNums.PieceVals[end * 6 + captVal]
+	}
+
+	//update rook pos as well for castling
+	if move.KingCastle {
+		rookVal := move.PieceValue - 1
+
+		newZobHash ^= board.ZobNums.PieceVals[(end + 1) * 6 + rookVal]
+		newZobHash ^= board.ZobNums.PieceVals[(end - 1) * 6 + rookVal]
+	} else if move.QueenCastle {
+		rookVal := move.PieceValue - 1
+
+		newZobHash ^= board.ZobNums.PieceVals[(end - 2) * 6 + rookVal]
+		newZobHash ^= board.ZobNums.PieceVals[(end + 1) * 6 + rookVal]
+	}
+
+	//promotions
+	if move.PromotionValue != 0 {
+		newZobHash ^= board.ZobNums.PieceVals[start * 6 + pieceVal]  //remove pawn
+		newZobHash ^= board.ZobNums.PieceVals[end * 6 + move.PromotionValue]  //add new piece
+	}
+
+	//add en passant file (if needed)
+	if move.DoublePawnMove {
+		newZobHash ^= board.ZobNums.EpFiles[move.EndY]
+	}
+
+	//update castle rights. NOTE: the first 4 bits of the uint8 act as flags from white king/queen and black king/queen castling
+	if prevCastle != newCastle {
+		newZobHash ^= board.ZobNums.CastlingRights[prevCastle]
+		newZobHash ^= board.ZobNums.CastlingRights[newCastle]
+	}
+
+	//get rid of the en passant target square from the previous move (if needed)
+	if prevEpFile != -1 {
+		newZobHash ^= board.ZobNums.EpFiles[prevEpFile]
+	}
+
+	newZobHash ^= board.ZobNums.SideToMove
+
+	state.ZobristHash = newZobHash
+}
+
+
 func MakeMove(state *board.GameState, move Move) {
-	//t := [8][2]int{{1, 2}, {3, 4}, {5, 6}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}}
-	//t = removeFromArray(t, 3, 4)
-	//fmt.Println(t)
-	//panic(t)
-
-
 	//updates game state
 
 	state.SetPrevVals()  //so that we can restore later
@@ -196,9 +242,11 @@ func MakeMove(state *board.GameState, move Move) {
 	start := move.StartX * 8 + move.StartY
 	end := move.EndX * 8 + move.EndY
 	val := move.PieceValue
+	//captVal := state.Board[end]
 
 	updatePiecePos(move, start, end, val, state)
 
+	//move piece
 	state.Board[start] = 0
 	state.Board[end] = val
 
@@ -207,7 +255,6 @@ func MakeMove(state *board.GameState, move Move) {
 	if move.EnPassant {
 		capturePos := move.StartX * 8 + move.EndY
 		state.Board[capturePos] = 0
-
 	} else if move.KingCastle {
 		rookVal := move.PieceValue - 1
 
@@ -230,31 +277,35 @@ func MakeMove(state *board.GameState, move Move) {
 		state.Board[end] = move.PromotionValue
 	}
 
+	newCastleRights := state.CastleRights
 	if move.PieceValue == 5 {
 		//white king moving
-		state.WhiteKingCastle = false
-		state.WhiteQueenCastle = false
+		newCastleRights &= board.InvWkCastle //state.WhiteKingCastle = false
+		newCastleRights &= board.InvWqCastle //state.WhiteQueenCastle = false
 	} else if move.PieceValue == 11 {
 		//black king moving
-		state.BlackKingCastle = false
-		state.BlackQueenCastle = false
+		newCastleRights &= board.InvBkCastle //state.BlackKingCastle = false
+		newCastleRights &= board.InvBqCastle //state.BlackQueenCastle = false
 	} else if move.PieceValue == 4 {
 		//white rook moving
 		if move.StartY == 7 {
-			state.WhiteKingCastle = false
+			newCastleRights &= board.InvWkCastle //state.WhiteKingCastle = false
 		} else if move.StartY == 0 {
-			state.WhiteQueenCastle = false
+			newCastleRights &= board.InvWqCastle //state.WhiteQueenCastle = false
 		}
 	} else if move.PieceValue == 10 {
 		//black rook moving
 		if move.StartY == 7 {
-			state.BlackKingCastle = false
+			newCastleRights &= board.InvBkCastle //state.BlackKingCastle = false
 		} else if move.StartY == 0 {
-			state.BlackQueenCastle = false
+			newCastleRights &= board.InvBqCastle //state.BlackQueenCastle = false
 		}
 	}
 
+	state.CastleRights = newCastleRights
+
 	updateBitboards(state)
+	//updateHash(state, move, start, end, val, captVal, )
 }
 
 
@@ -298,7 +349,13 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 		}
 	}
 
-	state := board.GameState{Board: b, WhiteToMove: whiteMove, WhiteKingCastle: wkCastle, WhiteQueenCastle: wqCastle, BlackKingCastle: bkCastle, BlackQueenCastle: bqCastle, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
+	var castleRights uint8
+	if wkCastle {castleRights |= board.WkCastle}
+	if wqCastle {castleRights |= board.WqCastle}
+	if bkCastle {castleRights |= board.BkCastle}
+	if bkCastle {castleRights |= board.BqCastle}
+
+	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
 
 	kingVal := 11
 	kingPos := blackPiecePos[4][0]  //4 not 5 because we convert from piece value to index
@@ -317,6 +374,9 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 	state.KingAttackBlocks = kAttackBlock
 	state.PinArray = PinArray
 	state.EnPassantPin = EnPassantPin
+
+	zobHash := board.HashState(&state)
+	state.ZobristHash = zobHash
 
 	return state
 }

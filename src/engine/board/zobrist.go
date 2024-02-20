@@ -1,17 +1,20 @@
 package board
 
 
+//https://stackoverflow.com/questions/10067514/correctly-implementing-zobrist-hashing
+
+
 import "math/rand"
 
 
-var zobNums zobristNums
+var ZobNums zobristNums
 
 
 type zobristNums struct {
-	pieceVals [64 * 6]uint64
-	sideToMove uint64
-	castlingRights [4]uint64
-	epFiles [8]uint64
+	PieceVals [64 * 6]uint64
+	SideToMove uint64
+	CastlingRights [16]uint64
+	EpFiles [8]uint64
 }
 
 
@@ -26,8 +29,8 @@ func PrecalculateZobristNums() {
 
 	sideToMove := rand.Uint64()
 
-	var castlingRights [4]uint64
-	for i := 0; i < 4; i++ {
+	var castlingRights [16]uint64
+	for i := 0; i < 16; i++ {
 		num := rand.Uint64()
 		castlingRights[i] = num
 	}
@@ -38,11 +41,11 @@ func PrecalculateZobristNums() {
 		epFiles[i] = num
 	}
 
-	zobNums = zobristNums{pieceVals: pieceVals, sideToMove: sideToMove, castlingRights: castlingRights, epFiles: epFiles}
+	ZobNums = zobristNums{PieceVals: pieceVals, SideToMove: sideToMove, CastlingRights: castlingRights, EpFiles: epFiles}
 }
 
 
-func hashState(state *GameState) uint64 {
+func HashState(state *GameState) uint64 {
 	//This should only be called once because it is slow. Use XORs after the initial generation.
 	var hash uint64
 
@@ -53,20 +56,16 @@ func hashState(state *GameState) uint64 {
 
 		if pieceVal > 0 {
 			inx := i * 6 + (pieceVal - 1)
-			hash ^= zobNums.pieceVals[inx]
+			hash ^= ZobNums.PieceVals[inx]
 		}
 	}
 
-	//hash castling
-	if state.WhiteKingCastle {hash ^= zobNums.castlingRights[0]}
-	if state.WhiteQueenCastle {hash ^= zobNums.castlingRights[1]}
-	if state.BlackKingCastle {hash ^= zobNums.castlingRights[2]}
-	if state.BlackQueenCastle {hash ^= zobNums.castlingRights[3]}
+	hash ^= ZobNums.CastlingRights[state.CastleRights]  //hash castling
 
 	//hash en passant file
 	epFile := state.PrevPawnDouble[1]
 	if epFile != -1 {
-		hash ^= zobNums.epFiles[epFile]
+		hash ^= ZobNums.EpFiles[epFile]
 	}
 
 	return hash

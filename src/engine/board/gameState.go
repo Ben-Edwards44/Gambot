@@ -1,16 +1,23 @@
 package board
 
 
+const WkCastle uint8 = 8
+const WqCastle uint8 = 4
+const BkCastle uint8 = 2
+const BqCastle uint8 = 1
+
+const InvWkCastle uint8 = ^WkCastle
+const InvWqCastle uint8 = ^WqCastle
+const InvBkCastle uint8 = ^BkCastle
+const InvBqCastle uint8 = ^BqCastle
+
+
 type GameState struct {
 	Board [64]int
 
 	WhiteToMove bool
 
-	WhiteKingCastle bool
-	WhiteQueenCastle bool
-
-	BlackKingCastle bool
-	BlackQueenCastle bool
+	CastleRights uint8  //Least significant 4 bits act as flags: [X][X][X][X][Wk][Wq][Bk][Bq]
 
 	PrevPawnDouble [2]int
 
@@ -23,15 +30,14 @@ type GameState struct {
 	PinArray [64]uint64
 	EnPassantPin bool
 
+	ZobristHash uint64
+
 	//for unmaking moves (end index is the most recent)
 	prvBoard [][64]int
 
 	prvWhiteToMove []bool
 
-	prvWhiteKingCastle []bool
-	prvWhiteQueenCastle []bool
-	prvBlackKingCastle []bool
-	prvBlackQueenCastle []bool
+	prvCastleRights []uint8
 
 	prvPrevPawnDouble [][2]int
 
@@ -54,10 +60,7 @@ func (state *GameState) SetPrevVals() {
 	//set prev values
 	state.prvBoard = append(state.prvBoard, state.Board)
 	state.prvWhiteToMove = append(state.prvWhiteToMove, state.WhiteToMove)
-	state.prvWhiteKingCastle = append(state.prvWhiteKingCastle, state.WhiteKingCastle)
-	state.prvWhiteQueenCastle = append(state.prvWhiteQueenCastle, state.WhiteQueenCastle)
-	state.prvBlackKingCastle = append(state.prvBlackKingCastle, state.BlackKingCastle)
-	state.prvBlackQueenCastle = append(state.prvBlackQueenCastle, state.BlackQueenCastle)
+	state.prvCastleRights = append(state.prvCastleRights, state.CastleRights)
 	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
 	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, state.WhitePiecePos)
 	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, state.BlackPiecePos)
@@ -74,10 +77,7 @@ func (state *GameState) RestorePrev() {
 	//restore value
 	state.Board = state.prvBoard[len(state.prvBoard) - 1]
 	state.WhiteToMove = state.prvWhiteToMove[len(state.prvWhiteToMove) - 1]
-	state.WhiteKingCastle = state.prvWhiteKingCastle[len(state.prvWhiteKingCastle) - 1]
-	state.WhiteQueenCastle = state.prvWhiteQueenCastle[len(state.prvWhiteQueenCastle) - 1]
-	state.BlackKingCastle = state.prvBlackKingCastle[len(state.prvBlackKingCastle) - 1]
-	state.BlackQueenCastle = state.prvBlackQueenCastle[len(state.prvBlackQueenCastle) - 1]
+	state.CastleRights = state.prvCastleRights[len(state.prvCastleRights) - 1]
 	state.PrevPawnDouble = state.prvPrevPawnDouble[len(state.prvPrevPawnDouble) - 1]
 	state.WhitePiecePos = state.PrvWhitePiecePos[len(state.PrvWhitePiecePos) - 1]
 	state.BlackPiecePos = state.PrvBlackPiecePos[len(state.PrvBlackPiecePos) - 1]
@@ -89,10 +89,7 @@ func (state *GameState) RestorePrev() {
 	//pop end of slice
 	state.prvBoard = state.prvBoard[:len(state.prvBoard) - 1]
 	state.prvWhiteToMove = state.prvWhiteToMove[:len(state.prvWhiteToMove) - 1]
-	state.prvWhiteKingCastle = state.prvWhiteKingCastle[:len(state.prvWhiteKingCastle) - 1]
-	state.prvWhiteQueenCastle = state.prvWhiteQueenCastle[:len(state.prvWhiteQueenCastle) - 1]
-	state.prvBlackKingCastle = state.prvBlackKingCastle[:len(state.prvBlackKingCastle) - 1]
-	state.prvBlackQueenCastle = state.prvBlackQueenCastle[:len(state.prvBlackQueenCastle) - 1]
+	state.prvCastleRights = state.prvCastleRights[:len(state.prvCastleRights) - 1]
 	state.prvPrevPawnDouble = state.prvPrevPawnDouble[:len(state.prvPrevPawnDouble) - 1]
 	state.PrvWhitePiecePos = state.PrvWhitePiecePos[:len(state.PrvWhitePiecePos) - 1]
 	state.PrvBlackPiecePos = state.PrvBlackPiecePos[:len(state.PrvBlackPiecePos) - 1]
