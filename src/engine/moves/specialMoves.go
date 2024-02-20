@@ -72,15 +72,15 @@ func castle(state *board.GameState, pieceValue int, resultSlice *[]Move) {
 	rookValue := 10
 	kingValue := 11
 	x := 0
-	canCastleKing := state.CastleRights & board.BkCastle != 0 //state.BlackKingCastle
-	canCastleQueen := state.CastleRights & board.BqCastle != 0 //state.BlackQueenCastle
+	canCastleKing := state.CastleRights & board.BkCastle != 0
+	canCastleQueen := state.CastleRights & board.BqCastle != 0
 	if pieceValue < 7 {
 		//white values
 		rookValue = 4
 		kingValue = 5
 		x = 7
-		canCastleKing = state.CastleRights & board.WkCastle != 0 //state.WhiteKingCastle
-		canCastleQueen = state.CastleRights & board.WqCastle != 0 //state.WhiteQueenCastle
+		canCastleKing = state.CastleRights & board.WkCastle != 0
+		canCastleQueen = state.CastleRights & board.WqCastle != 0
 	}
 
 	rankInx := x * 8

@@ -280,25 +280,25 @@ func MakeMove(state *board.GameState, move Move) {
 	newCastleRights := state.CastleRights
 	if move.PieceValue == 5 {
 		//white king moving
-		newCastleRights &= board.InvWkCastle //state.WhiteKingCastle = false
-		newCastleRights &= board.InvWqCastle //state.WhiteQueenCastle = false
+		newCastleRights &= board.InvWkCastle
+		newCastleRights &= board.InvWqCastle
 	} else if move.PieceValue == 11 {
 		//black king moving
-		newCastleRights &= board.InvBkCastle //state.BlackKingCastle = false
-		newCastleRights &= board.InvBqCastle //state.BlackQueenCastle = false
+		newCastleRights &= board.InvBkCastle
+		newCastleRights &= board.InvBqCastle
 	} else if move.PieceValue == 4 {
 		//white rook moving
 		if move.StartY == 7 {
-			newCastleRights &= board.InvWkCastle //state.WhiteKingCastle = false
+			newCastleRights &= board.InvWkCastle
 		} else if move.StartY == 0 {
-			newCastleRights &= board.InvWqCastle //state.WhiteQueenCastle = false
+			newCastleRights &= board.InvWqCastle
 		}
 	} else if move.PieceValue == 10 {
 		//black rook moving
 		if move.StartY == 7 {
-			newCastleRights &= board.InvBkCastle //state.BlackKingCastle = false
+			newCastleRights &= board.InvBkCastle
 		} else if move.StartY == 0 {
-			newCastleRights &= board.InvBqCastle //state.BlackQueenCastle = false
+			newCastleRights &= board.InvBqCastle
 		}
 	}
 
