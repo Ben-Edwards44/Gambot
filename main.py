@@ -19,7 +19,7 @@ def perft():
     else:
         test = False
     
-    engine.perft(depth, test)
+    test_engines.perft(depth, test)
 
 
 def engine_game():

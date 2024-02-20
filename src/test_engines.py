@@ -1,10 +1,19 @@
 import src.api.api as api
 import src.graphics.main as graphics
 
-import subprocess
-from os import system
+from time import time
 from random import randint
+from subprocess import check_output
 
+
+#NOTE: fens are from https://www.chessprogramming.org/Perft_Results
+PERFT_FENS = ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+              "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - - -",
+              "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - - -",
+              "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+              "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1",
+              "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+              "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"]
 
 WHITE_PIECES = ["P", "N", "B", "R", "K", "Q"]
 BLACK_PIECES = [i.lower() for i in WHITE_PIECES]
@@ -92,10 +101,9 @@ def choose_fens(num):
 
 def run_engine(script_name):
     #run go engine
-
-    exit_code = system(f"{script_name}.exe")
-    if exit_code != 0:
-        raise Exception(f"Go script ({script_name}) resulted in an error")
+    output = check_output(f"{script_name}.exe").decode()
+    
+    return output
 
 
 def check_win():
@@ -209,7 +217,7 @@ def get_time(engine):
 
     api.send_data("move_gen", graphics.game_state.game_state_obj)
 
-    output = subprocess.check_output(f"{engine}.exe").decode()
+    output = run_engine(engine)
 
     search_results = output.split("\n")
     times = [i.split(" ")[-1] for i in search_results]
@@ -276,3 +284,24 @@ def speed_test(engine1, engine2, num_games):
         print(f"Evalutated: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}")
 
     print(f"End Result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}")
+
+
+def perft(depth, test):
+    #do performance test. NOTE: white to move is assumed
+    start = time()
+    graphics.game_state.init_game_state(None)
+
+    for pos_num, fen in enumerate(PERFT_FENS):
+        #update game state obj
+        parse_fen(fen)
+
+        api.send_data("perft", graphics.game_state.game_state_obj, perft_depth=depth, perft_test=test)
+        
+        output = run_engine("chess-engine")
+
+        print(f"Position {pos_num + 1}:")
+        print(output)
+
+    end = time()
+
+    print(f"Total time: {end - start :.3f}s")
