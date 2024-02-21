@@ -12,7 +12,7 @@ var ZobNums zobristNums
 
 type zobristNums struct {
 	PieceVals [64 * 6]uint64
-	SideToMove uint64
+	SideToMove uint64  //enabled if white to move
 	CastlingRights [16]uint64
 	EpFiles [8]uint64
 }
@@ -67,6 +67,9 @@ func HashState(state *GameState) uint64 {
 	if epFile != -1 {
 		hash ^= ZobNums.EpFiles[epFile]
 	}
+
+	//hash side to move
+	if state.WhiteToMove {hash ^= ZobNums.SideToMove}
 
 	return hash
 }

@@ -182,7 +182,9 @@ func updateBitboards(state *board.GameState) {
 }
 
 
-func updateHash(state *board.GameState, move Move, start int, end int, pieceVal int, prevCastle uint8, newCastle uint8, prevEpFile int) {
+func updateHash(state *board.GameState, move Move, start int, end int, pieceVal int, captVal int, prevCastle uint8, newCastle uint8, prevEpFile int) {
+	//NOTE: this function should not really check the state.Board because, by this time, it will have been updated
+	
 	//adjust for white/black and for the fact that these values will be indices
 	if pieceVal > 6 {
 		pieceVal -= 7
@@ -196,7 +198,6 @@ func updateHash(state *board.GameState, move Move, start int, end int, pieceVal 
 	newZobHash ^= board.ZobNums.PieceVals[start * 6 + pieceVal]  //get rid of piece from start square
 	newZobHash ^= board.ZobNums.PieceVals[end * 6 + pieceVal]  //place piece on new square
 
-	captVal := state.Board[end]
 	if captVal != 0 {
 		//convert captVal to index
 		if captVal > 6 {
@@ -210,12 +211,12 @@ func updateHash(state *board.GameState, move Move, start int, end int, pieceVal 
 
 	//update rook pos as well for castling
 	if move.KingCastle {
-		rookVal := move.PieceValue - 1
+		rookVal := pieceVal - 1
 
 		newZobHash ^= board.ZobNums.PieceVals[(end + 1) * 6 + rookVal]
 		newZobHash ^= board.ZobNums.PieceVals[(end - 1) * 6 + rookVal]
 	} else if move.QueenCastle {
-		rookVal := move.PieceValue - 1
+		rookVal := pieceVal - 1
 
 		newZobHash ^= board.ZobNums.PieceVals[(end - 2) * 6 + rookVal]
 		newZobHash ^= board.ZobNums.PieceVals[(end + 1) * 6 + rookVal]
@@ -230,8 +231,14 @@ func updateHash(state *board.GameState, move Move, start int, end int, pieceVal 
 			pVal--
 		}
 
-		newZobHash ^= board.ZobNums.PieceVals[start * 6 + pieceVal]  //remove pawn
+		newZobHash ^= board.ZobNums.PieceVals[end * 6 + pieceVal]  //remove pawn (which we moved to end space earlier)
 		newZobHash ^= board.ZobNums.PieceVals[end * 6 + pVal]  //add new piece
+	}
+
+	//deal with ep passant capture
+	if move.EnPassant {
+		catpPos := move.StartX * 8 + move.EndY
+		newZobHash ^= board.ZobNums.PieceVals[catpPos * 6]  //don't need to add pieceValue because it will be a pawn (so index 0)
 	}
 
 	//add en passant file (if needed)
@@ -264,6 +271,7 @@ func MakeMove(state *board.GameState, move Move) {
 	start := move.StartX * 8 + move.StartY
 	end := move.EndX * 8 + move.EndY
 	val := move.PieceValue
+	captVal := state.Board[end]
 
 	updatePiecePos(move, start, end, val, state)
 
@@ -299,7 +307,6 @@ func MakeMove(state *board.GameState, move Move) {
 		state.Board[end] = move.PromotionValue
 	}
 
-	oldCastleRights := state.CastleRights
 	newCastleRights := state.CastleRights
 	if move.PieceValue == 5 {
 		//white king moving
@@ -325,10 +332,11 @@ func MakeMove(state *board.GameState, move Move) {
 		}
 	}
 
+	oldCastleRights := state.CastleRights
 	state.CastleRights = newCastleRights
 
 	updateBitboards(state)
-	updateHash(state, move, start, end, val, oldCastleRights, newCastleRights, oldEpFile)
+	updateHash(state, move, start, end, val, captVal, oldCastleRights, newCastleRights, oldEpFile)
 }
 
 
