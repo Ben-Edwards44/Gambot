@@ -13,24 +13,29 @@ import (
 var fileNames [8]string = [8]string{"a", "b", "c", "d", "e", "f", "g", "h"}
 
 
-func Perft(stateObj *board.GameState, maxDepth int, test bool) {
-	start := time.Now()
-	
-	var nodes int
-	if test {
-		nodes = testPerft(stateObj, maxDepth)
-	} else {
-		nodes = bulkCount(stateObj, maxDepth)
+func getMoveStr(move moves.Move) string {
+	startRank := strconv.Itoa(8 - move.StartX)
+	startFile := fileNames[move.StartY]
+	endRank := strconv.Itoa(8 - move.EndX)
+	endFile := fileNames[move.EndY]
+
+	return startFile + startRank + endFile + endRank
+}
+
+
+func bulkCount(position *board.GameState, depth int) int {	
+	moveList := moves.GenerateAllMoves(position, false)
+
+	if depth == 1 {return len(moveList)}
+
+	total := 0
+	for _, i := range moveList {
+		moves.MakeMove(position, i)
+		total += bulkCount(position, depth - 1)
+		moves.UnMakeLastMove(position)
 	}
 
-	end := time.Now()
-	elapsed := end.Sub(start)
-
-	fmt.Print("Nodes searched: ")
-	fmt.Println(nodes)
-
-	fmt.Print("Time taken: ")
-	fmt.Println(elapsed)
+	return total
 }
 
 
@@ -65,27 +70,22 @@ func testPerft(stateObj *board.GameState, maxDepth int) int {
 }
 
 
-func getMoveStr(move moves.Move) string {
-	startRank := strconv.Itoa(8 - move.StartX)
-	startFile := fileNames[move.StartY]
-	endRank := strconv.Itoa(8 - move.EndX)
-	endFile := fileNames[move.EndY]
-
-	return startFile + startRank + endFile + endRank
-}
-
-
-func bulkCount(position *board.GameState, depth int) int {	
-	moveList := moves.GenerateAllMoves(position, false)
-
-	if depth == 1 {return len(moveList)}
-
-	total := 0
-	for _, i := range moveList {
-		moves.MakeMove(position, i)
-		total += bulkCount(position, depth - 1)
-		moves.UnMakeLastMove(position)
+func Perft(stateObj *board.GameState, maxDepth int, test bool) {
+	start := time.Now()
+	
+	var nodes int
+	if test {
+		nodes = testPerft(stateObj, maxDepth)
+	} else {
+		nodes = bulkCount(stateObj, maxDepth)
 	}
 
-	return total
+	end := time.Now()
+	elapsed := end.Sub(start)
+
+	fmt.Print("Nodes searched: ")
+	fmt.Println(nodes)
+
+	fmt.Print("Time taken: ")
+	fmt.Println(elapsed)
 }
