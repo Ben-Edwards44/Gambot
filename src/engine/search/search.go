@@ -21,6 +21,7 @@ var posSearched int
 
 
 func checkWin(state *board.GameState, isWhite bool) int {
+	//TODO: include depths in checkmates (for transposition table)
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
 	kingPos := state.BlackPiecePos[4][0]
@@ -51,6 +52,14 @@ func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta in
 	}
 
 	startTime := time.Now()
+
+	//ttSuccess, ttEval := evaluation.LookupEval(state.ZobristHash, depth, alpha, beta)
+
+	//if ttSuccess {
+	//	//this position is in transposition table. We don't need to search it again
+	//	bestMove := evaluation.LookupMove(state.ZobristHash)  //TODO: only do this when searching root node
+	//	return ttEval, bestMove
+	//}
 	
 	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta, timeLeft), moves.Move{}}
 
@@ -82,7 +91,12 @@ func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta in
 			allocatedBestMove = true
 		}
 
-		if score >= beta {break}  //prune
+		//fail-hard cutoff (prune position)
+		if score >= beta {
+			//evaluation.StoreEntry(state.ZobristHash, depth, beta, )
+
+			return beta, bestMove
+		}  
 
 		if score > alpha {alpha = score}
 	}
