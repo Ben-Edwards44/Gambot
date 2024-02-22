@@ -133,8 +133,12 @@ def play_game(white, black):
                 run_engine(black)
         except Exception:
             game_end = "aborted"
+            if graphics.game_state.game_state_obj.white_to_move:
+                print(white)
+            else:
+                print(black)
+                
             print(graphics.game_state.game_state_obj.board)
-            quit()
 
         #recieve the made moved
         new_state = api.load_game_state()
@@ -182,32 +186,33 @@ def engine_game(engine1, engine2, num_games):
         #update game state obj
         parse_fen(x)
 
-        #randomly assign white/black
-        if randint(0, 1) == 0:
-            white_player = engine1
-            black_player = engine2
-        else:
-            white_player = engine2
-            black_player = engine1
-
-        game_end = play_game(white_player, black_player)
-        
-        if game_end == "draw":
-            draw += 1
-        elif game_end == "white_win":
-            if white_player == engine1:
-                win1 += 1
+        for j in range(2):
+            #assign white/black
+            if j == 0:
+                white_player = engine1
+                black_player = engine2
             else:
-                win2 += 1
-        elif game_end == "black_win":
-            if black_player == engine1:
-                win1 += 1
-            else:
-                win2 += 1
-        else:
-            aborted += 1
+                white_player = engine2
+                black_player = engine1
 
-        print(f"Games Played: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}\n")
+            game_end = play_game(white_player, black_player)
+            
+            if game_end == "draw":
+                draw += 1
+            elif game_end == "white_win":
+                if white_player == engine1:
+                    win1 += 1
+                else:
+                    win2 += 1
+            elif game_end == "black_win":
+                if black_player == engine1:
+                    win1 += 1
+                else:
+                    win2 += 1
+            else:
+                aborted += 1
+
+            print(f"Games Played: {i + 1}\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}\n")
 
     print(f"End result:\n{engine1} wins: {win1}\n{engine2} wins: {win2}\nDraws: {draw}\nAborted : {aborted}")
 
