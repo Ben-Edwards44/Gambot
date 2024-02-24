@@ -78,8 +78,6 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //deal with checkmates and draws
 
-	bestScore := -INF
-	allocatedBestMove := false
 	nodeType := evaluation.AllNode
 
 	var bestMove moves.Move
@@ -93,16 +91,6 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 		moves.UnMakeLastMove(state)
 
-		if !allocatedBestMove {
-			bestMove = move
-			bestScore = score
-			allocatedBestMove = true
-		} else if score > bestScore {
-			bestMove = move
-			bestScore = score
-			nodeType = evaluation.PvNode
-		}
-
 		//fail-hard cutoff (prune position)
 		if score >= beta {
 			if !searchAbandoned {
@@ -112,15 +100,20 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 			return beta, bestMove
 		}  
 
-		if score > alpha {alpha = score}
+		//new best move found
+		if score > alpha {
+			alpha = score
+			bestMove = move
+			nodeType = evaluation.PvNode
+		}
 	}
 
 	//update the best moves (because we will be searching at a greater depth). TODO: make better (use zobrist hash instead)
 	bestMoves[state.Board] = bestMove
 
-	if !searchAbandoned {evaluation.StoreEntry(state.ZobristHash, depth, bestScore, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
+	if !searchAbandoned {evaluation.StoreEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
 
-	return bestScore, bestMove
+	return alpha, bestMove
 }
 
 
