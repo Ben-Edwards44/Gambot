@@ -8,6 +8,8 @@ const PvNode int = 0
 const AllNode int = 1
 const CutNode int = 2
 
+const ttEnabled bool = true
+
 
 var ttEntries map[uint64]ttEntry = make(map[uint64]ttEntry)  //TODO: use array instead of map. Use inx = zobHash % length and then check that hash == actual hash we want
 
@@ -16,13 +18,15 @@ type ttEntry struct {
 	zobHash uint64
 	depthSearched int
 	eval int
-	nodeType int  //0 means PV node, 1 means all node, 2 means cut node
+	nodeType int
 	bestMove moves.Move  //for depth 1 (in terms of iterative deepening lookups)
 	//TODO: age (so we know when to clear)
 }
 
 
 func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
+	if !ttEnabled {return false, 0}
+
 	entry, exists := ttEntries[zobHash]
 
 	if !exists {return false, 0}  //lookup failed

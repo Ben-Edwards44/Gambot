@@ -18,6 +18,7 @@ var searchAbandoned bool
 var bestMoves map[[64]int]moves.Move
 
 var posSearched int
+var ttLookups int
 
 
 func checkWin(state *board.GameState, isWhite bool) int {
@@ -44,7 +45,7 @@ func checkWin(state *board.GameState, isWhite bool) int {
 }
 
 
-func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
+func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
@@ -53,13 +54,19 @@ func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta in
 
 	startTime := time.Now()
 
-	//ttSuccess, ttEval := evaluation.LookupEval(state.ZobristHash, depth, alpha, beta)
+	ttSuccess, ttEval := evaluation.LookupEval(state.ZobristHash, depth, alpha, beta)
 
-	//if ttSuccess {
-	//	//this position is in transposition table. We don't need to search it again
-	//	bestMove := evaluation.LookupMove(state.ZobristHash)  //TODO: only do this when searching root node
-	//	return ttEval, bestMove
-	//}
+	if ttSuccess {
+		//this position is in transposition table. We don't need to search it again
+		ttLookups++
+
+		var bestMove moves.Move
+		if plyFromRoot == 0 {
+			bestMove = evaluation.LookupMove(state.ZobristHash)
+		}
+		
+		return ttEval, bestMove
+	}
 	
 	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta, timeLeft), moves.Move{}}
 
@@ -73,6 +80,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta in
 
 	bestScore := -INF
 	allocatedBestMove := false
+	nodeType := evaluation.AllNode
 
 	var bestMove moves.Move
 
@@ -80,20 +88,26 @@ func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta in
 		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
-		negScore, _ := negamax(state, !isWhite, depth - 1, -beta, -alpha, timeLeft - elapsed)
+		negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
 		score := -negScore
 
 		moves.UnMakeLastMove(state)
 
-		if score > bestScore || !allocatedBestMove {
+		if !allocatedBestMove {
 			bestMove = move
 			bestScore = score
 			allocatedBestMove = true
+		} else if score > bestScore {
+			bestMove = move
+			bestScore = score
+			nodeType = evaluation.PvNode
 		}
 
 		//fail-hard cutoff (prune position)
 		if score >= beta {
-			//evaluation.StoreEntry(state.ZobristHash, depth, beta, )
+			if !searchAbandoned {
+				evaluation.StoreEntry(state.ZobristHash, depth, beta, evaluation.CutNode, moves.Move{})  //we do not actually know if the value of bestMove is best for this position
+			}
 
 			return beta, bestMove
 		}  
@@ -101,8 +115,10 @@ func negamax(state *board.GameState, isWhite bool, depth int, alpha int, beta in
 		if score > alpha {alpha = score}
 	}
 
-	//update the best moves (because we will be searching at a greater depth)
+	//update the best moves (because we will be searching at a greater depth). TODO: make better (use zobrist hash instead)
 	bestMoves[state.Board] = bestMove
+
+	if !searchAbandoned {evaluation.StoreEntry(state.ZobristHash, depth, bestScore, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
 
 	return bestScore, bestMove
 }
@@ -159,16 +175,22 @@ func GetBestMove(state *board.GameState) moves.Move {
 	var elapsed time.Duration
 	for timeLeft > 0 {
 		posSearched = 0
+		ttLookups = 0
+
 		elapsed = time.Since(startTime)
 
 		timeLeft -= elapsed
 
-		score, searchBestMove := negamax(state, state.WhiteToMove, depth, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
 		fmt.Print("Depth: ")
 		fmt.Print(depth)
 		fmt.Print(", Searched: ")
 		fmt.Print(posSearched)
+		fmt.Print(", tt Lookups: ")
+		fmt.Print(ttLookups)
+		fmt.Print(", Score: ")
+		fmt.Print(score)
 		fmt.Print(", Elapsed: ")
 		fmt.Println(elapsed)  //time taken must be last for speed test
 

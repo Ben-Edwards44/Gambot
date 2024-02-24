@@ -168,6 +168,8 @@ def play_game(white, black):
 def engine_game(engine1, engine2, num_games):
     #play 2 different versions of the engine
 
+    #Bug with r1bqk2r/1pp2ppp/p1n1pn2/3p4/1P1P1b2/P1N2N2/2PQPPPP/R3KB1R w KQkq - 0 8
+
     engine1 = engine1.replace("/", "\\")  #for when the scripts are in a different directory. TODO: make it work for linux
     engine2 = engine2.replace("/", "\\")  #for when the scripts are in a different directory. TODO: make it work for linux
 
@@ -178,15 +180,17 @@ def engine_game(engine1, engine2, num_games):
 
     fens = choose_fens(num_games)
 
+    #fens = ["r1bqk2r/1pp2ppp/p1n1pn2/3p4/1P1P1b2/P1N2N2/2PQPPPP/R3KB1R w KQkq - 0 8"]
+
     win1 = 0
     win2 = 0
     draw = 0
     aborted = 0
     for i, x in enumerate(fens):
-        #update game state obj
-        parse_fen(x)
-
         for j in range(2):
+            #update game state obj
+            parse_fen(x)
+
             #assign white/black
             if j == 0:
                 white_player = engine1
@@ -204,11 +208,13 @@ def engine_game(engine1, engine2, num_games):
                     win1 += 1
                 else:
                     win2 += 1
+                    print(x)
             elif game_end == "black_win":
                 if black_player == engine1:
                     win1 += 1
                 else:
                     win2 += 1
+                    print(x)
             else:
                 aborted += 1
 
