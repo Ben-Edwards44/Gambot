@@ -10,8 +10,9 @@ const CutNode int = 2
 
 const ttEnabled bool = true
 
+const ttLen uint64 = 65536  //TODO: calculate given a set size in bytes (uint64 means we don't have to convert when using %)
 
-var ttEntries map[uint64]ttEntry = make(map[uint64]ttEntry)  //TODO: use array instead of map. Use inx = zobHash % length and then check that hash == actual hash we want
+var ttEntries [ttLen]ttEntry
 
 
 type ttEntry struct {
@@ -27,9 +28,11 @@ type ttEntry struct {
 func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
 	if !ttEnabled {return false, 0}
 
-	entry, exists := ttEntries[zobHash]
+	inx := zobHash % ttLen
 
-	if !exists {return false, 0}  //lookup failed
+	entry := ttEntries[inx]
+
+	if entry.zobHash != zobHash {return false, 0}  //lookup failed
 
 	if entry.depthSearched >= currentDepth {
 		if entry.nodeType == PvNode {
@@ -52,17 +55,20 @@ func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, in
 
 func LookupMove(zobHash uint64) moves.Move {
 	//This is for when the position we are currently searching is in the transposition table
-	return ttEntries[zobHash].bestMove
+	inx := zobHash % ttLen
+
+	return ttEntries[inx].bestMove
 }
 
 
 func StoreEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove moves.Move) {
 	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: eval, nodeType: nodeType, bestMove: bestMove}
+	inx := zobHash % ttLen
 
-	ttEntries[zobHash] = entry
+	ttEntries[inx] = entry
 }
 
 
 func ClearTT() {
-	ttEntries = make(map[uint64]ttEntry)
+	ttEntries = [ttLen]ttEntry{}
 }
