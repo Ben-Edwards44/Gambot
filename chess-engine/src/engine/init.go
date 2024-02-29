@@ -4,6 +4,7 @@ package engine
 import (
 	"chess-engine/src/engine/moves"
 	"chess-engine/src/engine/board"
+	"chess-engine/src/engine/evaluation"
 )
 
 
@@ -35,10 +36,13 @@ func findDistToEdge() [512]int {
 }
 
 
-func PrecomputeValues() {
-	//to be called at start of execution
+func Init() {
+	//to be called at start of every new game
+
 	edgeDists := findDistToEdge()
 	moves.InitPrecalculate(edgeDists)
 
 	board.PrecalculateZobristNums()
+
+	evaluation.ClearTT()
 }

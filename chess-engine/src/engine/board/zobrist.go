@@ -1,9 +1,6 @@
 package board
 
 
-//https://stackoverflow.com/questions/10067514/correctly-implementing-zobrist-hashing
-
-
 import "math/rand"
 
 

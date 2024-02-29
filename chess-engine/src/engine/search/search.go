@@ -153,12 +153,12 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 }
 
 
-func GetBestMove(state *board.GameState) moves.Move {
+func GetBestMove(state *board.GameState, moveTime int) moves.Move {
 	searchAbandoned = false
 	bestMoves = make(map[[64]int]moves.Move)
 
 	startTime := time.Now()
-	timeLeft := time.Duration(time.Millisecond * 500)  //NOTE: change to 500ms for testing
+	timeLeft := time.Duration(time.Millisecond * time.Duration(moveTime))  //NOTE: change to 500ms for testing
 
 	depth := 1
 

@@ -1,3 +1,6 @@
+PLAYER_WHITE = True
+
+
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 500
 
@@ -11,11 +14,14 @@ DARK_SQ_COLOUR = (51, 48, 240)
 LEGAL_MOVE_COLOUR = (10, 40, 89)
 
 
+FILES = ["a", "b", "c", "d", "e", "f", "g", "h"]
+
+
 PIECE_VALUES = {
-    1 : "pawn",
-    2 : "knight",
-    3 : "bishop",
-    4 : "rook",
-    5 : "king",
-    6 : "queen"
+    "pawn" : 1,
+    "knight" : 2,
+    "bishop" : 3,
+    "rook" : 4,
+    "king" : 5,
+    "queen" : 6
 }

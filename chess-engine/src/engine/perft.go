@@ -48,11 +48,6 @@ func testPerft(stateObj *board.GameState, maxDepth int) int {
 
 		moves.MakeMove(stateObj, i)
 
-		if str == "d5e6" {
-			fmt.Println(stateObj.WhitePiecePos)
-			fmt.Println(stateObj.BlackPiecePos)
-		}
-
 		current := 1
 		if maxDepth > 1 {
 			current = bulkCount(stateObj, maxDepth - 1)

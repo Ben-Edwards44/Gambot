@@ -36,14 +36,13 @@ func CheckWin(stateObj *board.GameState) string {
 }
 
 
-func CalculateMove(stateObj *board.GameState) board.GameState {
-	//TODO: use pointer for return rather than value
+func CalculateMove(stateObj *board.GameState, moveTime int) moves.Move {
+	move := search.GetBestMove(stateObj, moveTime)
 
-	move := search.GetBestMove(stateObj)
-
-	if move.PieceValue != 0 {moves.MakeMove(stateObj, move)}  //If in checkmate, the piece value will be 0
+	//UCI will probably handle this:
+	//if move.PieceValue != 0 {moves.MakeMove(stateObj, move)}  //Make the move (If in checkmate, the piece value will be 0)
 	
-	return *stateObj
+	return move
 }
 
 

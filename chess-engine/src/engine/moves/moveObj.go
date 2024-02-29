@@ -345,7 +345,7 @@ func UnMakeLastMove(state *board.GameState) {
 }
 
 
-func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bkCastle bool, bqCastle bool, pDouble [2]int) board.GameState {
+func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]int) board.GameState {
 	//to be called whenever new game state obj is created
 
 	var whitePiecePos [6][10][2]int
@@ -379,12 +379,6 @@ func CreateGameState(b [64]int, whiteMove bool, wkCastle bool, wqCastle bool, bk
 			}
 		}
 	}
-
-	var castleRights uint8
-	if wkCastle {castleRights |= board.WkCastle}
-	if wqCastle {castleRights |= board.WqCastle}
-	if bkCastle {castleRights |= board.BkCastle}
-	if bkCastle {castleRights |= board.BqCastle}
 
 	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
 
