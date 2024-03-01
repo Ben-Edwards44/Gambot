@@ -39,7 +39,7 @@ func bulkCount(position *board.GameState, depth int) int {
 }
 
 
-func testPerft(stateObj *board.GameState, maxDepth int) int {
+func dividePerft(stateObj *board.GameState, maxDepth int) int {
 	initMoves := moves.GenerateAllMoves(stateObj, false)
 
 	total := 0
@@ -65,22 +65,17 @@ func testPerft(stateObj *board.GameState, maxDepth int) int {
 }
 
 
-func Perft(stateObj *board.GameState, maxDepth int, test bool) {
+func Perft(stateObj *board.GameState, maxDepth int) {
 	start := time.Now()
 	
-	var nodes int
-	if test {
-		nodes = testPerft(stateObj, maxDepth)
-	} else {
-		nodes = bulkCount(stateObj, maxDepth)
-	}
+	nodes := dividePerft(stateObj, maxDepth)
 
 	end := time.Now()
 	elapsed := end.Sub(start)
 
-	fmt.Print("Nodes searched: ")
-	fmt.Println(nodes)
-
 	fmt.Print("Time taken: ")
 	fmt.Println(elapsed)
+
+	fmt.Print("Nodes searched: ")
+	fmt.Println(nodes)
 }

@@ -55,17 +55,9 @@ func (b *bot) updateMoveTime(moveTime int) {
 }
 
 
-func (b *bot) runPerft(depth int, test bool) {
+func (b *bot) runPerft(depth int) {
 	//run perft - assumes the position has been updated
-	engine.Perft(&b.currentPos, depth, test)
-}
-
-
-func (b *bot) runLegalMoves() []moves.Move {
-	//generate legal moves - assumes the position has been updated
-	moveList := moves.GenerateAllMoves(&b.currentPos, false)
-
-	return moveList
+	engine.Perft(&b.currentPos, depth)
 }
 
 

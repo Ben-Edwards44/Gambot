@@ -35,14 +35,6 @@ func convertMove(move moves.Move) string {
 }
 
 
-func sendLegalMoves(moveList []moves.Move) {
-	for _, i := range moveList {
-		str := convertMove(i)
-		sendStr(str)
-	}
-}
-
-
 func sendBestMove(bestMove moves.Move) {
 	//TODO: add ponder move
 	moveStr := convertMove(bestMove)

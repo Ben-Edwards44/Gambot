@@ -128,19 +128,6 @@ func posCmd(splitCmd []string) {
 }
 
 
-func getBoolArg(cmd []string, key string) bool {
-	for i, x := range cmd {
-		if x == key {
-			val := cmd[i + 1]
-			
-			return val == "true"
-		}
-	}
-
-	return false
-}
-
-
 func getIntArg(cmd []string, key string) int {
 	for i, x := range cmd {
 		if x == key {
@@ -159,30 +146,20 @@ func getIntArg(cmd []string, key string) int {
 
 func goCmd(splitCmd []string) {
 	var isPerft bool
-	var isMoveGen bool
 	for _, i := range splitCmd {
 		if i == "perft" {
 			isPerft = true
-			break
-		} else if i == "legalmoves" {
-			isMoveGen = true
 			break
 		}
 	}
 
 	if isPerft {
 		//engine must perform perft
-		depth := getIntArg(splitCmd, "depth")
-		test := getBoolArg(splitCmd, "test")
+		depth, err := strconv.Atoi(splitCmd[2])
 
-		if depth == 0 {panic("Invalid perft depth")}
+		if err != nil {panic(err)}
 
-		chessEngine.runPerft(depth, test)
-	} else if isMoveGen {
-		//engine must list all legal moves
-		moveList := chessEngine.runLegalMoves()
-
-		sendLegalMoves(moveList)
+		chessEngine.runPerft(depth)
 	} else {
 		//engine must search for best move
 
