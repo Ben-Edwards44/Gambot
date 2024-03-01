@@ -24,13 +24,28 @@ func uciOk() {
 }
 
 
+func convertMove(move moves.Move) string {
+	//convert a move obj to a string like e2e4
+	startFile := string(files[move.StartY])
+	startRank := strconv.Itoa(8 - move.StartX)
+	endFile := string(files[move.EndY])
+	endRank := strconv.Itoa(8 - move.EndX)
+
+	return startFile + startRank + endFile + endRank
+}
+
+
+func sendLegalMoves(moveList []moves.Move) {
+	for _, i := range moveList {
+		str := convertMove(i)
+		sendStr(str)
+	}
+}
+
+
 func sendBestMove(bestMove moves.Move) {
 	//TODO: add ponder move
-
-	startFile := string(files[bestMove.StartY])
-	startRank := strconv.Itoa(8 - bestMove.StartX)
-	endFile := string(files[bestMove.EndY])
-	endRank := strconv.Itoa(8 - bestMove.EndX)
-
-	sendStr("bestmove " + startFile + startRank + endFile + endRank)
+	moveStr := convertMove(bestMove)
+	
+	sendStr("bestmove " + moveStr)
 }

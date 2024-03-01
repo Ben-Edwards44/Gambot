@@ -1,11 +1,11 @@
 package src
 
 import (
-	"os"
 	"bufio"
-	"strconv"
 	"chess-engine/src/engine/board"
 	"chess-engine/src/engine/moves"
+	"os"
+	"strconv"
 )
 
 
@@ -159,9 +159,13 @@ func getIntArg(cmd []string, key string) int {
 
 func goCmd(splitCmd []string) {
 	var isPerft bool
+	var isMoveGen bool
 	for _, i := range splitCmd {
 		if i == "perft" {
 			isPerft = true
+			break
+		} else if i == "legalmoves" {
+			isMoveGen = true
 			break
 		}
 	}
@@ -174,6 +178,11 @@ func goCmd(splitCmd []string) {
 		if depth == 0 {panic("Invalid perft depth")}
 
 		chessEngine.runPerft(depth, test)
+	} else if isMoveGen {
+		//engine must list all legal moves
+		moveList := chessEngine.runLegalMoves()
+
+		sendLegalMoves(moveList)
 	} else {
 		//engine must search for best move
 

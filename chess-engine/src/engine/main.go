@@ -37,26 +37,8 @@ func CheckWin(stateObj *board.GameState) string {
 
 
 func CalculateMove(stateObj *board.GameState, moveTime int) moves.Move {
+	//NOTE: UCI will handle updating board
 	move := search.GetBestMove(stateObj, moveTime)
-
-	//UCI will probably handle this:
-	//if move.PieceValue != 0 {moves.MakeMove(stateObj, move)}  //Make the move (If in checkmate, the piece value will be 0)
 	
 	return move
-}
-
-
-func GetLegalMoves(stateObj *board.GameState, x int, y int) [][2]int {
-	var legalMoves []moves.Move
-	
-	moves.GetPieceMoves(stateObj, x, y, &legalMoves, false)
-
-	//convert move structs to list of coords
-	var coords [][2]int
-	for _, i := range legalMoves {
-		coord := [2]int{i.EndX, i.EndY}
-		coords = append(coords, coord)
-	}
-	
-	return coords
 }

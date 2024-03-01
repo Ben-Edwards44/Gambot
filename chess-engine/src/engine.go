@@ -61,6 +61,14 @@ func (b *bot) runPerft(depth int, test bool) {
 }
 
 
+func (b *bot) runLegalMoves() []moves.Move {
+	//generate legal moves - assumes the position has been updated
+	moveList := moves.GenerateAllMoves(&b.currentPos, false)
+
+	return moveList
+}
+
+
 func (b *bot) runBestMove() moves.Move {
 	//calculate the best move - assumes position and move time have been updated
 	bestMove := engine.CalculateMove(&b.currentPos, b.moveTime)
