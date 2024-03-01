@@ -46,7 +46,7 @@ def drag_piece(board, selected_x, selected_y):
     return selected_x, selected_y
 
 
-def get_move(board):
+def get_move(board, legal_moves):
     #get the player's move
 
     selected_x = -1
@@ -58,12 +58,15 @@ def get_move(board):
         else:
             if selected_x != -1 and selected_y != -1:
                 move = convert_move(selected_x, selected_y)
-                #TODO: check if move in legal moves (just get a list of all moves from the chess engine)
 
-                return move
+                if move in legal_moves:
+                    return move
 
             selected_x = -1
             selected_y = -1
 
-        #need to pump to ensure clicks are properly handeled
-        pygame.event.pump()
+            draw.draw_board(board)  #we need to draw the board after the player has let go of dragging piece
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                return "QUIT"

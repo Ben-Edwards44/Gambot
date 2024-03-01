@@ -17,8 +17,30 @@ class Engine:
 
     def set_pos(self, move_list):
         #set the position to the startpos + the moves played in move_list
-        moves = " ".join(move_list)
-        self.send_cmd(f"position startpos moves {moves}")
+        if len(move_list) > 0:
+            moves = " ".join(move_list)
+            cmd = f"position startpos moves {moves}"
+        else:
+            cmd = "position startpos"
+
+        self.send_cmd(cmd)
+
+    def get_legal_moves(self):
+        #gets a list of the legal moves from the engine's divide perft - assumes position has been set
+        #NOTE: this is not a UCI command, so a better solution should probably be made in future
+
+        self.send_cmd("go perft 1")
+
+        output = ""
+        moves = []
+        while len(output) <= 15 or output[:15] != "Nodes searched:":
+            output = self.read_line()
+            move, _ = output.split(":")
+
+            if len(move) == 4 or len(move) == 5:  #promotions will have a length of 5 (a2a1r)
+                moves.append(move)
+
+        return moves
 
     def get_move(self, **kwargs):
         #assumes the position has been set
@@ -32,6 +54,10 @@ class Engine:
         move = output[1]  #output will look like: bestmove e2e4 ponder c7c5
 
         return move
+    
+    def new_game(self):
+        self.send_cmd("ucinewgame")
+        self.check_ready()
 
     def check_uci(self):
         self.send_cmd("uci")

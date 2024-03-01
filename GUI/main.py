@@ -22,8 +22,11 @@ def make_move(move, board):
     board[end_x][end_y] = piece_val
 
 
-def player_move(board):
-    move = input.get_move(board)
+def player_move(engine, board, move_list):
+    engine.set_pos(move_list)
+    legal_moves = engine.get_legal_moves()
+
+    move = input.get_move(board, legal_moves)
 
     return move
         
@@ -32,6 +35,12 @@ def engine_move(engine, move_list):
     engine.set_pos(move_list)
 
     return engine.get_move()
+
+
+def exit(engine):
+    del engine  #ensure the bacjground engine process is killed
+
+    quit()
         
 
 def main():
@@ -39,21 +48,22 @@ def main():
 
     move_list = []
     white_to_move = True
+
     engine = engine_interface.Engine()
+    engine.new_game()
 
     board = START_BOARD
 
     draw.draw_board(board)
 
-    #TODO: do isready, ucinewgame etc.
-
     while True:
         if white_to_move == graphics_const.PLAYER_WHITE:
-            move = player_move(board)
+            move = player_move(engine, board, move_list)
+
+            if move == "QUIT":
+                exit(engine)
         else:
             move = engine_move(engine, move_list)
-
-        print(move)
 
         make_move(move, board)
 
@@ -64,9 +74,7 @@ def main():
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                del engine
-
-                quit()
+                exit(engine)
 
 
 if __name__ == "__main__":
