@@ -1,6 +1,7 @@
 __pycache__/
 profiles/
 backup/
+builds/
 *.prof
 *.exe
 *.txt
