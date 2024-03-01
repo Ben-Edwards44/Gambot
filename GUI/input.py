@@ -1,4 +1,5 @@
 import draw
+import utils
 import graphics_const
 
 import pygame
@@ -17,20 +18,7 @@ def get_cell_inx():
     return cell_x, cell_y
 
 
-def convert_move(selected_x, selected_y):
-    #get a move string of the player's move
-
-    end_x, end_y = get_cell_inx()
-
-    start_file = graphics_const.FILES[selected_y]
-    end_file = graphics_const.FILES[end_y]
-
-    move = f"{start_file}{8 - selected_x}{end_file}{8 - end_x}"
-
-    return move
-
-
-def drag_piece(board, selected_x, selected_y):
+def drag_piece(board, selected_x, selected_y, legal_moves):
     if selected_x == -1 and selected_y == -1:
         #player has just selected a piece
         x, y = get_cell_inx()
@@ -41,7 +29,7 @@ def drag_piece(board, selected_x, selected_y):
             selected_y = y
     else:
         #player is moving selected piece
-        draw.draw_dragging_piece(board, selected_x, selected_y)
+        draw.draw_dragging_piece(board, selected_x, selected_y, legal_moves)
 
     return selected_x, selected_y
 
@@ -54,10 +42,11 @@ def get_move(board, legal_moves):
 
     while True:        
         if pygame.mouse.get_pressed()[0]:
-            selected_x, selected_y = drag_piece(board, selected_x, selected_y)
+            selected_x, selected_y = drag_piece(board, selected_x, selected_y, legal_moves)
         else:
             if selected_x != -1 and selected_y != -1:
-                move = convert_move(selected_x, selected_y)
+                end_x, end_y = get_cell_inx()
+                move = utils.move_to_str(selected_x, selected_y, end_x, end_y)
 
                 if move in legal_moves:
                     return move

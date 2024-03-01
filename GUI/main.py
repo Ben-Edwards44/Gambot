@@ -1,4 +1,5 @@
 import draw
+import utils
 import input
 import graphics_const
 import engine_interface
@@ -11,10 +12,7 @@ START_BOARD = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0,
 
 def make_move(move, board):
     #NOTE: need to do castling / ep / promotions etc.
-    start_x = 8 - int(move[1])
-    start_y = graphics_const.FILES.index(move[0])
-    end_x = 8 - int(move[3])
-    end_y = graphics_const.FILES.index(move[2])
+    start_x, start_y, end_x, end_y = utils.str_to_move(move)
 
     piece_val = board[start_x][start_y]
 
@@ -38,7 +36,7 @@ def engine_move(engine, move_list):
 
 
 def exit(engine):
-    del engine  #ensure the bacjground engine process is killed
+    del engine  #ensure the background engine process is killed
 
     quit()
         

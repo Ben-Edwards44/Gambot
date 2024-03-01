@@ -14,9 +14,6 @@ DARK_SQ_COLOUR = (51, 48, 240)
 LEGAL_MOVE_COLOUR = (10, 40, 89)
 
 
-FILES = ["a", "b", "c", "d", "e", "f", "g", "h"]
-
-
 PIECE_VALUES = {
     "pawn" : 1,
     "knight" : 2,

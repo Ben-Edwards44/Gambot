@@ -1,3 +1,4 @@
+import utils
 import graphics_const
 
 import pygame
@@ -75,26 +76,43 @@ def draw_piece(piece):
     window.blit(img, (piece.draw_x, piece.draw_y))
 
 
-def draw_squares():
+def draw_square(x, y, colour):
+    draw_x = x * graphics_const.STEP_X
+    draw_y = y * graphics_const.STEP_Y
+
+    pygame.draw.rect(window, colour, (draw_x, draw_y, graphics_const.STEP_X, graphics_const.STEP_Y))
+
+
+def draw_background():
     #draw the background squares
 
     for i in range(8):
         for j in range(8):
-            x = i * graphics_const.STEP_X
-            y = j * graphics_const.STEP_Y
-
             if (i + j) % 2 == 0:
                 colour = graphics_const.LIGHT_SQ_COLOUR
             else:
                 colour = graphics_const.DARK_SQ_COLOUR
 
-            pygame.draw.rect(window, colour, (x, y, graphics_const.STEP_X, graphics_const.STEP_Y))
+            draw_square(i, j, colour)
 
 
-def draw_dragging_piece(board, selected_x, selected_y):
-    #draw the board normally, apart from the dragging piece
+def draw_legal_moves(legal_moves, x, y):
+    #colour the squares that the player could move to
 
-    draw_squares()
+    start_square = utils.square_to_str(x, y)
+
+    for i in legal_moves:
+        if i[:2] == start_square:
+            end_y, end_x = utils.str_to_square(i[2:])  #swap x and y because the array inxs are opposite to cartesian coords
+
+            draw_square(end_x, end_y, graphics_const.LEGAL_MOVE_COLOUR)
+
+
+def draw_dragging_piece(board, selected_x, selected_y, legal_moves):
+    #draw the board normally, apart from the dragging piece and the legal moves
+
+    draw_background()
+    draw_legal_moves(legal_moves, selected_x, selected_y)
 
     for i, x in enumerate(board):
         for j, k in enumerate(x):
@@ -107,13 +125,17 @@ def draw_dragging_piece(board, selected_x, selected_y):
                 m_x, m_y = pygame.mouse.get_pos()
                 piece.overwrite_draw_pos(m_x, m_y)
 
-            draw_piece(piece)
+                dragging_piece = piece
+            else:
+                draw_piece(piece)
+
+    draw_piece(dragging_piece)  #we want to draw dragging piece last so it is in front of other pieces
 
     pygame.display.update()
 
 
 def draw_board(board):
-    draw_squares()
+    draw_background()
 
     for i, x in enumerate(board):
         for j, k in enumerate(x):
