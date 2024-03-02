@@ -1,5 +1,6 @@
 package src
 
+
 import (
 	"bufio"
 	"chess-engine/src/engine/board"
@@ -7,6 +8,9 @@ import (
 	"os"
 	"strconv"
 )
+
+
+//The UCI protocol is described here: https://backscattering.de/chess/uci/
 
 
 func findInx(list []string, value string) int {

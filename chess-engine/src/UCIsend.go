@@ -26,6 +26,10 @@ func uciOk() {
 
 func convertMove(move moves.Move) string {
 	//convert a move obj to a string like e2e4
+	if move.PieceValue == 0 {
+		return "0000"  //null move
+	}
+
 	startFile := string(files[move.StartY])
 	startRank := strconv.Itoa(8 - move.StartX)
 	endFile := string(files[move.EndY])

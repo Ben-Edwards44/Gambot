@@ -208,9 +208,5 @@ func GetBestMove(state *board.GameState, moveTime int) moves.Move {
 		bestMove = moveList[0]
 	}
 
-	if (bestMove == moves.Move{}) {
-		panic("Best move is an empty move")
-	}
-
-	return bestMove
+	return bestMove  //NOTE: if no moves are available (in mate), this will be an empty move
 }
