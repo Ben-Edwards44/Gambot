@@ -5,7 +5,9 @@ ENGINE_PATH = "C:\\Users\\Ben Edwards\\Documents\\Programming\\Python\\Projects\
 
 
 class Engine:
-    def __init__(self):
+    def __init__(self, debug):
+        self.debug = debug
+
         self.process = subprocess.Popen(ENGINE_PATH, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
         self.check_uci()
@@ -24,6 +26,23 @@ class Engine:
             cmd = "position startpos"
 
         self.send_cmd(cmd)
+
+    def set_fen(self, fen):
+        #set the position to the fen string given
+        cmd = f'position fen "{fen}"'
+        self.send_cmd(cmd)
+
+    def get_perft_nodes(self, depth):
+        #run perft and return number of nodes - assumes position has been set
+        self.send_cmd(f"go perft {depth}")
+
+        output = ""
+        while len(output) <= 15 or output[:15] != "Nodes searched:":
+            output = self.read_line()
+
+        _, nodes = output.split(": ")
+
+        return int(nodes)
 
     def get_legal_moves(self):
         #gets a list of the legal moves from the engine's divide perft - assumes position has been set
@@ -86,6 +105,9 @@ class Engine:
         output = self.process.stdout.readline()
         text = output.decode().strip()
 
+        if self.debug:
+            print(f"Recieved: {text}")
+
         return text
     
     def send_args(self, cmd_name, kwarg_dict):
@@ -97,7 +119,9 @@ class Engine:
         self.send_cmd(f"{cmd_name}{args}")
         
     def send_cmd(self, cmd):
-        print(f"Sending: {cmd}")
+        if self.debug:
+            print(f"Sending: {cmd}")
+
         b_cmd = bytes(f"{cmd}\n", encoding="utf-8")
 
         self.process.stdin.write(b_cmd)

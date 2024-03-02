@@ -47,7 +47,7 @@ def main():
     move_list = []
     white_to_move = True
 
-    engine = engine_interface.Engine()
+    engine = engine_interface.Engine(True)
     engine.new_game()
 
     board = START_BOARD
