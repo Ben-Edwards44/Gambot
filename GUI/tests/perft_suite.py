@@ -31,7 +31,7 @@ def show_pass(fen):
 
 
 def test_position(engine, position, expected):
-    engine.set_fen(position)
+    engine.set_fen(position, [])
 
     for i, x in enumerate(expected):
         depth = i + 1
@@ -45,7 +45,7 @@ def test_position(engine, position, expected):
 
 
 def main():
-    engine = engine_interface.Engine(False)
+    engine = engine_interface.Engine()
 
     start = time()
     for fen, expected in PERFT_FENS.items():

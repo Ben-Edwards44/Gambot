@@ -19,6 +19,8 @@ def make_move(move, board):
     board[start_x][start_y] = 0
     board[end_x][end_y] = piece_val
 
+    return board
+
 
 def player_move(engine, board, move_list):
     engine.set_pos(move_list)
@@ -47,7 +49,7 @@ def main():
     move_list = []
     white_to_move = True
 
-    engine = engine_interface.Engine(True)
+    engine = engine_interface.Engine()
     engine.new_game()
 
     board = START_BOARD
@@ -63,7 +65,7 @@ def main():
         else:
             move = engine_move(engine, move_list)
 
-        make_move(move, board)
+        board = make_move(move, board)
 
         move_list.append(move)
         white_to_move = not white_to_move

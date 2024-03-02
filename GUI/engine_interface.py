@@ -5,10 +5,10 @@ ENGINE_PATH = "C:\\Users\\Ben Edwards\\Documents\\Programming\\Python\\Projects\
 
 
 class Engine:
-    def __init__(self, debug):
+    def __init__(self, path=ENGINE_PATH, debug=False):
         self.debug = debug
 
-        self.process = subprocess.Popen(ENGINE_PATH, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.process = subprocess.Popen(path, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
         self.check_uci()
 
@@ -27,9 +27,14 @@ class Engine:
 
         self.send_cmd(cmd)
 
-    def set_fen(self, fen):
+    def set_fen(self, fen, move_list):
         #set the position to the fen string given
-        cmd = f'position fen "{fen}"'
+        if len(move_list) > 0:
+            moves = " ".join(move_list)
+            cmd = f'position fen "{fen}" moves {moves}'
+        else:
+            cmd = f'position fen "{fen}"'
+            
         self.send_cmd(cmd)
 
     def get_perft_nodes(self, depth):
