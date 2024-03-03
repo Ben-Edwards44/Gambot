@@ -1,5 +1,5 @@
 import draw
-import run_gui
+import utils
 import engine_interface
 
 from random import randint
@@ -7,36 +7,9 @@ from random import randint
 
 FEN_FILEPATH = "../data/equal_fens.txt"
 
-WHITE_PIECES = ["P", "N", "B", "R", "K", "Q"]
-BLACK_PIECES = [i.lower() for i in WHITE_PIECES]
-
 SHOW_GRAPHICS = True
 
 MOVE_TIME = 500
-
-
-def fen_to_board(fen):
-    b_fen = fen.split(" ")[0]
-    ranks = b_fen.split("/")
-
-    board = []
-    for i in ranks:
-        inx = 0
-        rank = [0 for _ in range(8)]
-
-        for x in i:
-            if x in WHITE_PIECES:
-                rank[inx] = WHITE_PIECES.index(x) + 1
-                inx += 1
-            elif x in BLACK_PIECES:
-                rank[inx] = BLACK_PIECES.index(x) + 7
-                inx += 1
-            else:
-                inx += int(x)
-
-        board.append(rank)
-
-    return board
 
 
 def choose_fens(num):
@@ -72,9 +45,11 @@ def play_game(fen, white, black):
 
     white_to_move = fen.split(" ")[1] == "w"
 
+    board = utils.fen_to_board(fen)
+
     win = "no_win"
     move_list = []
-    board = fen_to_board(fen)
+    seen_boards = {}
 
     while win == "no_win":
         if white_to_move:
@@ -89,12 +64,24 @@ def play_game(fen, white, black):
 
         white_to_move = not white_to_move
 
+        board = utils.make_move(move, board)
+        t_board = tuple(tuple(i) for i in board)
+
+        if t_board in seen_boards:
+            num = seen_boards[t_board]
+
+            if num >= 2:
+                win = "draw"  #draw by repetition
+                break
+            else:
+                seen_boards[t_board] += 1
+        else:
+            seen_boards[t_board] = 1
+
         if SHOW_GRAPHICS:
-            board = run_gui.make_move(move, board)
             draw.draw_board(board)
 
         if len(move_list) > 1:
-            #TODO: draws by repetition
             win = check_win(white, black)
 
     return win

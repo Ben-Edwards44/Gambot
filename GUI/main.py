@@ -10,18 +10,6 @@ import pygame
 START_BOARD = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
 
 
-def make_move(move, board):
-    #NOTE: need to do castling / ep / promotions etc.
-    start_x, start_y, end_x, end_y = utils.str_to_move(move)
-
-    piece_val = board[start_x][start_y]
-
-    board[start_x][start_y] = 0
-    board[end_x][end_y] = piece_val
-
-    return board
-
-
 def player_move(engine, board, move_list):
     engine.set_pos(move_list)
     legal_moves = engine.get_legal_moves()
@@ -65,7 +53,7 @@ def main():
         else:
             move = engine_move(engine, move_list)
 
-        board = make_move(move, board)
+        board = utils.make_move(move, board)
 
         move_list.append(move)
         white_to_move = not white_to_move
