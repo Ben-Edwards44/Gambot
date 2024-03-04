@@ -11,6 +11,7 @@ import (
 
 
 var fileNames [8]string = [8]string{"a", "b", "c", "d", "e", "f", "g", "h"}
+var promotionValues [7]string = [7]string{"", "", "n", "b", "r", "", "q"}  //empty strings are for pieces that you cannot promote to (or just no promotion at all)
 
 
 func getMoveStr(move moves.Move) string {
@@ -19,7 +20,12 @@ func getMoveStr(move moves.Move) string {
 	endRank := strconv.Itoa(8 - move.EndX)
 	endFile := fileNames[move.EndY]
 
-	return startFile + startRank + endFile + endRank
+	pVal := move.PromotionValue
+	if pVal > 6 {pVal -= 6}
+
+	pStr := promotionValues[pVal]
+
+	return startFile + startRank + endFile + endRank + pStr
 }
 
 
