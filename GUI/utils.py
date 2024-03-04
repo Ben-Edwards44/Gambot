@@ -25,21 +25,50 @@ def str_to_move(move):
     return start_x, start_y, end_x, end_y
 
 
-def move_to_str(start_x, start_y, end_x, end_y):
+def move_to_str(start_x, start_y, end_x, end_y, promotion_val):
     start = square_to_str(start_x, start_y)
     end = square_to_str(end_x, end_y)
 
-    return f"{start}{end}"
+    return f"{start}{end}{promotion_val}"
 
 
 def make_move(move, board):
-    #NOTE: need to do castling / ep / promotions etc.
     start_x, start_y, end_x, end_y = str_to_move(move)
 
     piece_val = board[start_x][start_y]
+    capt_val = board[end_x][end_y]
 
     board[start_x][start_y] = 0
     board[end_x][end_y] = piece_val
+
+    en_pass = (piece_val == 1 or piece_val == 7) and start_y != end_y and capt_val == 0
+    king_cast = (piece_val == 5 or piece_val == 11) and end_y - start_y == 2
+    queen_cast = (piece_val == 5 or piece_val == 11) and start_y - end_y == 2
+    promotion = len(move) == 5
+
+    if en_pass:
+        #en passant - take pawn
+        board[start_x][end_y] = 0
+    elif king_cast:
+        #move rook as well
+        rook_val = piece_val - 1
+
+        board[start_x][7] = 0
+        board[start_x][end_y - 1] = rook_val
+    elif queen_cast:
+        #move rook as well
+        rook_val = piece_val - 1
+
+        board[start_x][0] = 0
+        board[start_x][end_y + 1] = rook_val
+    elif promotion:
+        #promotion - replace with new piece
+        val = BLACK_PIECES.index(move[4])  #promotion is always lowercase
+
+        if piece_val > 6:
+            val += 6
+
+        board[end_x][end_y] = val + 1  #+1 because we are converting from index to piece value
 
     return board
 

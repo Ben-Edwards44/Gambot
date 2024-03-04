@@ -34,6 +34,24 @@ def drag_piece(board, selected_x, selected_y, legal_moves):
     return selected_x, selected_y
 
 
+def convert_move(board, selected_x, selected_y, legal_moves):
+    end_x, end_y = get_cell_inx()
+
+    piece_val = board[selected_x][selected_y]
+    if (piece_val == 1 or piece_val == 7) and (end_x == 0 or end_x == 7):
+        #promotion
+        promotion_val = input("Enter promotion piece: ")
+    else:
+        promotion_val = ""
+
+    move = utils.move_to_str(selected_x, selected_y, end_x, end_y, promotion_val)
+
+    if not graphics_const.LEGAL_FILTER or move in legal_moves:
+        return move
+    
+    return None
+    
+
 def get_move(board, legal_moves):
     #get the player's move
 
@@ -45,10 +63,9 @@ def get_move(board, legal_moves):
             selected_x, selected_y = drag_piece(board, selected_x, selected_y, legal_moves)
         else:
             if selected_x != -1 and selected_y != -1:
-                end_x, end_y = get_cell_inx()
-                move = utils.move_to_str(selected_x, selected_y, end_x, end_y)
+                move = convert_move(board, selected_x, selected_y, legal_moves)
 
-                if move in legal_moves:
+                if move != None:
                     return move
 
             selected_x = -1
