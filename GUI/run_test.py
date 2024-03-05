@@ -1,4 +1,4 @@
-from tests import perft_suite, engine_game
+from tests import perft_suite, engine_game, speed_test
 
 from sys import argv
 
@@ -18,6 +18,17 @@ def eng_game():
     engine_game.main(path1, path2, num)
 
 
+def speed():
+    if len(argv) < 5:
+        raise Exception("Invalid args for speed test")
+    
+    path1 = argv[2]
+    path2 = argv[3]
+    num = int(argv[4])
+
+    speed_test.main(path1, path2, num)
+
+
 def main():
     if len(argv) < 1:
         raise Exception("Invalid argument number for tests")
@@ -28,6 +39,8 @@ def main():
         perft()
     elif test == "engine_game":
         eng_game()
+    elif test == "speed_test":
+        speed()
     else:
         raise Exception("Invalid test type")
     
