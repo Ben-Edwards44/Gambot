@@ -1,7 +1,7 @@
 import subprocess
 
 
-ENGINE_PATH = "C:\\Users\\Ben Edwards\\Documents\\Programming\\Python\\Projects\\chess-engine\\chess-engine\\chess-engine.exe"
+ENGINE_PATH = "../chess-engine/chess-engine"
 
 
 class Engine:
@@ -13,10 +13,13 @@ class Engine:
         self.check_uci()
 
     def __del__(self):
+        self.kill_process()  #if object is deleted for any reason, we need to kill engine process
+
+    def kill_process(self):
         self.process.stdout.close()
         self.process.stdin.close()
         self.process.kill()
-
+    
     def set_pos(self, move_list):
         #set the position to the startpos + the moves played in move_list
         if len(move_list) > 0:
@@ -106,7 +109,7 @@ class Engine:
 
         if self.process.poll() is not None:
             raise Exception("UCI engine process finished")  #process has exited for some reason
-        
+                        
         output = self.process.stdout.readline()
         text = output.decode().strip()
 

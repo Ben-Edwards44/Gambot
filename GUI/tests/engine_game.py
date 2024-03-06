@@ -126,3 +126,6 @@ def main(path1, path2, num):
         print(f"Played: {i + 1}\n{path1} wins: {win1}\n{path2} wins: {win2}\nDraws: {draws}\n\n")
 
     print(f"Final result:\n{path1} wins: {win1}\n{path2} wins: {win2}\nDraws: {draws}\n\n")
+
+    engine1.kill_process()
+    engine2.kill_process()

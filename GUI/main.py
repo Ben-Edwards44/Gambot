@@ -26,10 +26,10 @@ def engine_move(engine, move_list):
 
 
 def exit(engine):
-    del engine  #ensure the background engine process is killed
+    engine.kill_process()  #ensure the background engine process is killed
 
     quit()
-        
+
 
 def main():
     draw.init()

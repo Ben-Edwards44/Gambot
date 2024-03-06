@@ -58,4 +58,4 @@ def main():
 
     print(f"Time elapsed: {elapsed :.2f}s")
 
-    del engine  #ensure process is killed
+    engine.kill_process()  #ensure process is killed

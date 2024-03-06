@@ -127,3 +127,6 @@ def main(path1, path2, num):
         print(f"Position: {i + 1}\n{engine1} speed wins: {win1}\n{engine2} speed wins: {win2}")
 
     print(f"Final result\n{engine1} speed wins: {win1}\n{engine2} speed wins: {win2}")
+
+    engine1.kill_process()
+    engine2.kill_process()
