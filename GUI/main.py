@@ -22,7 +22,7 @@ def player_move(engine, board, move_list):
 def engine_move(engine, move_list):
     engine.set_pos(move_list)
 
-    return engine.get_move()
+    return engine.get_move(movetime=graphics_const.ENGINE_MOVE_TIME)
 
 
 def exit(engine):
@@ -32,12 +32,14 @@ def exit(engine):
 
 
 def main():
+    #TODO: add clocks etc.
+
     draw.init()
 
     move_list = []
     white_to_move = True
 
-    engine = engine_interface.Engine()
+    engine = engine_interface.Engine(debug=True)
     engine.new_game()
 
     board = START_BOARD
