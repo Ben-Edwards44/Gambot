@@ -24,7 +24,7 @@ func uciOk() {
 }
 
 
-func convertMove(move moves.Move) string {
+func convertMove(move *moves.Move) string {
 	//convert a move obj to a string like e2e4
 	if move.PieceValue == 0 {
 		return "0000"  //null move
@@ -39,7 +39,7 @@ func convertMove(move moves.Move) string {
 }
 
 
-func sendBestMove(bestMove moves.Move) {
+func sendBestMove(bestMove *moves.Move) {
 	//TODO: add ponder move
 	moveStr := convertMove(bestMove)
 	

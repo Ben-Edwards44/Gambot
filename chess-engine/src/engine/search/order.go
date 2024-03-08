@@ -7,7 +7,7 @@ import (
 )
 
 
-func quickSort(moveList []moves.Move, moveScores []int, low int, high int) {
+func quickSort(moveList []*moves.Move, moveScores []int, low int, high int) {
 	if low < high {
 		pivot := partition(moveList, moveScores, low, high)
 
@@ -17,7 +17,7 @@ func quickSort(moveList []moves.Move, moveScores []int, low int, high int) {
 }
 
 
-func partition(moveList []moves.Move, moveScores []int, low int, high int) int {
+func partition(moveList []*moves.Move, moveScores []int, low int, high int) int {
 	pivot := moveScores[high]
 	i := low - 1
 
@@ -39,7 +39,7 @@ func partition(moveList []moves.Move, moveScores []int, low int, high int) int {
 }
 
 
-func getMoveOrder(state *board.GameState, move moves.Move) int {
+func getMoveOrder(state *board.GameState, move *moves.Move) int {
 	score := 0
 
 	currentPiece := move.PieceValue
@@ -64,7 +64,7 @@ func getMoveOrder(state *board.GameState, move moves.Move) int {
 }
 
 
-func orderMoves(state *board.GameState, moveList []moves.Move, prevBestMove moves.Move) {
+func orderMoves(state *board.GameState, moveList []*moves.Move, prevBestMove *moves.Move) {
 	//slices are passed by reference, so no need to return
 
 	var moveScores []int

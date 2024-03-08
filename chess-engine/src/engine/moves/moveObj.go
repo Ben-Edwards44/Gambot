@@ -72,7 +72,7 @@ func movePos(arr [10][2]int, sX int, sY int, eX int, eY int) [10][2]int {
 }
 
 
-func updateCapture(state *board.GameState, move Move, ePos int, isWhite bool) {
+func updateCapture(state *board.GameState, move *Move, ePos int, isWhite bool) {
 	//TODO: work with fixed length array
 	eVal := state.Board[ePos]
 	var enemy [6][10][2]int
@@ -110,7 +110,7 @@ func updateCapture(state *board.GameState, move Move, ePos int, isWhite bool) {
 }
 
 
-func updatePiecePos(move Move, sPos int, ePos int, sVal int, state *board.GameState) {
+func updatePiecePos(move *Move, sPos int, ePos int, sVal int, state *board.GameState) {
 	isWhite := sVal < 7
 
 	if move.PromotionValue == 0 {
@@ -182,7 +182,7 @@ func updateBitboards(state *board.GameState) {
 }
 
 
-func updateHash(state *board.GameState, move Move, start int, end int, pieceVal int, captVal int, prevCastle uint8, newCastle uint8, prevEpFile int) {
+func updateHash(state *board.GameState, move *Move, start int, end int, pieceVal int, captVal int, prevCastle uint8, newCastle uint8, prevEpFile int) {
 	//NOTE: this function should not really check the state.Board because, by this time, it will have been updated
 	
 	//adjust for white/black and for the fact that these values will be indices
@@ -263,7 +263,7 @@ func updateHash(state *board.GameState, move Move, start int, end int, pieceVal 
 }
 
 
-func MakeMove(state *board.GameState, move Move) {
+func MakeMove(state *board.GameState, move *Move) {
 	//updates game state
 
 	state.SetPrevVals()  //so that we can restore later

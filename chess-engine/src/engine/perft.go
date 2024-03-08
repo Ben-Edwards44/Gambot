@@ -50,7 +50,7 @@ func dividePerft(stateObj *board.GameState, maxDepth int) int {
 
 	total := 0
 	for _, i := range initMoves {
-		str := getMoveStr(i)
+		str := getMoveStr(*i)
 
 		moves.MakeMove(stateObj, i)
 

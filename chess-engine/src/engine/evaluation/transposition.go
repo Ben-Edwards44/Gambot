@@ -1,7 +1,10 @@
 package evaluation
 
 
-import "chess-engine/src/engine/moves"
+import (
+	"unsafe"
+	"chess-engine/src/engine/moves"
+)
 
 
 const PvNode int = 0
@@ -10,7 +13,9 @@ const CutNode int = 2
 
 const ttEnabled bool = true
 
-const ttLen uint64 = 65536  //TODO: calculate given a set size in bytes (uint64 means we don't have to convert when using %)
+const ttSizeMib int = 64
+const ttLen uint64 = uint64((1024 * 1024 * ttSizeMib) / int(unsafe.Sizeof(ttEntry{})))  //using uint64 means we don't have to convert later
+
 
 var ttEntries [ttLen]ttEntry
 
@@ -20,7 +25,7 @@ type ttEntry struct {
 	depthSearched int
 	eval int
 	nodeType int
-	bestMove moves.Move  //for depth 1 (in terms of iterative deepening lookups)
+	bestMove *moves.Move  //for depth 1 (in terms of iterative deepening lookups)
 	//TODO: age (so we know when to clear)
 }
 
@@ -53,7 +58,7 @@ func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, in
 }
 
 
-func LookupMove(zobHash uint64) moves.Move {
+func LookupMove(zobHash uint64) *moves.Move {
 	//This is for when the position we are currently searching is in the transposition table
 	inx := zobHash % ttLen
 
@@ -61,7 +66,7 @@ func LookupMove(zobHash uint64) moves.Move {
 }
 
 
-func StoreEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove moves.Move) {
+func StoreEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove *moves.Move) {
 	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: eval, nodeType: nodeType, bestMove: bestMove}
 	inx := zobHash % ttLen
 
@@ -69,6 +74,6 @@ func StoreEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMov
 }
 
 
-func ClearTT() {
+func NewTT() {
 	ttEntries = [ttLen]ttEntry{}
 }

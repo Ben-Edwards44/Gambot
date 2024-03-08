@@ -2,11 +2,11 @@ package src
 
 
 import (
+	"os"
 	"bufio"
+	"strconv"
 	"chess-engine/src/engine/board"
 	"chess-engine/src/engine/moves"
-	"os"
-	"strconv"
 )
 
 
@@ -72,7 +72,7 @@ func getYCoord(file byte) int {
 }
 
 
-func parseMove(stateObj *board.GameState, move string) moves.Move {
+func parseMove(stateObj *board.GameState, move string) *moves.Move {
 	startX := getXCoord(move[1])
 	startY := getYCoord(move[0])
 	endX := getXCoord(move[3])
@@ -104,7 +104,7 @@ func parseMove(stateObj *board.GameState, move string) moves.Move {
 
 	moveObj := moves.Move{StartX: startX, StartY: startY, EndX: endX, EndY: endY, PieceValue: pieceVal, DoublePawnMove: doublePawn, EnPassant: ep, KingCastle: kingCastle, QueenCastle: queenCastle, PromotionValue: promotionVal}
 
-	return moveObj
+	return &moveObj
 }
 
 

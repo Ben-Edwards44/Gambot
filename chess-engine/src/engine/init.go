@@ -44,5 +44,5 @@ func Init() {
 
 	board.PrecalculateZobristNums()
 
-	evaluation.ClearTT()
+	evaluation.NewTT()
 }

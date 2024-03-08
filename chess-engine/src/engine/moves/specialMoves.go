@@ -4,7 +4,7 @@ package moves
 import "chess-engine/src/engine/board"
 
 
-func enPassant(state *board.GameState, currentX int, currentY int, pieceValue int, resultSlice *[]Move) {
+func enPassant(state *board.GameState, currentX int, currentY int, pieceValue int, resultSlice *[]*Move) {
 	if state.EnPassantPin {return}  //en passant is pinned (edge case)
 
 	otherX := state.PrevPawnDouble[0]
@@ -31,13 +31,13 @@ func enPassant(state *board.GameState, currentX int, currentY int, pieceValue in
 			blocking := blockKingAttack(otherX, otherY, state.KingAttackBlocks)  //we check the other pawns pos because we are (in effect) taking it
 			pin := checkPin(currentX, currentY, newX, newY, &state.PinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
 			
-			if blocking && pin {*resultSlice = append(*resultSlice, m)}
+			if blocking && pin {*resultSlice = append(*resultSlice, &m)}
 		}
 	}
 }
 
 
-func promotion(state *board.GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]Move, onlyCaptures bool) {
+func promotion(state *board.GameState, x int, y int, pieceValue int, xStep int, resultSlice *[]*Move, onlyCaptures bool) {
 	//assume piece is a pawn and on second to last rank
 	newX := x + xStep
 
@@ -61,13 +61,13 @@ func promotion(state *board.GameState, x int, y int, pieceValue int, xStep int, 
 			value := pieceValue + i
 			move := Move{StartX: x, StartY: y, EndX: newX, EndY: newY, PieceValue: pieceValue, PromotionValue: value}
 
-			if !onlyCaptures || capture {*resultSlice = append(*resultSlice, move)}
+			if !onlyCaptures || capture {*resultSlice = append(*resultSlice, &move)}
 		}
 	}
 }
 
 
-func castle(state *board.GameState, pieceValue int, resultSlice *[]Move) {
+func castle(state *board.GameState, pieceValue int, resultSlice *[]*Move) {
 	//black values
 	rookValue := 10
 	kingValue := 11
@@ -107,7 +107,7 @@ func castle(state *board.GameState, pieceValue int, resultSlice *[]Move) {
 			if !pieceInWay && (badBitBoard & state.NoKingMoveBitBoard == 0) {
 				//not going into check
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 6, PieceValue: pieceValue, KingCastle: true}
-				*resultSlice = append(*resultSlice, m)
+				*resultSlice = append(*resultSlice, &m)
 			}
 		}
 	}
@@ -133,7 +133,7 @@ func castle(state *board.GameState, pieceValue int, resultSlice *[]Move) {
 			//bitwise AND the bitboards to ensure no crossover
 			if !pieceInWay && (badBitBoard & state.NoKingMoveBitBoard == 0) {
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 2, PieceValue: pieceValue, QueenCastle: true}
-				*resultSlice = append(*resultSlice, m)
+				*resultSlice = append(*resultSlice, &m)
 			}
 		}
 	}

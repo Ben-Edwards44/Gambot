@@ -15,7 +15,7 @@ const MATESCORE int = 100000
 
 var searchAbandoned bool
 
-var bestMoves map[[64]int]moves.Move
+var bestMoves map[[64]int]*moves.Move
 
 var posSearched int
 var ttLookups int
@@ -45,11 +45,11 @@ func checkWin(state *board.GameState, isWhite bool) int {
 }
 
 
-func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, alpha int, beta int, timeLeft time.Duration) (int, moves.Move) {
+func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, alpha int, beta int, timeLeft time.Duration) (int, *moves.Move) {
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
-		return 0, moves.Move{}
+		return 0, &moves.Move{}
 	}
 
 	startTime := time.Now()
@@ -60,7 +60,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		//this position is in transposition table. We don't need to search it again
 		ttLookups++
 
-		var bestMove moves.Move
+		var bestMove *moves.Move
 		if plyFromRoot == 0 {
 			bestMove = evaluation.LookupMove(state.ZobristHash)
 		}
@@ -68,7 +68,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		return ttEval, bestMove
 	}
 	
-	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta, timeLeft), moves.Move{}}
+	if depth == 0 {return quiescenceSearch(state, isWhite, alpha, beta, timeLeft), &moves.Move{}}
 
 	posSearched++
 
@@ -76,11 +76,11 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	orderMoves(state, moveList, bestMoves[state.Board])
 
 	//TODO: draws by repetition and 50 move rule etc.
-	if len(moveList) == 0 {return checkWin(state, isWhite), moves.Move{}}  //deal with checkmates and draws
+	if len(moveList) == 0 {return checkWin(state, isWhite), &moves.Move{}}  //deal with checkmates and draws
 
 	nodeType := evaluation.AllNode
 
-	var bestMove moves.Move
+	var bestMove *moves.Move
 
 	for _, move := range moveList {
 		moves.MakeMove(state, move)
@@ -94,7 +94,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		//fail-hard cutoff (prune position)
 		if score >= beta {
 			if !searchAbandoned {
-				evaluation.StoreEntry(state.ZobristHash, depth, beta, evaluation.CutNode, moves.Move{})  //we do not actually know if the value of bestMove is best for this position
+				evaluation.StoreEntry(state.ZobristHash, depth, beta, evaluation.CutNode, &moves.Move{})  //we do not actually know if the value of bestMove is best for this position
 			}
 
 			return beta, bestMove
@@ -135,7 +135,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 	posSearched++
 	
 	moveList := moves.GenerateAllMoves(state, true)
-	orderMoves(state, moveList, moves.Move{})//bestMoves[state.Board])
+	orderMoves(state, moveList, &moves.Move{})  //TODO: maybe prev best move here??
 
 	for _, move := range moveList {
 		moves.MakeMove(state, move)
@@ -153,9 +153,9 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 }
 
 
-func GetBestMove(state *board.GameState, moveTime int) moves.Move {
+func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 	searchAbandoned = false
-	bestMoves = make(map[[64]int]moves.Move)
+	bestMoves = make(map[[64]int]*moves.Move)
 
 	startTime := time.Now()
 	timeLeft := time.Duration(time.Millisecond * time.Duration(moveTime))  //NOTE: change to 500ms for testing
@@ -164,7 +164,7 @@ func GetBestMove(state *board.GameState, moveTime int) moves.Move {
 
 	searchedDepthOne := false
 
-	var bestMove moves.Move
+	var bestMove *moves.Move
 	var elapsed time.Duration
 	for timeLeft > 0 {
 		posSearched = 0
@@ -203,7 +203,7 @@ func GetBestMove(state *board.GameState, moveTime int) moves.Move {
 		//could not even search to depth one, just play the first available move
 
 		moveList := moves.GenerateAllMoves(state, false)
-		orderMoves(state, moveList, moves.Move{})  //order so that a reasonable looking move is played
+		orderMoves(state, moveList, &moves.Move{})  //order so that a reasonable looking move is played
 
 		bestMove = moveList[0]
 	}

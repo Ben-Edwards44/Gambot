@@ -61,7 +61,7 @@ func (b *bot) runPerft(depth int) {
 }
 
 
-func (b *bot) runBestMove() moves.Move {
+func (b *bot) runBestMove() *moves.Move {
 	//calculate the best move - assumes position and move time have been updated
 	bestMove := engine.CalculateMove(&b.currentPos, b.moveTime)
 
