@@ -256,27 +256,31 @@ func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDo
 }
 
 
-func GetFilterBitboards(board *[64]int, kingX int, kingY int, kingValue int, otherPiecePos [6][10][2]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
+func GetFilterBitboards(board *[64]int, kingPos int, kingValue int, otherPiecePos *[16]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
 	//return the attack, pin, and no king move bitboards, as well as whether en passant is pinned
 
 	var attackBB []uint64
 	var pinBB [64]uint64
 	var noKingBB uint64
 
-	for i, posList := range otherPiecePos {
-		pieceValue := i + 1  //because we are going from an index to a piece value
-		if isWhite {pieceValue += 6}  //counter-intuitive way around because we are looking at the enemy moves
+	for i := 0; i < len(otherPiecePos); i++ {
+		square := otherPiecePos[i]
 
-		for _, i := range posList {	
-			if i[0] == -1 {break}  //because we are using fixed length array
+		if square != -1 {
+			pieceVal := board[square]
 
-			inx := pieceValue - 1
-			if isWhite {inx = pieceValue - 7}  //counter-intuitive way around because we are looking at the enemy moves
-	
-			atkFunc := attackFunctions[inx]
-			atkFunc(board, i[0], i[1], pieceValue, kingValue, &noKingBB, &attackBB, &pinBB)
+			atkInx := (pieceVal - 1) % 6  //white and black pieces use same attack function
+			atkFunc := attackFunctions[atkInx]
+
+			x := int(square / 8)
+			y := square % 8
+
+			atkFunc(board, x, y, pieceVal, kingValue, &noKingBB, &attackBB, &pinBB)
 		}
 	}
+
+	kingX := int(kingPos / 8)
+	kingY := kingPos % 8
 
 	enPassPin := enPassantPin(board, kingX, kingY, isWhite, prevPawnDouble)
 

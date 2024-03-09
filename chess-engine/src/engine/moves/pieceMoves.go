@@ -7,7 +7,7 @@ import "chess-engine/src/engine/board"
 //array matching piece values to their appropriate move functions
 var moveFunctions [6]func(*board.GameState, int, int, int, *[]*Move, bool) = [6]func(*board.GameState, int, int, int, *[]*Move, bool) {pawnMoves, knightMoves, bishopMoves, rookMoves, kingMoves, queenMoves}
 
-//array matching distance index to their x, y multipliers
+//arrays matching distance index to their x, y multipliers
 var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
 var yMults [8]int = [8]int{0, 0, -1, 1, -1, 1, -1, 1}
 
@@ -251,7 +251,7 @@ func specialMoves(state *board.GameState, x int, y int, pieceValue int, resultSl
 } 
 
 
-func GetPieceMoves(state *board.GameState, x int, y int, resultSlice *[]*Move, onlyCaptures bool) {
+func getPieceMoves(state *board.GameState, x int, y int, resultSlice *[]*Move, onlyCaptures bool) {
 	pieceValue := state.Board[x * 8 + y]
 
 	if pieceValue != 0 {
@@ -280,17 +280,20 @@ func GetPieceMoves(state *board.GameState, x int, y int, resultSlice *[]*Move, o
 func GenerateAllMoves(state *board.GameState, onlyCaptures bool) []*Move {
 	//assumes state has been properly initialised etc.
 
-	piecePos := state.BlackPiecePos
+	piecePos := &board.PieceLists.BlackPieceSquares
 	if state.WhiteToMove {
-		piecePos = state.WhitePiecePos
+		piecePos = &board.PieceLists.WhitePieceSquares
 	}
 
 	moves := make([]*Move, 0, 64)  //need to experiment with how much memory to preallocate (max is 218, but this takes longer to allocate)
-	for _, moveList := range piecePos {	
-		for _, i := range moveList {
-			if i[0] == -1 {break}  //because we are using fixed length array
-			
-			GetPieceMoves(state, i[0], i[1], &moves, onlyCaptures)
+	for i := 0; i < len(piecePos); i++ {
+		square := piecePos[i]
+
+		if square != -1 {
+			x := int(square / 8)
+			y := square % 8
+
+			getPieceMoves(state, x, y, &moves, onlyCaptures)
 		}
 	}
 

@@ -21,9 +21,6 @@ type GameState struct {
 
 	PrevPawnDouble [2]int
 
-	WhitePiecePos [6][10][2]int
-	BlackPiecePos [6][10][2]int
-
 	NoKingMoveBitBoard uint64
 	KingAttackBlocks []uint64
 
@@ -40,9 +37,6 @@ type GameState struct {
 	prvCastleRights []uint8
 
 	prvPrevPawnDouble [][2]int
-
-	PrvWhitePiecePos [][6][10][2]int
-	PrvBlackPiecePos [][6][10][2]int
 
 	prvNoKingMoveBitBoard []uint64
 	prvKingAttackBlocks [][]uint64
@@ -64,8 +58,6 @@ func (state *GameState) SetPrevVals() {
 	state.prvWhiteToMove = append(state.prvWhiteToMove, state.WhiteToMove)
 	state.prvCastleRights = append(state.prvCastleRights, state.CastleRights)
 	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
-	state.PrvWhitePiecePos = append(state.PrvWhitePiecePos, state.WhitePiecePos)
-	state.PrvBlackPiecePos = append(state.PrvBlackPiecePos, state.BlackPiecePos)
 	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.NoKingMoveBitBoard)
 	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
 	state.prvPinArray = append(state.prvPinArray, state.PinArray)
@@ -82,8 +74,6 @@ func (state *GameState) RestorePrev() {
 	state.WhiteToMove = state.prvWhiteToMove[len(state.prvWhiteToMove) - 1]
 	state.CastleRights = state.prvCastleRights[len(state.prvCastleRights) - 1]
 	state.PrevPawnDouble = state.prvPrevPawnDouble[len(state.prvPrevPawnDouble) - 1]
-	state.WhitePiecePos = state.PrvWhitePiecePos[len(state.PrvWhitePiecePos) - 1]
-	state.BlackPiecePos = state.PrvBlackPiecePos[len(state.PrvBlackPiecePos) - 1]
 	state.NoKingMoveBitBoard = state.prvNoKingMoveBitBoard[len(state.prvNoKingMoveBitBoard) - 1]
 	state.KingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
 	state.PinArray = state.prvPinArray[len(state.prvPinArray) - 1]
@@ -95,8 +85,6 @@ func (state *GameState) RestorePrev() {
 	state.prvWhiteToMove = state.prvWhiteToMove[:len(state.prvWhiteToMove) - 1]
 	state.prvCastleRights = state.prvCastleRights[:len(state.prvCastleRights) - 1]
 	state.prvPrevPawnDouble = state.prvPrevPawnDouble[:len(state.prvPrevPawnDouble) - 1]
-	state.PrvWhitePiecePos = state.PrvWhitePiecePos[:len(state.PrvWhitePiecePos) - 1]
-	state.PrvBlackPiecePos = state.PrvBlackPiecePos[:len(state.PrvBlackPiecePos) - 1]
 	state.prvNoKingMoveBitBoard = state.prvNoKingMoveBitBoard[:len(state.prvNoKingMoveBitBoard) - 1]
 	state.prvKingAttackBlocks = state.prvKingAttackBlocks[:len(state.prvKingAttackBlocks) - 1]
 	state.prvPinArray = state.prvPinArray[:len(state.prvPinArray) - 1]

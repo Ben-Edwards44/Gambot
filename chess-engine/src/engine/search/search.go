@@ -25,14 +25,12 @@ func checkWin(state *board.GameState, isWhite bool) int {
 	//TODO: include depths in checkmates (for transposition table)
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
-	kingPos := state.BlackPiecePos[4][0]
-	if isWhite {kingPos = state.WhitePiecePos[4][0]}
-
-	pos := kingPos[0] * 8 + kingPos[1]
+	kingPos := board.PieceLists.BlackKingPos
+	if isWhite {kingPos = board.PieceLists.WhiteKingPos}
 
 	//set bitboard at king's position
 	var kingPosBB uint64
-	kingPosBB |= 1 << pos
+	kingPosBB |= 1 << kingPos
 
 	inCheck := (kingPosBB & state.NoKingMoveBitBoard) != 0
 

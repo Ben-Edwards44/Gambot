@@ -15,14 +15,12 @@ func CheckWin(stateObj *board.GameState) string {
 
 	if len(legalMoves) > 0 {return "not_terminal"}
 	
-	kingPos := stateObj.BlackPiecePos[4][0]
-	if stateObj.WhiteToMove {kingPos = stateObj.WhitePiecePos[4][0]}
-
-	pos := kingPos[0] * 8 + kingPos[1]
+	kingPos := board.PieceLists.BlackKingPos
+	if stateObj.WhiteToMove {kingPos = board.PieceLists.WhiteKingPos}
 
 	//set bitboard at king's position
 	var kingPosBB uint64
-	kingPosBB |= 1 << pos
+	kingPosBB |= 1 << kingPos
 
 	inCheck := (kingPosBB & stateObj.NoKingMoveBitBoard) != 0
 

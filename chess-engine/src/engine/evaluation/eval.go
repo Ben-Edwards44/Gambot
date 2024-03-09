@@ -10,16 +10,16 @@ var pieceWeight [6]int = [6]int{10, 30, 30, 50, 100, 90}
 func countMaterial(state *board.GameState) int {
 	white := 0
 	black := 0
-	for inx := 0; inx < 6; inx++ {
-		for _, i := range state.WhitePiecePos[inx] {
-			if i[0] == -1 {break}  //because we are using fixed length array
-			white += pieceWeight[inx]
-		}
 
-		for _, i := range state.BlackPiecePos[inx] {
-			if i[0] == -1 {break}  //because we are using fixed length array
-			black += pieceWeight[inx]
-		}
+	wPieces := &board.PieceLists.WhitePieceSquares
+	bPieces := &board.PieceLists.BlackPieceSquares
+	
+	for i := 0; i < len(wPieces); i++ {
+		wPos := wPieces[i]
+		bPos := bPieces[i]
+
+		if wPos != -1 {white += pieceWeight[state.Board[wPos] - 1]}
+		if bPos != -1 {black += pieceWeight[state.Board[bPos] - 7]}
 	}
 
 	return white - black

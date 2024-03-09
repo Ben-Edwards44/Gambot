@@ -22,158 +22,19 @@ type Move struct {
 }
 
 
-func removeFromArray(arr [10][2]int, x int, y int) [10][2]int {
-	removed := false
-    for i, j := range arr {
-		if j[0] == -1 {
-			break
-		} else if j[0] == x && j[1] == y {
-			//remove element
-			arr[i][0] = -1
-			arr[i][1] = -1
-			removed = true
-		} else if removed {
-			//shift subsequent elements left
-			arr[i - 1][0] = j[0]
-			arr[i - 1][1] = j[1]
-			arr[i][0] = -1
-			arr[i][1] = -1
-		}
-	}
-
-	return arr
-}
-
-
-func appendToArray(arr [10][2]int, x int, y int) [10][2]int {
-	for i, j := range arr {
-		if j[0] == -1 {
-			arr[i][0] = x
-			arr[i][1] = y
-			break
-		}
-	}
-
-	return arr
-}
-
-
-func movePos(arr [10][2]int, sX int, sY int, eX int, eY int) [10][2]int {
-	for i, x := range arr {
-		if x[0] == sX && x[1] == sY {
-			//update the piece to the new position
-			arr[i][0] = eX
-			arr[i][1] = eY
-			break
-		}
-	}
-
-	return arr
-}
-
-
-func updateCapture(state *board.GameState, move *Move, ePos int, isWhite bool) {
-	//TODO: work with fixed length array
-	eVal := state.Board[ePos]
-	var enemy [6][10][2]int
-	var enemyInx int
-	if isWhite {
-		enemy = state.BlackPiecePos
-		enemyInx = eVal - 7
-	} else {
-		enemy = state.WhitePiecePos
-		enemyInx = eVal - 1
-	}
-
-	captX := -1
-	captY := -1
-	if eVal != 0 {
-		captX = move.EndX
-		captY = move.EndY
-	} else if move.EnPassant {
-		captX = move.StartX
-		captY = move.EndY
-
-		enemyInx = 0  //the en passant capture must be a pawn
-	}
-
-	//if needed, remove position of captured piece
-	if captX != -1 {
-		enemy[enemyInx] = removeFromArray(enemy[enemyInx], captX, captY)
-
-		if isWhite {
-			state.BlackPiecePos = enemy
-		} else {
-			state.WhitePiecePos = enemy
-		}
-	}
-}
-
-
-func updatePiecePos(move *Move, sPos int, ePos int, sVal int, state *board.GameState) {
-	isWhite := sVal < 7
-
-	if move.PromotionValue == 0 {
-		//not a promotion
-		var friend [6][10][2]int
-		var friendInx int
-		if isWhite {
-			friend = state.WhitePiecePos
-			friendInx = sVal - 1
-		} else {
-			friend = state.BlackPiecePos
-			friendInx = sVal - 7
-		}
-
-		friend[friendInx] = movePos(friend[friendInx], move.StartX, move.StartY, move.EndX, move.EndY)  //move piece
-
-		if move.KingCastle {
-			friend[3] = movePos(friend[3], move.StartX, 7, move.EndX, 5)  //move the rook as well
-		} else if move.QueenCastle {
-			friend[3] = movePos(friend[3], move.StartX, 0, move.EndX, 3)  //move the rook as well
-		}
-
-		if isWhite {
-			state.WhitePiecePos = friend
-		} else {
-			state.BlackPiecePos = friend
-		}
-	} else {
-		//promotion
-		if isWhite {
-			//remove the pawn
-			state.WhitePiecePos[0] = removeFromArray(state.WhitePiecePos[0], move.StartX, move.StartY)
-
-			//add the new piece
-			state.WhitePiecePos[move.PromotionValue - 1] = appendToArray(state.WhitePiecePos[move.PromotionValue - 1], move.EndX, move.EndY)
-		} else {
-			//remove the pawn
-			state.BlackPiecePos[0] = removeFromArray(state.BlackPiecePos[0], move.StartX, move.StartY)
-
-			//add the new piece
-			state.BlackPiecePos[move.PromotionValue - 7] = appendToArray(state.BlackPiecePos[move.PromotionValue - 7], move.EndX, move.EndY)
-		}
-	}
-
-	updateCapture(state, move, ePos, isWhite)
-} 
-
-
 func updateBitboards(state *board.GameState) {
 	//TODO: make faster??
 
 	kingVal := 11
-	kingPos := state.BlackPiecePos[4][0]  //4 not 5 because we are converting from piece value to index
-	otherPieces := state.WhitePiecePos
+	kingPos := board.PieceLists.BlackKingPos
+	otherPieces := &board.PieceLists.WhitePieceSquares
 	if state.WhiteToMove {
 		kingVal = 5
-		kingPos = state.WhitePiecePos[4][0]  //4 not 5 because we are converting from piece value to index
-		otherPieces = state.BlackPiecePos
+		kingPos = board.PieceLists.WhiteKingPos
+		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	kingX := kingPos[0]
-	kingY := kingPos[1]
-	kAttackBlock, pinArray, noKingMove, enPassantPin := GetFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
+	kAttackBlock, pinArray, noKingMove, enPassantPin := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
 
 	state.NoKingMoveBitBoard = noKingMove
 	state.KingAttackBlocks = kAttackBlock
@@ -273,7 +134,7 @@ func MakeMove(state *board.GameState, move *Move) {
 	val := move.PieceValue
 	captVal := state.Board[end]
 
-	updatePiecePos(move, start, end, val, state)
+	board.MovePiecePosition(start, end, move.PieceValue)
 
 	//move piece
 	state.Board[start] = 0
@@ -284,16 +145,22 @@ func MakeMove(state *board.GameState, move *Move) {
 	if move.EnPassant {
 		capturePos := move.StartX * 8 + move.EndY
 		state.Board[capturePos] = 0
+
+		board.EnPassant(capturePos, move.PieceValue > 6)
 	} else if move.KingCastle {
 		rookVal := move.PieceValue - 1
 
 		state.Board[end + 1] = 0
 		state.Board[end - 1] = rookVal
+
+		board.Castle(end + 1, end - 1, rookVal)  //move the rook
 	} else if move.QueenCastle {
 		rookVal := move.PieceValue - 1
 
 		state.Board[end - 2] = 0
 		state.Board[end + 1] = rookVal
+
+		board.Castle(end - 2, end + 1, rookVal)  //move the rook
 	}
 	
 	oldEpFile := state.PrevPawnDouble[1]
@@ -342,58 +209,26 @@ func MakeMove(state *board.GameState, move *Move) {
 
 func UnMakeLastMove(state *board.GameState) {
 	state.RestorePrev()
+	board.UnMoveLastPiece()
 }
 
 
 func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]int) board.GameState {
 	//to be called whenever new game state obj is created
+	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble}
 
-	var whitePiecePos [6][10][2]int
-	var blackPiecePos [6][10][2]int
-	for i := 0; i < 6; i++ {
-		for x := 0; x < 10; x++ {
-			for y := 0; y < 2; y++ {
-				//default values
-				whitePiecePos[i][x][y] = -1
-				blackPiecePos[i][x][y] = -1
-			}
-		}
-	}
-
-	var inxs [12]int
-	for x := 0; x < 8; x++ {
-		for y := 0; y < 8; y++ {
-			piece := b[x * 8 + y]
-
-			if piece != 0 {
-				inx := inxs[piece - 1]
-				pos := [2]int{x, y}
-
-				if piece < 7 {
-					whitePiecePos[piece - 1][inx] = pos
-				} else {
-					blackPiecePos[piece - 7][inx] = pos
-				}
-
-				inxs[piece - 1]++
-			}
-		}
-	}
-
-	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble, WhitePiecePos: whitePiecePos, BlackPiecePos: blackPiecePos}
-
+	board.InitPieceLists(&state)
+	
 	kingVal := 11
-	kingPos := blackPiecePos[4][0]  //4 not 5 because we convert from piece value to index
-	otherPieces := whitePiecePos
+	kingPos := board.PieceLists.BlackKingPos
+	otherPieces := &board.PieceLists.WhitePieceSquares
 	if whiteMove {
 		kingVal = 5
-		kingPos = whitePiecePos[4][0]  //4 not 5 because we convert from piece value to index
-		otherPieces = blackPiecePos
+		kingPos = board.PieceLists.WhiteKingPos
+		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	kingX := kingPos[0]
-	kingY := kingPos[1]
-	kAttackBlock, PinArray, noKingMove, EnPassantPin := GetFilterBitboards(&state.Board, kingX, kingY, kingVal, otherPieces, whiteMove, pDouble)
+	kAttackBlock, PinArray, noKingMove, EnPassantPin := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble)
 
 	state.NoKingMoveBitBoard = noKingMove
 	state.KingAttackBlocks = kAttackBlock
