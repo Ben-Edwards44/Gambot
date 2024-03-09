@@ -7,11 +7,8 @@ import engine_interface
 import pygame
 
 
-START_BOARD = [[10, 8, 9, 12, 11, 9, 8, 10], [7, 7, 7, 7, 7, 7, 7, 7], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1, 1, 1], [4, 2, 3, 6, 5, 3, 2, 4]]
-
-
 def player_move(engine, board, move_list):
-    engine.set_pos(move_list)
+    engine.set_fen(graphics_const.START_FEN, move_list)
     legal_moves = engine.get_legal_moves()
 
     move = input.get_move(board, legal_moves)
@@ -20,7 +17,7 @@ def player_move(engine, board, move_list):
         
 
 def engine_move(engine, move_list):
-    engine.set_pos(move_list)
+    engine.set_fen(graphics_const.START_FEN, move_list)
 
     return engine.get_move(movetime=graphics_const.ENGINE_MOVE_TIME)
 
@@ -31,18 +28,23 @@ def exit(engine):
     quit()
 
 
+def start_from_fen(fen):
+    board = utils.fen_to_board(fen)
+    white_move = fen.split(" ")[1] == "w"
+
+    return board, white_move
+
+
 def main():
     #TODO: add clocks etc.
 
     draw.init()
 
-    move_list = []
-    white_to_move = True
-
     engine = engine_interface.Engine(debug=True)
     engine.new_game()
 
-    board = START_BOARD
+    move_list = []
+    board, white_to_move = start_from_fen(graphics_const.START_FEN)
 
     draw.draw_board(board)
 

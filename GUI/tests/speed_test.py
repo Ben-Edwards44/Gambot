@@ -1,4 +1,3 @@
-import utils
 import engine_interface
 
 from random import randint
@@ -17,18 +16,8 @@ MOVE_TIME = 500
 
 
 def choose_fens(num):
-    #with open(FEN_FILEPATH, "r") as file:
-    #    fens = file.read().split("\n")
-
-    fens = [
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-        "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
-        "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
-        "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1",
-        "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-        "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
-    ]
+    with open(FEN_FILEPATH, "r") as file:
+        fens = file.read().split("\n")
 
     chosen = []
     for _ in range(num):
@@ -66,7 +55,7 @@ def get_time(output):
     return num_ms
 
 
-def engine_move(engine: engine_interface.Engine, fen):
+def engine_move(engine, fen):
     engine.set_fen(fen, [])
 
     engine.send_cmd(f"go movetime {MOVE_TIME}")
@@ -108,8 +97,8 @@ def get_best(engine1, engine2, fen):
 
 
 def main(path1, path2, num):
-    engine1 = engine_interface.Engine(path1, debug=True)
-    engine2 = engine_interface.Engine(path2, debug=True)
+    engine1 = engine_interface.Engine(path1, True)
+    engine2 = engine_interface.Engine(path2, True)
 
     fens = choose_fens(num)
 
@@ -117,16 +106,15 @@ def main(path1, path2, num):
     win2 = 0
     for i, x in enumerate(fens):
         fastest = get_best(engine1, engine2, x)
-        print(fastest)
 
         if fastest == engine1:
             win1 += 1
         else:
             win2 += 1
 
-        print(f"Position: {i + 1}\n{engine1} speed wins: {win1}\n{engine2} speed wins: {win2}")
+        print(f"Position: {i + 1}\n{path1} speed wins: {win1}\n{path2} speed wins: {win2}")
 
-    print(f"Final result\n{engine1} speed wins: {win1}\n{engine2} speed wins: {win2}")
+    print(f"Final result\n{path1} speed wins: {win1}\n{path2} speed wins: {win2}")
 
     engine1.kill_process()
     engine2.kill_process()
