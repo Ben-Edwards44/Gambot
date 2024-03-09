@@ -52,7 +52,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 	startTime := time.Now()
 
-	ttSuccess, ttEval := evaluation.LookupEval(state.ZobristHash, depth, alpha, beta)
+	ttSuccess, ttEval := lookupEval(state.ZobristHash, depth, alpha, beta)
 
 	if ttSuccess {
 		//this position is in transposition table. We don't need to search it again
@@ -60,7 +60,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 		var bestMove *moves.Move
 		if plyFromRoot == 0 {
-			bestMove = evaluation.LookupMove(state.ZobristHash)
+			bestMove = lookupMove(state.ZobristHash)
 		}
 		
 		return ttEval, bestMove
@@ -76,7 +76,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, isWhite), &moves.Move{}}  //deal with checkmates and draws
 
-	nodeType := evaluation.AllNode
+	nodeType := allNode
 
 	var bestMove *moves.Move
 
@@ -92,7 +92,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		//fail-hard cutoff (prune position)
 		if score >= beta {
 			if !searchAbandoned {
-				evaluation.StoreEntry(state.ZobristHash, depth, beta, evaluation.CutNode, &moves.Move{})  //we do not actually know if the value of bestMove is best for this position
+				storeEntry(state.ZobristHash, depth, beta, cutNode, &moves.Move{})  //we do not actually know if the value of bestMove is best for this position
 			}
 
 			return beta, bestMove
@@ -102,14 +102,14 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		if score > alpha {
 			alpha = score
 			bestMove = move
-			nodeType = evaluation.PvNode
+			nodeType = pvNode
 		}
 	}
 
 	//update the best moves (because we will be searching at a greater depth). TODO: make better (use zobrist hash instead)
 	bestMoves[state.Board] = bestMove
 
-	if !searchAbandoned {evaluation.StoreEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
+	if !searchAbandoned {storeEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
 
 	return alpha, bestMove
 }

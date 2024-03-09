@@ -1,4 +1,4 @@
-package evaluation
+package search
 
 
 import (
@@ -7,9 +7,9 @@ import (
 )
 
 
-const PvNode int = 0
-const AllNode int = 1
-const CutNode int = 2
+const pvNode int = 0
+const allNode int = 1
+const cutNode int = 2
 
 const ttEnabled bool = true
 
@@ -30,7 +30,7 @@ type ttEntry struct {
 }
 
 
-func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
+func lookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
 	if !ttEnabled {return false, 0}
 
 	inx := zobHash % ttLen
@@ -40,14 +40,14 @@ func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, in
 	if entry.zobHash != zobHash {return false, 0}  //lookup failed
 
 	if entry.depthSearched >= currentDepth {
-		if entry.nodeType == PvNode {
+		if entry.nodeType == pvNode {
 			//we have stored the exact evaluation, so no problem
 			return true, entry.eval
-		} else if entry.nodeType == AllNode {
+		} else if entry.nodeType == allNode {
 			//node is an upper bound
 			//TODO: corrent mate scores
 			if entry.eval <= alpha {return true, entry.eval}
-		} else if entry.nodeType == CutNode {
+		} else if entry.nodeType == cutNode {
 			//node is a lower bound
 			//TODO: correct mate scores
 			if entry.eval >= beta {return true, entry.eval}
@@ -58,7 +58,7 @@ func LookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, in
 }
 
 
-func LookupMove(zobHash uint64) *moves.Move {
+func lookupMove(zobHash uint64) *moves.Move {
 	//This is for when the position we are currently searching is in the transposition table
 	inx := zobHash % ttLen
 
@@ -66,7 +66,7 @@ func LookupMove(zobHash uint64) *moves.Move {
 }
 
 
-func StoreEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove *moves.Move) {
+func storeEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove *moves.Move) {
 	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: eval, nodeType: nodeType, bestMove: bestMove}
 	inx := zobHash % ttLen
 

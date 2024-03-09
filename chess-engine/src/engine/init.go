@@ -4,7 +4,7 @@ package engine
 import (
 	"chess-engine/src/engine/moves"
 	"chess-engine/src/engine/board"
-	"chess-engine/src/engine/evaluation"
+	"chess-engine/src/engine/search"
 )
 
 
@@ -44,5 +44,5 @@ func Init() {
 
 	board.PrecalculateZobristNums()
 
-	evaluation.NewTT()
+	search.NewTT()
 }
