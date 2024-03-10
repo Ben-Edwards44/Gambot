@@ -25,8 +25,7 @@ type ttEntry struct {
 	depthSearched int
 	eval int
 	nodeType int
-	bestMove *moves.Move  //for depth 1 (in terms of iterative deepening lookups)
-	//TODO: age (so we know when to clear)
+	bestMove *moves.Move
 }
 
 
@@ -59,10 +58,15 @@ func lookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, in
 
 
 func lookupMove(zobHash uint64) *moves.Move {
-	//This is for when the position we are currently searching is in the transposition table
+	//This is so that we search the best move from the previous depth first
 	inx := zobHash % ttLen
+	entry := ttEntries[inx]
 
-	return ttEntries[inx].bestMove
+	if entry.zobHash == zobHash {
+		return entry.bestMove
+	} else {
+		return &moves.Move{}
+	}
 }
 
 

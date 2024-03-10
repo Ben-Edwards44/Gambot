@@ -15,7 +15,7 @@ const MATESCORE int = 100000
 
 var searchAbandoned bool
 
-var bestMoves map[[64]int]*moves.Move
+var bestMoves map[uint64]*moves.Move
 
 var posSearched int
 var ttLookups int
@@ -43,7 +43,7 @@ func checkWin(state *board.GameState, isWhite bool) int {
 }
 
 
-func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, alpha int, beta int, timeLeft time.Duration) (int, *moves.Move) {
+func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, pvLine []*moves.Move, alpha int, beta int, timeLeft time.Duration) (int, *moves.Move) {
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
@@ -71,7 +71,9 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	posSearched++
 
 	moveList := moves.GenerateAllMoves(state, false)
-	orderMoves(state, moveList, bestMoves[state.Board])
+	prevBestMove := bestMoves[state.ZobristHash]//lookupMove(state.ZobristHash)//pvLine[plyFromRoot]
+
+	orderMoves(state, moveList, prevBestMove)
 
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, isWhite), &moves.Move{}}  //deal with checkmates and draws
@@ -84,7 +86,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
-		negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
+		negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, pvLine, -beta, -alpha, timeLeft - elapsed)
 		score := -negScore
 
 		moves.UnMakeLastMove(state)
@@ -92,7 +94,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		//fail-hard cutoff (prune position)
 		if score >= beta {
 			if !searchAbandoned {
-				storeEntry(state.ZobristHash, depth, beta, cutNode, &moves.Move{})  //we do not actually know if the value of bestMove is best for this position
+				storeEntry(state.ZobristHash, depth, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
 			}
 
 			return beta, bestMove
@@ -106,8 +108,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		}
 	}
 
-	//update the best moves (because we will be searching at a greater depth). TODO: make better (use zobrist hash instead)
-	bestMoves[state.Board] = bestMove
+	bestMoves[state.ZobristHash] = bestMove
 
 	if !searchAbandoned {storeEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
 
@@ -153,7 +154,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 
 func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 	searchAbandoned = false
-	bestMoves = make(map[[64]int]*moves.Move)
+	bestMoves = make(map[uint64]*moves.Move)
 
 	startTime := time.Now()
 	timeLeft := time.Duration(time.Millisecond * time.Duration(moveTime))  //NOTE: change to 500ms for testing
@@ -161,6 +162,8 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 	depth := 1
 
 	searchedDepthOne := false
+
+	var pvLine []*moves.Move
 
 	var bestMove *moves.Move
 	var elapsed time.Duration
@@ -172,7 +175,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 		timeLeft -= elapsed
 
-		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
 		fmt.Print("Depth: ")
 		fmt.Print(depth)
