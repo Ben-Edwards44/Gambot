@@ -12,7 +12,7 @@ func rookAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, no
 		passedPiece := false
 		passedInx := -1
 		
-		edgeDist := dists[dirInx + dir]  //get from precalculated
+		edgeDist := edgeDists[dirInx + dir]  //get from precalculated
 
 		var currentStraight uint64
 		setBitBoard(&currentStraight, x * 8 + y)  //because we can always take the rook if it is attacking
@@ -71,7 +71,7 @@ func bishopAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, 
 		passedPiece := false
 		passedInx := -1
 
-		edgeDist := dists[dirInx + dir + 4]  //get from precalculated
+		edgeDist := edgeDists[dirInx + dir + 4]  //get from precalculated
 
 		var currentStraight uint64
 		setBitBoard(&currentStraight, x * 8 + y)  //because we can always take the rook if it is attacking
@@ -132,7 +132,7 @@ func kingAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, no
 	edgeInx := x * 64 + y * 8
 
 	for dir := 0; dir < 8; dir++ {
-		edgeDist := dists[edgeInx + dir]
+		edgeDist := edgeDists[edgeInx + dir]
 
 		if edgeDist > 0 {
 			newX := x + xMults[dir]
@@ -225,10 +225,10 @@ func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDo
 	distInx := kingX * 64 + kingY * 8
 
 	yStep := 1
-	edgeDist := dists[distInx + 3]
+	edgeDist := edgeDists[distInx + 3]
 	if prevPawnDouble[1] < kingY {
 		yStep = -1
-		edgeDist = dists[distInx + 2]
+		edgeDist = edgeDists[distInx + 2]
 	}
 
 	passedFriend := false

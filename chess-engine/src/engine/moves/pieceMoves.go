@@ -12,12 +12,6 @@ var xMults [8]int = [8]int{-1, 1, 0, 0, -1, -1, 1, 1}
 var yMults [8]int = [8]int{0, 0, -1, 1, -1, 1, -1, 1}
 
 
-var dists [512]int
-func InitPrecalculate(edgeDists [512]int) {
-	dists = edgeDists
-}
-
-
 func canMove(board *[64]int, x int, y int, pieceValue int) (bool, bool) {
 	inx := x * 8 + y
 	sqValue := board[inx]
@@ -66,7 +60,7 @@ func rookMoves(state *board.GameState, x int, y int, pieceValue int, resultSlice
 
 	for dir := 0; dir < 4; dir++ {
 		//get from precalculated
-		edgeDist := dists[dirInx + dir]
+		edgeDist := edgeDists[dirInx + dir]
 
 		for offset := 1; offset <= edgeDist; offset++ {
 			newX := x + offset * xMults[dir]
@@ -93,7 +87,7 @@ func bishopMoves(state *board.GameState, x int, y int, pieceValue int, resultSli
 
 	for dir := 0; dir < 4; dir++ {
 		//get from precalculated (+4 since we are looking at diagonal)
-		edgeDist := dists[dirInx + dir + 4]
+		edgeDist := edgeDists[dirInx + dir + 4]
 
 		for offset := 1; offset <= edgeDist; offset++ {
 			newX := x + offset * xMults[dir + 4]
@@ -126,7 +120,7 @@ func kingMoves(state *board.GameState, x int, y int, pieceValue int, resultSlice
 	edgeInx := x * 64 + y * 8
 
 	for dir := 0; dir < 8; dir++ {
-		edgeDist := dists[edgeInx + dir]
+		edgeDist := edgeDists[edgeInx + dir]
 
 		if edgeDist > 0 {
 			newX := x + xMults[dir]
