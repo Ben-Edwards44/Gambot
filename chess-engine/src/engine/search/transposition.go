@@ -40,7 +40,7 @@ func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, alpha int, be
 
 	inx := zobHash % ttLen
 
-	entry := table.entries[inx]
+	entry := &table.entries[inx]
 
 	if entry.zobHash != zobHash {return false, 0}  //lookup failed
 
@@ -66,7 +66,7 @@ func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, alpha int, be
 func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 	//This is so that we search the best move from the previous depth first
 	inx := zobHash % ttLen
-	entry := table.entries[inx]
+	entry := &table.entries[inx]
 
 	if entry.zobHash == zobHash {
 		return entry.bestMove
