@@ -17,7 +17,8 @@ const ttSizeMib int = 64
 const ttLen uint64 = uint64((1024 * 1024 * ttSizeMib) / int(unsafe.Sizeof(ttEntry{})))  //using uint64 means we don't have to convert later
 
 
-var ttEntries [ttLen]ttEntry
+var searchTable ttTable
+var qSearchTable ttTable
 
 
 type ttEntry struct {
@@ -29,12 +30,17 @@ type ttEntry struct {
 }
 
 
-func lookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
+type ttTable struct {
+	entries [ttLen]ttEntry
+}
+
+
+func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
 	if !ttEnabled {return false, 0}
 
 	inx := zobHash % ttLen
 
-	entry := ttEntries[inx]
+	entry := table.entries[inx]
 
 	if entry.zobHash != zobHash {return false, 0}  //lookup failed
 
@@ -57,10 +63,10 @@ func lookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, in
 }
 
 
-func lookupMove(zobHash uint64) *moves.Move {
+func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 	//This is so that we search the best move from the previous depth first
 	inx := zobHash % ttLen
-	entry := ttEntries[inx]
+	entry := table.entries[inx]
 
 	if entry.zobHash == zobHash {
 		return entry.bestMove
@@ -70,14 +76,15 @@ func lookupMove(zobHash uint64) *moves.Move {
 }
 
 
-func storeEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove *moves.Move) {
+func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove *moves.Move) {
 	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: eval, nodeType: nodeType, bestMove: bestMove}
 	inx := zobHash % ttLen
 
-	ttEntries[inx] = entry
+	table.entries[inx] = entry
 }
 
 
 func NewTT() {
-	ttEntries = [ttLen]ttEntry{}
+	searchTable = ttTable{}
+	qSearchTable = ttTable{}
 }
