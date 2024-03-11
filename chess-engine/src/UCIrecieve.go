@@ -187,6 +187,14 @@ func goCmd(splitCmd []string) {
 }
 
 
+func evalCmd() {
+	eval := chessEngine.runEval()
+	eStr := strconv.Itoa(eval)
+
+	sendStr("Final evaluation: " + eStr)
+}
+
+
 func interpretCmd(cmd string) {
 	if cmd == "" {return}
 
@@ -207,6 +215,8 @@ func interpretCmd(cmd string) {
 		stop = true
 	case "quit":
 		stop = true
+	case "eval":
+		evalCmd()
 	default:
 		panic("Unrecognised command: " + cmd)
 	}

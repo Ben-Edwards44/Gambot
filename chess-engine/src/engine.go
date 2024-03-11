@@ -4,6 +4,7 @@ import (
 	"chess-engine/src/engine"
 	"chess-engine/src/engine/board"
 	"chess-engine/src/engine/moves"
+	"chess-engine/src/engine/evaluation"
 )
 
 
@@ -66,6 +67,14 @@ func (b *bot) runBestMove() *moves.Move {
 	bestMove := engine.CalculateMove(&b.currentPos, b.moveTime)
 
 	return bestMove
+}
+
+
+func (b *bot) runEval() int {
+	//evaluate the current position - assumes position has been set
+	eval := evaluation.Eval(&b.currentPos, b.currentPos.WhiteToMove)
+
+	return eval
 }
 
 
