@@ -19,7 +19,7 @@ func Eval(state *board.GameState, whiteToMove bool) int {
 	gameMatInfo.updateMatInfo(state, perspective)
 
 	openingEval := 0  //TODO: get opening eval
-	endgameEval := 0//mopUpScore(board.PieceLists.WhiteKingPos, board.PieceLists.BlackKingPos, perspective)
+	endgameEval := mopUpScore(board.PieceLists.WhiteKingPos, board.PieceLists.BlackKingPos, perspective)
 
 	openingEval += gameMatInfo.matScore
 	endgameEval += gameMatInfo.matScore
