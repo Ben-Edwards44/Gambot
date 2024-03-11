@@ -70,7 +70,7 @@ func orderMoves(state *board.GameState, moveList []*moves.Move, prevBestMove *mo
 	var moveScores []int
 	for _, i := range moveList {
 		if i == prevBestMove {
-			moveScores = append(moveScores, INF)  //we want to evaluate the best move from the last search first
+			moveScores = append(moveScores, inf)  //we want to evaluate the best move from the last search first
 		} else {
 			moveScores = append(moveScores, getMoveOrder(state, i))
 		}

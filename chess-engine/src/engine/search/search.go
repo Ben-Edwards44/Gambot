@@ -10,8 +10,9 @@ import (
 )
 
 
-const INF int = 9999999
-const MATESCORE int = 100000
+const inf int = 9999999
+const matescore int = 100000
+const mateThreshold int = matescore - 1024
 
 var searchAbandoned bool
 
@@ -21,7 +22,7 @@ var posSearched int
 var ttLookups int
 
 
-func checkWin(state *board.GameState, isWhite bool) int {
+func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
 	//TODO: include depths in checkmates (for transposition table)
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 
@@ -36,7 +37,7 @@ func checkWin(state *board.GameState, isWhite bool) int {
 
 	if inCheck {
 		//we are checkmated :(
-		return -MATESCORE  //negative because being checkmated is bad
+		return -matescore + plyFromRoot //negative because being checkmated is bad, also a larger ply from root is good
 	} else {
 		return 0  //draw
 	}
@@ -52,7 +53,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 
 	startTime := time.Now()
 
-	ttSuccess, ttEval := lookupEval(state.ZobristHash, depth, alpha, beta)
+	ttSuccess, ttEval := searchTable.lookupEval(state.ZobristHash, depth, plyFromRoot, alpha, beta)
 
 	if ttSuccess {
 		//this position is in transposition table. We don't need to search it again
@@ -60,7 +61,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 
 		var bestMove *moves.Move
 		if plyFromRoot == 0 {
-			bestMove = lookupMove(state.ZobristHash)
+			bestMove = searchTable.lookupMove(state.ZobristHash)
 		}
 		
 		return ttEval, bestMove
@@ -71,12 +72,12 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 	posSearched++
 
 	moveList := moves.GenerateAllMoves(state, false)
-	prevBestMove := bestMoves[state.ZobristHash]//lookupMove(state.ZobristHash)//pvLine[plyFromRoot]
+	prevBestMove := bestMoves[state.ZobristHash]
 
 	orderMoves(state, moveList, prevBestMove)
 
 	//TODO: draws by repetition and 50 move rule etc.
-	if len(moveList) == 0 {return checkWin(state, isWhite), &moves.Move{}}  //deal with checkmates and draws
+	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), &moves.Move{}}  //deal with checkmates and draws
 
 	nodeType := allNode
 
@@ -94,7 +95,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 		//fail-hard cutoff (prune position)
 		if score >= beta {
 			if !searchAbandoned {
-				storeEntry(state.ZobristHash, depth, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
+				searchTable.storeEntry(state.ZobristHash, depth, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
 			}
 
 			return beta, bestMove
@@ -105,12 +106,14 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 			alpha = score
 			bestMove = move
 			nodeType = pvNode
+
+			//pvLine[plyFromRoot] = bestMove  //NOTE: this will be overwritten later if a better move is found
 		}
 	}
 
 	bestMoves[state.ZobristHash] = bestMove
 
-	if !searchAbandoned {storeEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
+	if !searchAbandoned {searchTable.storeEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
 
 	return alpha, bestMove
 }
@@ -175,7 +178,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 		timeLeft -= elapsed
 
-		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -INF, INF, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
 		fmt.Print("Depth: ")
 		fmt.Print(depth)
@@ -195,7 +198,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 			break
 		}
 
-		if score == MATESCORE {break}  //we have found a mate, so don't search any deeper
+		if score == matescore {break}  //we have found a mate, so don't search any deeper
 
 		depth++
 	}

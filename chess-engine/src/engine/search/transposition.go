@@ -35,7 +35,18 @@ type ttTable struct {
 }
 
 
-func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, alpha int, beta int) (bool, int) {
+func correctRetrieveMateScore(score int, plyFromRoot int) int {
+	if score > mateThreshold {
+		return score - plyFromRoot
+	} else if score < -mateThreshold {
+		return score + plyFromRoot
+	} else {
+		return score
+	}
+}
+
+
+func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, plyFromRoot int, alpha int, beta int) (bool, int) {
 	if !ttEnabled {return false, 0}
 
 	inx := zobHash % ttLen
@@ -44,18 +55,18 @@ func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, alpha int, be
 
 	if entry.zobHash != zobHash {return false, 0}  //lookup failed
 
+	score := correctRetrieveMateScore(entry.eval, plyFromRoot)
+
 	if entry.depthSearched >= currentDepth {
 		if entry.nodeType == pvNode {
 			//we have stored the exact evaluation, so no problem
-			return true, entry.eval
+			return true, score
 		} else if entry.nodeType == allNode {
 			//node is an upper bound
-			//TODO: corrent mate scores
-			if entry.eval <= alpha {return true, entry.eval}
+			if entry.eval <= alpha {return true, score}
 		} else if entry.nodeType == cutNode {
 			//node is a lower bound
-			//TODO: correct mate scores
-			if entry.eval >= beta {return true, entry.eval}
+			if entry.eval >= beta {return true, score}
 		}
 	} 
 
