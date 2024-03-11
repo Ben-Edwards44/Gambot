@@ -1,4 +1,4 @@
-START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"#"8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1"
+START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 
 PLAYER_WHITE = True

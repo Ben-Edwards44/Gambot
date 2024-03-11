@@ -7,7 +7,7 @@ from random import randint
 
 FEN_FILEPATH = "../data/equal_fens.txt"
 
-SHOW_GRAPHICS = True
+SHOW_GRAPHICS = False
 
 MOVE_TIME = 500
 
@@ -42,6 +42,9 @@ def check_win(white, black):
 
 def play_game(fen, white, black):
     #play a game between two engines, return the winner or "draw"
+
+    white.new_game()
+    black.new_game()
 
     white_to_move = fen.split(" ")[1] == "w"
 

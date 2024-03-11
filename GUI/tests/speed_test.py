@@ -97,14 +97,17 @@ def get_best(engine1, engine2, fen):
 
 
 def main(path1, path2, num):
-    engine1 = engine_interface.Engine(path1, True)
-    engine2 = engine_interface.Engine(path2, True)
+    engine1 = engine_interface.Engine(path1)
+    engine2 = engine_interface.Engine(path2)
 
     fens = choose_fens(num)
 
     win1 = 0
     win2 = 0
     for i, x in enumerate(fens):
+        engine1.new_game()
+        engine2.new_game()
+        
         fastest = get_best(engine1, engine2, x)
 
         if fastest == engine1:
