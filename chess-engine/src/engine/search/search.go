@@ -220,6 +220,3 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 	return bestMove  //NOTE: if no moves are available (in mate), this will be an empty move
 }
-
-
-//bug with "6k1/2B3p1/1P6/2Qb2q1/5p2/5P1p/4RKPP/3r4 w - - 0 37" with movetime 100 (blunders mate in 1)
