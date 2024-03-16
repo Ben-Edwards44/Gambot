@@ -2,11 +2,11 @@ package evaluation
 
 
 //material evals
-const pawnWeight int = 10
-const knightWeight int = 30
-const bishopWeight int = 30
-const rookWeight int = 50
-const queenWeight int = 90
+const pawnWeight int = 100
+const knightWeight int = 300
+const bishopWeight int = 300
+const rookWeight int = 500
+const queenWeight int = 900
 
 //phase weights
 const pawnPhase int = 0
