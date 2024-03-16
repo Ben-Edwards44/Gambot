@@ -35,7 +35,15 @@ func convertMove(move *moves.Move) string {
 	endFile := string(files[move.EndY])
 	endRank := strconv.Itoa(8 - move.EndX)
 
-	return startFile + startRank + endFile + endRank
+	promotion := ""
+	if move.PromotionValue != 0 {
+		inx := move.PromotionValue - 1
+		if move.PromotionValue > 6 {inx -= 6}
+
+		promotion = string(blackPieces[inx])
+	}
+
+	return startFile + startRank + endFile + endRank + promotion
 }
 
 
