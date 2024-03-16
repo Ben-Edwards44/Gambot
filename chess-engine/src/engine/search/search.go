@@ -1,12 +1,11 @@
 package search
 
-
 import (
-	"fmt"
-	"time"
-	"chess-engine/src/engine/moves"
 	"chess-engine/src/engine/board"
 	"chess-engine/src/engine/evaluation"
+	"chess-engine/src/engine/moves"
+	"fmt"
+	"time"
 )
 
 
@@ -22,10 +21,7 @@ var posSearched int
 var ttLookups int
 
 
-func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
-	//TODO: include depths in checkmates (for transposition table)
-	//check who has won, or if it is a draw - assumes that the player has no legal moves
-
+func inCheck(state *board.GameState, isWhite bool) bool {
 	kingPos := board.PieceLists.BlackKingPos
 	if isWhite {kingPos = board.PieceLists.WhiteKingPos}
 
@@ -33,9 +29,13 @@ func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
 	var kingPosBB uint64
 	kingPosBB |= 1 << kingPos
 
-	inCheck := (kingPosBB & state.NoKingMoveBitBoard) != 0
+	return (kingPosBB & state.NoKingMoveBitBoard) != 0
+}
 
-	if inCheck {
+
+func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
+	//check who has won, or if it is a draw - assumes that the player has no legal moves
+	if inCheck(state, isWhite) {
 		//we are checkmated :(
 		return -matescore + plyFromRoot //negative because being checkmated is bad, also a larger ply from root is good
 	} else {
@@ -126,6 +126,12 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 		searchAbandoned = true
 		return 0
 	}
+
+	if inCheck(state, isWhite) {
+		//if we are in check, search through all evasive moves. This helps stop obvious blunders.
+		eval, _ := negamax(state, isWhite, 1, 0, []*moves.Move{}, alpha, beta, timeLeft)
+		return eval
+	}
 	
 	startTime := time.Now()
 
@@ -214,3 +220,6 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 	return bestMove  //NOTE: if no moves are available (in mate), this will be an empty move
 }
+
+
+//bug with "6k1/2B3p1/1P6/2Qb2q1/5p2/5P1p/4RKPP/3r4 w - - 0 37" with movetime 100 (blunders mate in 1)
