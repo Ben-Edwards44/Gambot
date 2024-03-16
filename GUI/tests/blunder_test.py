@@ -2,14 +2,67 @@ import draw
 import utils
 import engine_interface
 
+import chess
+import chess.engine
 from random import randint
+from math import exp
 
 
 FEN_FILEPATH = "../data/equal_fens.txt"
+STOCKFISH_PATH = "C:\\Users\\Ben Edwards\\Documents\\stockfish-windows-x86-64-avx2\\stockfish\\stockfish-windows-x86-64-avx2.exe"
 
 SHOW_GRAPHICS = False
 
 MOVE_TIME = 500
+EVAL_DEPTH = 15
+
+BLUNDER_THRESHOLD = 50  #percent
+
+
+class AnalysisEngine:
+    def __init__(self, path, start_fen):
+        self.board = chess.Board(start_fen)
+        self.engine = chess.engine.SimpleEngine.popen_uci(path)
+        
+        self.prev_win_frac = None
+        self.prev_fens = []
+
+    def update_board(self, move):
+        current_fen = self.board.fen()
+        self.prev_fens.append(current_fen)
+
+        move_obj = chess.Move.from_uci(move)
+
+        self.board.push(move_obj)
+
+    def get_eval(self):
+        eval = self.engine.analyse(self.board, chess.engine.Limit(depth=EVAL_DEPTH))
+
+        score_obj = eval["score"]
+
+        if self.board.turn == chess.WHITE:
+            cp_score = score_obj.white()
+        else:
+            cp_score = score_obj.black()
+
+        act_score = cp_score.score(mate_score=100000)
+
+        return act_score
+
+    def check_blunder(self):
+        eval = self.get_eval()
+
+        win_frac = 50 + 50 * (2 / (1 + exp(-0.00368208 * eval)) - 1)  #https://lichess.org/page/accuracy
+        
+        prv = self.prev_win_frac
+        self.prev_win_frac = win_frac
+
+        if prv == None:
+            return False, 0
+        
+        accuracy = 103.1668 * exp(-0.04354 * (prv - win_frac)) - 3.1669  #https://lichess.org/page/accuracy
+
+        return accuracy < BLUNDER_THRESHOLD, accuracy
 
 
 def choose_fens(num):
@@ -43,6 +96,8 @@ def check_win(white, black):
 def play_game(fen, white, black):
     #play a game between two engines, return the winner or "draw"
 
+    analysis = AnalysisEngine(STOCKFISH_PATH, fen)
+
     white.new_game()
     black.new_game()
 
@@ -69,7 +124,14 @@ def play_game(fen, white, black):
                 break
 
         move = engine.get_move(movetime=MOVE_TIME)
+
         move_list.append(move)
+        analysis.update_board(move)
+
+        is_blunder, diff = analysis.check_blunder()
+
+        if is_blunder:
+            print(f"Blunder from {analysis.prev_fens[-2]} to {analysis.prev_fens[-1]}. Accuracy: {diff}")
 
         white_to_move = not white_to_move
 
@@ -93,45 +155,19 @@ def play_game(fen, white, black):
     return win
 
 
-def main(path1, path2, num):
+def main(num):
     fens = choose_fens(num)
 
-    engine1 = engine_interface.Engine(path1)
-    engine2 = engine_interface.Engine(path2)
+    engine1 = engine_interface.Engine()
+    engine2 = engine_interface.Engine()
 
     if SHOW_GRAPHICS:
         draw.init()
 
-    win1 = 0
-    draws = 0
-    win2 = 0
     for i, x in enumerate(fens):
-        for j in range(2):
-            if j == 0:
-                white = engine1
-                black = engine2
-            else:
-                white = engine2
-                black = engine1
+        play_game(x, engine1, engine2)
 
-            winner = play_game(x, white, black)
-
-            if winner == "draw":
-                draws += 1
-            elif winner == "white":
-                if white == engine1:
-                    win1 += 1
-                else:
-                    win2 += 1
-            else:
-                if black == engine1:
-                    win1 += 1
-                else:
-                    win2 += 1
-
-        print(f"Played: {i + 1}\n{path1} wins: {win1}\n{path2} wins: {win2}\nDraws: {draws}\n\n")
-
-    print(f"Final result:\n{path1} wins: {win1}\n{path2} wins: {win2}\nDraws: {draws}\n\n")
+        print(f"Played: {i + 1}")
 
     engine1.kill_process()
     engine2.kill_process()
