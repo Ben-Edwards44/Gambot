@@ -95,7 +95,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 		//fail-hard cutoff (prune position)
 		if score >= beta {
 			if !searchAbandoned {
-				searchTable.storeEntry(state.ZobristHash, depth, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
+				searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
 			}
 
 			return beta, bestMove
@@ -113,7 +113,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 
 	bestMoves[state.ZobristHash] = bestMove
 
-	if !searchAbandoned {searchTable.storeEntry(state.ZobristHash, depth, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
+	if !searchAbandoned {searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
 
 	return alpha, bestMove
 }
@@ -197,8 +197,6 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 		} else {
 			break
 		}
-
-		if score == matescore {break}  //we have found a mate, so don't search any deeper
 
 		depth++
 	}

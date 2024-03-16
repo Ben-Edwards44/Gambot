@@ -35,7 +35,7 @@ type ttTable struct {
 }
 
 
-func correctRetrieveMateScore(score int, plyFromRoot int) int {
+func correctMateScore(score int, plyFromRoot int) int {
 	if score > mateThreshold {
 		return score - plyFromRoot
 	} else if score < -mateThreshold {
@@ -55,7 +55,7 @@ func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, plyFromRoot i
 
 	if entry.zobHash != zobHash {return false, 0}  //lookup failed
 
-	score := correctRetrieveMateScore(entry.eval, plyFromRoot)
+	score := correctMateScore(entry.eval, plyFromRoot)
 
 	if entry.depthSearched >= currentDepth {
 		if entry.nodeType == pvNode {
@@ -87,8 +87,12 @@ func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 }
 
 
-func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, eval int, nodeType int, bestMove *moves.Move) {
-	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: eval, nodeType: nodeType, bestMove: bestMove}
+func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, plyFromRoot int, eval int, nodeType int, bestMove *moves.Move) {
+	correctedScore := correctMateScore(eval, -plyFromRoot)  //the - is because we want to increase (not decrease) the magnitude of the stored score if it is a mate
+	
+
+
+	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: correctedScore, nodeType: nodeType, bestMove: bestMove}
 	inx := zobHash % ttLen
 
 	table.entries[inx] = entry
