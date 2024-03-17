@@ -1,7 +1,31 @@
-Plan:
-- Make chess engine in Go and Python
-- Use Go for actual engine stuff (because it's fast)
-- Use Python for graphics (because Python is cool)
+# chess-engine
 
-Notes:
-- Chess pieces from [here](https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent)
+*(still working on a good name...)*
+
+This is a work in progress UCI chess engine written in Go. It also contains a GUI written in Python using the Pygame library.
+
+## Features :wrench:
+
+- Working move generator (it passes all perfts on the [chess programming wiki](https://www.chessprogramming.org/Perft_Results))
+- Minimax search with alpha-beta pruning
+- Quiescence search
+- Move ordering
+- Zobrist hashing for board representation
+- Transposition table
+- Middle game and endgame piece square tables
+- Supported UCI commands:
+    - `uci`
+    - `isready`
+    - `ucinewgame`
+    - `position <fen | startpos> <moves>`
+    - `go <wtime> <btime> <winc> <binc> <movetime>`
+- Non-UCI commands:
+    - `go perft <depth>` (perform perft)
+    - `eval` (display the static evaluation of the current position)
+
+## Acknowledgements :link:
+- Without [this video](https://www.youtube.com/watch?v=U4ogK0MIzqk&t=1191s) and [this video](https://www.youtube.com/watch?v=_vqlIPDR2TU&t=886s) from Sebastian Lague, I never would have considered making a chess engine.
+- The [source code](https://github.com/SebLague/Chess-Coding-Adventure) from the Sebastian Lague videos was a very useful reference.
+- The [Tofiks](https://github.com/likeawizard/tofiks) chess engine was also very useful.
+- The [Chess Programming Wiki](https://www.chessprogramming.org/Main_Page) was an invaluable resource for anything and everything related to chess engine programming.
+- The chess pieces used in the GUI are from [here](https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent).
