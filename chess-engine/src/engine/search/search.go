@@ -1,5 +1,6 @@
 package search
 
+
 import (
 	"chess-engine/src/engine/board"
 	"chess-engine/src/engine/evaluation"
@@ -74,7 +75,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 	moveList := moves.GenerateAllMoves(state, false)
 	prevBestMove := bestMoves[state.ZobristHash]
 
-	orderMoves(state, moveList, prevBestMove)
+	orderMoves(state, moveList, prevBestMove, searchMoveOrder)
 
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), &moves.Move{}}  //deal with checkmates and draws
@@ -143,7 +144,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 	posSearched++
 	
 	moveList := moves.GenerateAllMoves(state, true)
-	orderMoves(state, moveList, &moves.Move{})  //TODO: maybe prev best move here??
+	orderMoves(state, moveList, &moves.Move{}, quiSearchMoveOrder)  //TODO: maybe prev best move here??
 
 	for _, move := range moveList {
 		moves.MakeMove(state, move)
@@ -158,6 +159,19 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 	}
 
 	return alpha
+}
+
+
+func uciSearchInfo(depth int, score int, nodes int, timeMs int64) {
+	//send search info in the format required by UCI
+	fmt.Print("info")
+
+	fmt.Printf(" depth %v", depth)
+	fmt.Printf(" score cp %v", score)
+	fmt.Printf(" nodes %v", nodes)
+	fmt.Printf(" time %v", timeMs)
+	//fmt.Printf(" pv %s", pvMove)
+	fmt.Print("\n")
 }
 
 
@@ -186,16 +200,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
-		fmt.Print("Depth: ")
-		fmt.Print(depth)
-		fmt.Print(", Searched: ")
-		fmt.Print(posSearched)
-		fmt.Print(", tt Lookups: ")
-		fmt.Print(ttLookups)
-		fmt.Print(", Score: ")
-		fmt.Print(score)
-		fmt.Print(", Elapsed: ")
-		fmt.Println(elapsed)  //time taken must be last for speed test
+		uciSearchInfo(depth, score, posSearched, elapsed.Milliseconds())
 
 		if !searchAbandoned {
 			bestMove = searchBestMove
@@ -209,10 +214,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 	if !searchedDepthOne {
 		//could not even search to depth one, just play the first available move
-
 		moveList := moves.GenerateAllMoves(state, false)
-		orderMoves(state, moveList, &moves.Move{})  //order so that a reasonable looking move is played
-
 		bestMove = moveList[0]
 	}
 
