@@ -108,7 +108,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 			bestMove = move
 			nodeType = pvNode
 
-			//pvLine[plyFromRoot] = bestMove  //NOTE: this will be overwritten later if a better move is found
+			if len(pvLine) > 0 {pvLine[plyFromRoot] = bestMove}  //NOTE: this will be overwritten later if a better move is found
 		}
 	}
 
@@ -162,15 +162,22 @@ func quiescenceSearch(state *board.GameState, isWhite bool, alpha int, beta int,
 }
 
 
-func uciSearchInfo(depth int, score int, nodes int, timeMs int64) {
+func uciSearchInfo(depth int, score int, nodes int, timeMs int64, pvLine []*moves.Move) {
 	//send search info in the format required by UCI
+	var pvMoves string
+	for i, x := range pvLine {
+		if i > 0 {pvMoves += " "}
+		
+		pvMoves += x.MoveStr()
+	}
+
 	fmt.Print("info")
 
 	fmt.Printf(" depth %v", depth)
 	fmt.Printf(" score cp %v", score)
 	fmt.Printf(" nodes %v", nodes)
 	fmt.Printf(" time %v", timeMs)
-	//fmt.Printf(" pv %s", pvMove)
+	fmt.Printf(" pv %s", pvMoves)
 	fmt.Print("\n")
 }
 
@@ -194,13 +201,15 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 		posSearched = 0
 		ttLookups = 0
 
+		pvLine = append(pvLine, &moves.Move{})
+
 		elapsed = time.Since(startTime)
 
 		timeLeft -= elapsed
 
 		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
-		uciSearchInfo(depth, score, posSearched, elapsed.Milliseconds())
+		uciSearchInfo(depth, score, posSearched, elapsed.Milliseconds(), pvLine)
 
 		if !searchAbandoned {
 			bestMove = searchBestMove

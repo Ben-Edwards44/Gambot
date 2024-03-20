@@ -18,7 +18,7 @@ const ttLen uint64 = uint64((1024 * 1024 * ttSizeMib) / int(unsafe.Sizeof(ttEntr
 
 
 var searchTable ttTable
-var qSearchTable ttTable
+//var qSearchTable ttTable
 
 
 type ttEntry struct {
@@ -101,5 +101,5 @@ func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, plyFromRoot in
 
 func NewTT() {
 	searchTable = ttTable{}
-	qSearchTable = ttTable{}
+	//qSearchTable = ttTable{}
 }
