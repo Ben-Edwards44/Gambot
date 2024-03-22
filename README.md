@@ -1,4 +1,4 @@
-# chess-engine
+# chess-engine :chess_pawn:
 
 *(still working on a good name...)*
 
