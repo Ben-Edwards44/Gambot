@@ -70,17 +70,16 @@ func searchMoveOrder(state *board.GameState, move *moves.Move) int {
 
 	score += promotion  //promotions are good (if not promotion, this will just add 0 to score)
 
-	var posBB uint64
-	posBB |= 1 << (move.StartX * 8 + move.StartY)
-
-	if posBB & state.NoKingMoveBitBoard != 0 {score -= currentPiece}  //moving to an attacked square is not good
-
 	//var posBB uint64
-	//posBB = 1 << (move.EndX * 8 + move.EndY)
+	//posBB |= 1 << (move.StartX * 8 + move.StartY)
 	//if posBB & state.NoKingMoveBitBoard != 0 {score -= currentPiece}  //moving to an attacked square is not good
 
-	//posBB = 1 << (move.StartX * 8 + move.StartY)
-	//if posBB & state.NoKingMoveBitBoard != 0 {score += currentPiece}  //moving out of an attacked square is good
+	var posBB uint64
+	posBB = 1 << (move.EndX * 8 + move.EndY)
+	if posBB & state.Bitboards.AttackedSquares != 0 {score -= currentPiece}  //moving to an attacked square is not good
+
+	posBB = 1 << (move.StartX * 8 + move.StartY)
+	if posBB & state.Bitboards.AttackedSquares != 0 {score += currentPiece}  //moving out of an attacked square is good
 
 	return score
 }

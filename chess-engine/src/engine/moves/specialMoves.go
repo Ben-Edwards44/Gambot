@@ -28,8 +28,8 @@ func enPassant(state *board.GameState, currentX int, currentY int, pieceValue in
 
 			m := Move{StartX: currentX, StartY: currentY, EndX: newX, EndY: newY, PieceValue: pieceValue, EnPassant: true}
 
-			blocking := blockKingAttack(otherX, otherY, state.KingAttackBlocks)  //we check the other pawns pos because we are (in effect) taking it
-			pin := checkPin(currentX, currentY, newX, newY, &state.PinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
+			blocking := blockKingAttack(otherX, otherY, state.Bitboards.AttacksOnKing)  //we check the other pawns pos because we are (in effect) taking it
+			pin := checkPin(currentX, currentY, newX, newY, &state.Bitboards.PinArray)  //check for diagonal pins on the pawn (that would not register with the enPassantPin flag)
 			
 			if blocking && pin {*resultSlice = append(*resultSlice, &m)}
 		}
@@ -47,8 +47,8 @@ func promotion(state *board.GameState, x int, y int, pieceValue int, xStep int, 
 		if newY < 0 || newY > 7 {continue}
 
 		good, capture := canMove(&state.Board, newX, newY, pieceValue)
-		blocking := blockKingAttack(newX, newY, state.KingAttackBlocks)
-		pin := checkPin(x, y, newX, newY, &state.PinArray)
+		blocking := blockKingAttack(newX, newY, state.Bitboards.AttacksOnKing)
+		pin := checkPin(x, y, newX, newY, &state.Bitboards.PinArray)
 
 		//check pawn can move to promotion square
 		if !good {continue}
@@ -104,7 +104,7 @@ func castle(state *board.GameState, pieceValue int, resultSlice *[]*Move) {
 			}
 
 			//bitwise AND the bitboards to ensure no crossover
-			if !pieceInWay && (badBitBoard & state.NoKingMoveBitBoard == 0) {
+			if !pieceInWay && (badBitBoard & state.Bitboards.AttackedSquares == 0) {
 				//not going into check
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 6, PieceValue: pieceValue, KingCastle: true}
 				*resultSlice = append(*resultSlice, &m)
@@ -131,7 +131,7 @@ func castle(state *board.GameState, pieceValue int, resultSlice *[]*Move) {
 			}
 
 			//bitwise AND the bitboards to ensure no crossover
-			if !pieceInWay && (badBitBoard & state.NoKingMoveBitBoard == 0) {
+			if !pieceInWay && (badBitBoard & state.Bitboards.AttackedSquares == 0) {
 				m := Move{StartX: x, StartY: 4, EndX: x, EndY: 2, PieceValue: pieceValue, QueenCastle: true}
 				*resultSlice = append(*resultSlice, &m)
 			}

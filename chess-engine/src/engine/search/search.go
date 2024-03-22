@@ -30,7 +30,7 @@ func inCheck(state *board.GameState, isWhite bool) bool {
 	var kingPosBB uint64
 	kingPosBB |= 1 << kingPos
 
-	return (kingPosBB & state.NoKingMoveBitBoard) != 0
+	return (kingPosBB & state.Bitboards.AttackedSquares) != 0
 }
 
 

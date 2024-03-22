@@ -21,46 +21,50 @@ type GameState struct {
 
 	PrevPawnDouble [2]int
 
-	NoKingMoveBitBoard uint64
-	KingAttackBlocks []uint64
+	Bitboards *Bitboard
 
-	PinArray [64]uint64
+	DoubleChecked bool
 	EnPassantPin bool
 
 	ZobristHash uint64
 
 	//for unmaking moves (end index is the most recent)
 	prvBoard [][64]int
-
 	prvWhiteToMove []bool
-
 	prvCastleRights []uint8
-
 	prvPrevPawnDouble [][2]int
-
-	prvNoKingMoveBitBoard []uint64
-	prvKingAttackBlocks [][]uint64
-
-	prvPinArray [][64]uint64
+	prvBitboard []*Bitboard
+	prvDoubleCheck []bool
 	prvEnPassantPin []bool
-
 	prvZobHash []uint64
 }
 
 
-func (state *GameState) SetPrevVals() {
-	//copy the slice (because slices are passed by reference)
-	cpyKingAttackBlocks := make([]uint64, len(state.KingAttackBlocks))
-	copy(cpyKingAttackBlocks, state.KingAttackBlocks)
+type Bitboard struct {
+	AttackedSquares uint64
+	PawnAttacks uint64
 
+	AttacksOnKing uint64
+	PinArray [64]uint64
+}
+
+
+func (state *GameState) SetBitboards(attackedSq uint64, attacksOnK uint64, pinArr [64]uint64) {
+	bbObj := Bitboard{AttackedSquares: attackedSq, AttacksOnKing: attacksOnK, PinArray: pinArr}
+
+	state.Bitboards = &bbObj
+}
+
+
+func (state *GameState) SetPrevVals() {
 	//set prev values
+	//NOTE: any slices will be passed by reference, so must be manually copied
 	state.prvBoard = append(state.prvBoard, state.Board)
 	state.prvWhiteToMove = append(state.prvWhiteToMove, state.WhiteToMove)
 	state.prvCastleRights = append(state.prvCastleRights, state.CastleRights)
 	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
-	state.prvNoKingMoveBitBoard = append(state.prvNoKingMoveBitBoard, state.NoKingMoveBitBoard)
-	state.prvKingAttackBlocks = append(state.prvKingAttackBlocks, cpyKingAttackBlocks)
-	state.prvPinArray = append(state.prvPinArray, state.PinArray)
+	state.prvBitboard = append(state.prvBitboard, state.Bitboards)
+	state.prvDoubleCheck = append(state.prvDoubleCheck, state.DoubleChecked)
 	state.prvEnPassantPin = append(state.prvEnPassantPin, state.EnPassantPin)
 	state.prvZobHash = append(state.prvZobHash, state.ZobristHash)
 }
@@ -74,9 +78,8 @@ func (state *GameState) RestorePrev() {
 	state.WhiteToMove = state.prvWhiteToMove[len(state.prvWhiteToMove) - 1]
 	state.CastleRights = state.prvCastleRights[len(state.prvCastleRights) - 1]
 	state.PrevPawnDouble = state.prvPrevPawnDouble[len(state.prvPrevPawnDouble) - 1]
-	state.NoKingMoveBitBoard = state.prvNoKingMoveBitBoard[len(state.prvNoKingMoveBitBoard) - 1]
-	state.KingAttackBlocks = state.prvKingAttackBlocks[len(state.prvKingAttackBlocks) - 1]
-	state.PinArray = state.prvPinArray[len(state.prvPinArray) - 1]
+	state.Bitboards = state.prvBitboard[len(state.prvBitboard) - 1]
+	state.DoubleChecked = state.prvDoubleCheck[len(state.prvDoubleCheck) - 1]
 	state.EnPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
 	state.ZobristHash = state.prvZobHash[len(state.prvZobHash) - 1]
 
@@ -85,9 +88,8 @@ func (state *GameState) RestorePrev() {
 	state.prvWhiteToMove = state.prvWhiteToMove[:len(state.prvWhiteToMove) - 1]
 	state.prvCastleRights = state.prvCastleRights[:len(state.prvCastleRights) - 1]
 	state.prvPrevPawnDouble = state.prvPrevPawnDouble[:len(state.prvPrevPawnDouble) - 1]
-	state.prvNoKingMoveBitBoard = state.prvNoKingMoveBitBoard[:len(state.prvNoKingMoveBitBoard) - 1]
-	state.prvKingAttackBlocks = state.prvKingAttackBlocks[:len(state.prvKingAttackBlocks) - 1]
-	state.prvPinArray = state.prvPinArray[:len(state.prvPinArray) - 1]
+	state.prvBitboard = state.prvBitboard[:len(state.prvBitboard) - 1]
+	state.prvDoubleCheck = state.prvDoubleCheck[:len(state.prvDoubleCheck) - 1]
 	state.prvEnPassantPin = state.prvEnPassantPin[:len(state.prvEnPassantPin) - 1]
 	state.prvZobHash = state.prvZobHash[:len(state.prvZobHash) - 1]
 }

@@ -16,12 +16,12 @@ func updateBitboards(state *board.GameState) {
 		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	kAttackBlock, pinArray, noKingMove, enPassantPin := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
+	attackOnK, pinArr, attackedSq, EnPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
 
-	state.NoKingMoveBitBoard = noKingMove
-	state.KingAttackBlocks = kAttackBlock
-	state.PinArray = pinArray
-	state.EnPassantPin = enPassantPin
+	state.DoubleChecked = doubleChecked
+	state.EnPassantPin = EnPassantPin
+
+	state.SetBitboards(attackedSq, attackOnK, pinArr)
 }
 
 
@@ -210,12 +210,12 @@ func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]i
 		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	kAttackBlock, PinArray, noKingMove, EnPassantPin := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble)
+	attackOnK, pinArr, attackedSq, EnPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble)
 
-	state.NoKingMoveBitBoard = noKingMove
-	state.KingAttackBlocks = kAttackBlock
-	state.PinArray = PinArray
+	state.DoubleChecked = doubleChecked
 	state.EnPassantPin = EnPassantPin
+
+	state.SetBitboards(attackedSq, attackOnK, pinArr)
 
 	zobHash := board.HashState(&state)
 	state.ZobristHash = zobHash

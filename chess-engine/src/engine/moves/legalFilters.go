@@ -1,10 +1,11 @@
 package moves
 
 
-var attackFunctions [6]func(*[64]int, int, int, int, int, *uint64, *[]uint64, *[64]uint64) = [6]func(*[64]int, int, int, int, int, *uint64, *[]uint64, *[64]uint64){pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, kingAttacks, queenAttacks}
+var numChecks int
+var attackFunctions [6]func(*[64]int, int, int, int, int, *uint64, *uint64, *[64]uint64) = [6]func(*[64]int, int, int, int, int, *uint64, *uint64, *[64]uint64){pawnAttacks, knightAttacks, bishopAttacks, rookAttacks, kingAttacks, queenAttacks}
 
 
-func rookAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func rookAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *uint64, pinBB *[64]uint64) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -41,7 +42,8 @@ func rookAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, no
 						return
 					} else {
 						//this rook is directly attacking king (cannot return because we need to finish updating noKingArray)
-						*attackBB = append(*attackBB, currentStraight)
+						*attackBB |= currentStraight
+						numChecks++
 
 						returnAfterStraight = offset > 1  //we do not return after straight if a rook/queen is right next to king because other king moves must be blocked
 					}
@@ -63,7 +65,7 @@ func rookAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, no
 }
 
 
-func bishopAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func bishopAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *uint64, pinBB *[64]uint64) {
 	dirInx := x * 64 + y * 8
 
 	for dir := 0; dir < 4; dir++ {
@@ -100,7 +102,8 @@ func bishopAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, 
 						return
 					} else {
 						//this rook is directly attacking king (cannot return because we need to finish updating noKingArray)
-						*attackBB = append(*attackBB, currentStraight)
+						*attackBB |= currentStraight
+						numChecks++
 
 						returnAfterStraight = true
 					}
@@ -122,13 +125,13 @@ func bishopAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, 
 }
 
 
-func queenAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func queenAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *uint64, pinBB *[64]uint64) {
 	rookAttacks(board, x, y, pieceValue, kingValue, noKingBB, attackBB, pinBB)
 	bishopAttacks(board, x, y, pieceValue, kingValue, noKingBB, attackBB, pinBB)
 }
 
 
-func kingAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func kingAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *uint64, pinBB *[64]uint64) {
 	edgeInx := x * 64 + y * 8
 
 	for dir := 0; dir < 8; dir++ {
@@ -145,10 +148,7 @@ func kingAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, no
 }
 
 
-func knightAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
-	var posBB uint64
-	setBitBoard(&posBB, x * 8 + y)
-	
+func knightAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *uint64, pinBB *[64]uint64) {	
 	for xStep := 1; xStep < 3; xStep++ {
 		for xMult := -1; xMult < 2; xMult += 2 {
 			newX := x + xStep * xMult
@@ -164,14 +164,20 @@ func knightAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, 
 				if newY < 0 || newY > 7 {continue}
 
 				setBitBoard(noKingBB, pos)
-				if board[pos] == kingValue {*attackBB = append(*attackBB, posBB)}
+
+				if board[pos] == kingValue {
+					posBB := uint64(1 << (x * 8 + y))
+
+					*attackBB |= posBB
+					numChecks++
+				}
 			}
 		}
 	}
 }
 
 
-func pawnAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *[]uint64, pinBB *[64]uint64) {
+func pawnAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, noKingBB *uint64, attackBB *uint64, pinBB *[64]uint64) {
 	if x == 0 || x == 7 {return}  //on back rank so cannot put king in check
 
 	xMult := 1
@@ -191,10 +197,10 @@ func pawnAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, no
 			setBitBoard(noKingBB, pos)
 
 			if capture && board[pos] == kingValue {
-				var posBB uint64
-				setBitBoard(&posBB, x * 8 + y)
+				posBB := uint64(1 << (x * 8 + y))
 
-				*attackBB = append(*attackBB, posBB)
+				*attackBB |= posBB
+				numChecks++
 			}
 		}
 	}
@@ -256,12 +262,14 @@ func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDo
 }
 
 
-func GetFilterBitboards(board *[64]int, kingPos int, kingValue int, otherPiecePos *[16]int, isWhite bool, prevPawnDouble [2]int) ([]uint64, [64]uint64, uint64, bool) {
+func GetFilterBitboards(board *[64]int, kingPos int, kingValue int, otherPiecePos *[16]int, isWhite bool, prevPawnDouble [2]int) (uint64, [64]uint64, uint64, bool, bool) {
 	//return the attack, pin, and no king move bitboards, as well as whether en passant is pinned
 
-	var attackBB []uint64
 	var pinBB [64]uint64
 	var noKingBB uint64
+	var attackBB uint64
+
+	numChecks = 0
 
 	for i := 0; i < len(otherPiecePos); i++ {
 		square := otherPiecePos[i]
@@ -284,5 +292,7 @@ func GetFilterBitboards(board *[64]int, kingPos int, kingValue int, otherPiecePo
 
 	enPassPin := enPassantPin(board, kingX, kingY, isWhite, prevPawnDouble)
 
-	return attackBB, pinBB, noKingBB, enPassPin
+	doubleChecked := numChecks > 1
+
+	return attackBB, pinBB, noKingBB, enPassPin, doubleChecked
 }
