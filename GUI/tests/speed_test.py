@@ -4,14 +4,6 @@ from random import randint
 
 
 FEN_FILEPATH = "../data/equal_fens.txt"
-
-MULT = {
-    "ns" : 1_000_000,
-    "µs" : 1_000,
-    "ms" : 1,
-    "s" : 1 / 1_000
-}
-
 MOVE_TIME = 500
 
 
@@ -32,25 +24,14 @@ def choose_fens(num):
 def get_time(output):
     #gets the time elapsed (in ms) from an output like: Depth: 4, Searched: 1116, tt Lookups: 65, Score: 0, Elapsed: 2.226884ms
 
-    args = output.split(", ")
+    args = output.split(" ")[1:]  #get rid of info...
     
-    for i in args:
-        name, value = i.split(": ")
-
-        if name == "Elapsed":
-            time = value
+    for i, x in enumerate(args):
+        if x == "time":
+            time = args[i + 1]
             break
 
-    num = ""
-    unit = ""
-
-    for i in time:
-        if i in "0123456789.":
-            num += i
-        else:
-            unit += i
-
-    num_ms = float(num) * MULT[unit]
+    num_ms = float(time)
 
     return num_ms
 
