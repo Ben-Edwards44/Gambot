@@ -16,12 +16,13 @@ func updateBitboards(state *board.GameState) {
 		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	attackOnK, pinArr, attackedSq, EnPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble)
+	bitboards := board.Bitboard{}
+
+	enPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble, &bitboards)
 
 	state.DoubleChecked = doubleChecked
-	state.EnPassantPin = EnPassantPin
-
-	state.SetBitboards(attackedSq, attackOnK, pinArr)
+	state.EnPassantPin = enPassantPin
+	state.Bitboards = &bitboards
 }
 
 
@@ -198,6 +199,7 @@ func UnMakeLastMove(state *board.GameState) {
 func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]int) board.GameState {
 	//to be called whenever new game state obj is created
 	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble}
+	bitboards := board.Bitboard{}
 
 	board.InitPieceLists(&state)
 	
@@ -210,12 +212,11 @@ func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]i
 		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	attackOnK, pinArr, attackedSq, EnPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble)
+	enPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble, &bitboards)
 
 	state.DoubleChecked = doubleChecked
-	state.EnPassantPin = EnPassantPin
-
-	state.SetBitboards(attackedSq, attackOnK, pinArr)
+	state.EnPassantPin = enPassantPin
+	state.Bitboards = &bitboards
 
 	zobHash := board.HashState(&state)
 	state.ZobristHash = zobHash

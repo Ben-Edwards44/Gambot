@@ -49,13 +49,6 @@ type Bitboard struct {
 }
 
 
-func (state *GameState) SetBitboards(attackedSq uint64, attacksOnK uint64, pinArr [64]uint64) {
-	bbObj := Bitboard{AttackedSquares: attackedSq, AttacksOnKing: attacksOnK, PinArray: pinArr}
-
-	state.Bitboards = &bbObj
-}
-
-
 func (state *GameState) SetPrevVals() {
 	//set prev values
 	//NOTE: any slices will be passed by reference, so must be manually copied
