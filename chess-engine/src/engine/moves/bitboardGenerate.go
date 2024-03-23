@@ -1,9 +1,7 @@
 package moves
 
 
-import (
-	"chess-engine/src/engine/board"
-)
+import "chess-engine/src/engine/board"
 
 
 var numChecks int
@@ -207,8 +205,10 @@ func pawnAttacks(board *[64]int, x int, y int, pieceValue int, kingValue int, bi
 			_, capture := canMove(board, newX, newY, pieceValue)
 
 			setBitBoard(&bitboard.AttackedSquares, pos)
+			setBitBoard(&bitboard.PawnAttacks, pos)
 
 			if capture && board[pos] == kingValue {
+				//pawn is checking king
 				posBB := uint64(1 << (x * 8 + y))
 
 				bitboard.AttacksOnKing |= posBB

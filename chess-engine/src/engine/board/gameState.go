@@ -41,10 +41,10 @@ type GameState struct {
 
 
 type Bitboard struct {
-	AttackedSquares uint64
+	AttackedSquares uint64  //NOTE: this will not include all attacked squares for sliding pieces (only enough to filter out illegal moves)
 	PawnAttacks uint64
-
 	AttacksOnKing uint64
+	
 	PinArray [64]uint64
 }
 
