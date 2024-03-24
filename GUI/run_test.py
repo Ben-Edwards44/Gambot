@@ -1,4 +1,4 @@
-from tests import perft_suite, engine_game, speed_test, move_test, blunder_test
+from tests import perft_suite, engine_game, speed_test, move_test, blunder_test, node_test
 
 from sys import argv
 
@@ -42,6 +42,17 @@ def blunder():
     blunder_test.main(num)
 
 
+def nodes():
+    if len(argv) < 5:
+        raise Exception("Invalid args for node test")
+    
+    path1 = argv[2]
+    path2 = argv[3]
+    num = int(argv[4])
+
+    node_test.main(path1, path2, num)
+
+
 def main():
     if len(argv) < 1:
         raise Exception("Invalid argument number for tests")
@@ -58,6 +69,8 @@ def main():
         move()
     elif test == "blunder_test":
         blunder()
+    elif test == "node_test":
+        nodes()
     else:
         raise Exception("Invalid test type")
     
