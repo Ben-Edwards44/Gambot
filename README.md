@@ -9,7 +9,7 @@ This is a work in progress UCI chess engine written in Go. It also contains a GU
 - Working move generator (it passes all perfts on the [chess programming wiki](https://www.chessprogramming.org/Perft_Results))
 - Minimax search with alpha-beta pruning
 - Quiescence search
-- Move ordering
+- MVV/LVA Move ordering
 - Zobrist hashing for board representation
 - Transposition table
 - Middle game and endgame piece square tables
