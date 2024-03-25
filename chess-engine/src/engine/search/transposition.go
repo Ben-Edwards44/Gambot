@@ -75,7 +75,7 @@ func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, plyFromRoot i
 
 
 func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
-	//This is so that we search the best move from the previous depth first
+	//This is so that we search the best move from the previous depth first (no need to check for searched depth)
 	inx := zobHash % ttLen
 	entry := &table.entries[inx]
 
@@ -89,8 +89,6 @@ func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 
 func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, plyFromRoot int, eval int, nodeType int, bestMove *moves.Move) {
 	correctedScore := correctMateScore(eval, -plyFromRoot)  //the - is because we want to increase (not decrease) the magnitude of the stored score if it is a mate
-	
-
 
 	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: correctedScore, nodeType: nodeType, bestMove: bestMove}
 	inx := zobHash % ttLen

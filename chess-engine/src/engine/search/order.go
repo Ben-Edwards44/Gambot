@@ -19,6 +19,11 @@ var mvvLva [6 * 6]int = [6 * 6]int {
 }
 
 
+const hashMoveScore int = 10000
+const promotionOffset int = 1000
+const mvvLvaOffset int = 100
+
+
 func quickSort(moveList []*moves.Move, moveScores []int, low int, high int) {
 	if low < high {
 		pivot := partition(moveList, moveScores, low, high)
@@ -51,85 +56,46 @@ func partition(moveList []*moves.Move, moveScores []int, low int, high int) int 
 }
 
 
-func searchMoveOrder(state *board.GameState, move *moves.Move) int {
-	score := 0
-
-	currentPiece := move.PieceValue
-	promotion := move.PromotionValue
-	captPiece := state.Board[move.EndX * 8 + move.EndY] - 6  //-6 because it is opposite colour to current
-
-	if move.EnPassant {captPiece = 7}  //special case
+func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move) int {
+	//moves are ordered as follows: hash move / pv move (from tt), promotions, MVV/LVA for captures, quiet moves
 	
-	if currentPiece > 6 {
-		currentPiece -= 6
-		promotion -= 6
-		captPiece += 6
+	captVal := state.Board[move.EndX * 8 + move.EndY]
+	if move.EnPassant {captVal = 1}
+	
+	if move == hashMove {
+		//this also implicitly accounts for pv moves
+		return hashMoveScore
+	} else if move.PromotionValue > 0 {
+		promVal := move.PromotionValue
+		if promVal > 6 {promVal -= 6}
+
+		return promotionOffset + promVal
+	} else if captVal > 0 {
+		victimInx := captVal - 1
+		if captVal > 6 {victimInx -= 6}
+
+		aggressInx := move.PieceValue - 1
+		if move.PieceValue > 6 {aggressInx -= 6}
+
+		return mvvLvaOffset + mvvLva[victimInx * 6 + aggressInx]
+	} else {
+		//not a pv move, hash move, promotion or capture. Just a regular ol' move (TODO: add history heuristic)
+		score := 0
+		
+		posBB := uint64(1 << (move.EndX * 8 + move.EndY))
+		if posBB & state.Bitboards.PawnAttacks != 0 {score -= move.PieceValue}  //moving to a square attacked by enemy pawn is not good
+	
+		return score
 	}
-
-	if captPiece > 0 {score += captPiece - currentPiece}  //capturing high value pieces with low value ones is good
-
-	score += promotion  //promotions are good (if not promotion, this will just add 0 to score)
-
-	//var posBB uint64
-	//posBB |= 1 << (move.StartX * 8 + move.StartY)
-	//if posBB & state.NoKingMoveBitBoard != 0 {score -= currentPiece}  //moving to an attacked square is not good
-
-	var posBB uint64
-	posBB = 1 << (move.EndX * 8 + move.EndY)
-	if posBB & state.Bitboards.AttackedSquares != 0 {score -= currentPiece}  //moving to an attacked square is not good
-
-	posBB = 1 << (move.StartX * 8 + move.StartY)
-	if posBB & state.Bitboards.AttackedSquares != 0 {score += currentPiece}  //moving out of an attacked square is good
-
-	return score
 }
 
 
-func quiSearchMoveOrder(state *board.GameState, move *moves.Move) int {
-	//NOTE: assumes move is a capture
-
-	return searchMoveOrder(state, move)
-
-	/*
-	score := 0
-
-	pieceVal := move.PieceValue
-	captPieceVal := state.Board[move.EndX * 8 + move.EndY]
-	aggressInx := pieceVal - 1
-	victimInx := captPieceVal - 7
-	if pieceVal > 6 {
-		//black to move
-		aggressInx = pieceVal - 7
-		victimInx = captPieceVal - 1
-	}
-
-	if move.EnPassant {victimInx = 0}  //special case where captPieceVal will be 0
-
-	score += mvvLva[victimInx * 6 + aggressInx]
-
-	//maybe include this code to check whether the square is protected
-	var posBB uint64
-	posBB = 1 << (move.EndX * 8 + move.EndY)
-	if posBB & state.NoKingMoveBitBoard != 0 {score -= pieceVal}  //moving to an attacked square is not good
-
-	posBB = 1 << (move.StartX * 8 + move.StartY)
-	if posBB & state.NoKingMoveBitBoard != 0 {score += pieceVal}  //moving out of an attacked square is good
-
-	return score
-	*/
-}
-
-
-func orderMoves(state *board.GameState, moveList []*moves.Move, prevBestMove *moves.Move, scoreFunc func(*board.GameState, *moves.Move) int) {
+func orderMoves(state *board.GameState, moveList []*moves.Move, hashMove *moves.Move) {
 	//slices are passed by reference, so no need to return
 
 	var moveScores []int
 	for _, i := range moveList {
-		if i == prevBestMove {
-			moveScores = append(moveScores, inf)  //we want to evaluate the best move from the last search first
-		} else {
-			moveScores = append(moveScores, scoreFunc(state, i))
-		}
+		moveScores = append(moveScores, scoreMove(state, i, hashMove))  //get the move's score
 	}
 
 	quickSort(moveList, moveScores, 0, len(moveList) - 1)
