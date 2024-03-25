@@ -158,7 +158,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, plyFromRoot int, alp
 }
 
 
-func uciSearchInfo(depth int, score int, nodes int, timeMs int64, pvLine []*moves.Move) {
+func uciSearchInfo(depth int, score int, nodes int, ttLookups int, timeMs int64, pvLine []*moves.Move) {
 	//send search info in the format required by UCI
 	var pvMoves string
 	for i, x := range pvLine {
@@ -172,6 +172,7 @@ func uciSearchInfo(depth int, score int, nodes int, timeMs int64, pvLine []*move
 	fmt.Printf(" depth %v", depth)
 	fmt.Printf(" score cp %v", score)
 	fmt.Printf(" nodes %v", nodes)
+	fmt.Printf(" tthits %v", ttLookups)  //NOTE: this is not in UCI, but is useful for debugging
 	fmt.Printf(" time %v", timeMs)
 	fmt.Printf(" pv %s", pvMoves)
 	fmt.Print("\n")
@@ -204,7 +205,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 
-		uciSearchInfo(depth, score, posSearched, elapsed.Milliseconds(), pvLine)
+		uciSearchInfo(depth, score, posSearched, ttLookups, elapsed.Milliseconds(), pvLine)
 
 		if searchAbandoned {
 			break
