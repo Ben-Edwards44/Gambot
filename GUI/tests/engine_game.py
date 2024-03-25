@@ -8,6 +8,7 @@ from random import randint
 FEN_FILEPATH = "../data/equal_fens.txt"
 
 SHOW_GRAPHICS = False
+PRINT_LOSSES = False
 
 MOVE_TIME = 500
 
@@ -33,9 +34,9 @@ def check_win(white, black):
     black_moves = black.get_perft_nodes(1)
 
     if white_moves == 0:
-        return "draw" if black_moves == 0 else "white"
+        return "draw" if black_moves == 0 else "black"
     elif black_moves == 0:
-        return "black"  #white moves are not 0
+        return "white"  #white moves are not 0
     else:
         return "no_win"
     
@@ -116,6 +117,8 @@ def main(path1, path2, num):
 
             winner = play_game(x, white, black)
 
+            print(winner, white)
+
             if winner == "draw":
                 draws += 1
             elif winner == "white":
@@ -123,11 +126,19 @@ def main(path1, path2, num):
                     win1 += 1
                 else:
                     win2 += 1
-            else:
+
+                    if PRINT_LOSSES:
+                        print(x)
+            elif winner == "black":
                 if black == engine1:
                     win1 += 1
                 else:
                     win2 += 1
+
+                    if PRINT_LOSSES:
+                        print(x)
+            else:
+                raise Exception(f"Winner ({winner}) was not draw, white or black")
 
         print(f"Played: {i + 1}\n{path1} wins: {win1}\n{path2} wins: {win2}\nDraws: {draws}\n\n")
 
