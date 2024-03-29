@@ -7,7 +7,7 @@ import (
 )
 
 
-const engineName string = "chess-engine v1"
+const engineName string = "Gambot v1"
 const engineAuthor string = "Ben Edwards"
 
 
