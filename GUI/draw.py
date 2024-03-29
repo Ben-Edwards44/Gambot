@@ -10,6 +10,8 @@ class GraphicsBoard:
         self.pieces = pieces
         self.dragging_piece = dragging_piece
 
+        self.font = pygame.font.Font(graphics_const.FONT_NAME, graphics_const.FONT_SIZE)
+
     def draw_square(self, x, y, colour):
         draw_x = x * graphics_const.STEP_X + graphics_const.BOARD_TL[0]
         draw_y = y * graphics_const.STEP_Y + graphics_const.BOARD_TL[1]
@@ -27,8 +29,31 @@ class GraphicsBoard:
 
                 self.draw_square(i, j, colour)
 
+    def draw_text(self, text, x, y):
+        text_surface = self.font.render(text, graphics_const.FONT_ANTIALIAS, graphics_const.FONT_COLOUR)
+        text_rect = text_surface.get_rect()
+
+        text_rect.center = (x, y)
+
+        window.blit(text_surface, text_rect)
+
     def draw_border(self):
-        pygame.draw.rect(window, graphics_const.BORDER_COLOUR, (graphics_const.BORDER_TL[0], graphics_const.BORDER_TL[1], graphics_const.BORDER_X, graphics_const.BORDER_Y))
+        pygame.draw.rect(window, graphics_const.BORDER_COLOUR, (graphics_const.BORDER_TL[0], graphics_const.BORDER_TL[1], graphics_const.BORDER_X, graphics_const.BORDER_Y), border_radius=graphics_const.BORDER_CORNER_RADIUS)
+
+        #draw the file labels a, b, c, d etc.
+        file_y = graphics_const.BOARD_TL[1] + graphics_const.BOARD_Y + graphics_const.BORDER_WIDTH // 2
+        for i, file in enumerate(graphics_const.FILES):
+            file_x = graphics_const.BOARD_TL[0] + i * graphics_const.STEP_X + graphics_const.STEP_X // 2
+
+            self.draw_text(file, file_x, file_y)
+
+        #draw the rank labels 1, 2, 3, 4 etc.
+        rank_x = graphics_const.BOARD_TL[0] - graphics_const.BORDER_WIDTH // 2
+        for i in range(8):
+            rank = f"{8 - i}"
+            rank_y = graphics_const.BOARD_TL[1] + i * graphics_const.STEP_Y + graphics_const.STEP_Y // 2
+
+            self.draw_text(rank, rank_x, rank_y)
 
     def draw_legal_moves(self, x, y):
         #colour the squares that the player could move to
