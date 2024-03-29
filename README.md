@@ -1,8 +1,7 @@
-# chess-engine :chess_pawn:
+# Gambot :chess_pawn:
 
-*(still working on a good name...)*
-
-This is a work in progress UCI chess engine written in Go. It also contains a GUI written in Python using the Pygame library.
+Gambot is a work in progress UCI chess engine written in Go.
+The repository also contains a GUI written in Python using the Pygame library.
 
 ## Features :wrench:
 
