@@ -1,72 +1,73 @@
 import draw
-import utils
-import input
-import graphics_const
+import board
+import player
 import engine_interface
+import graphics_const
 
 import pygame
 
 
-def player_move(engine, board, move_list):
-    engine.set_fen(graphics_const.START_FEN, move_list)
-    legal_moves = engine.get_legal_moves()
+def init():
+    draw.init()
 
-    move = input.get_move(board, legal_moves)
+    engine_process = engine_interface.Engine()
+
+    init_engine(engine_process)
+
+    board_obj = board.Board(graphics_const.START_FEN, engine_process)
+
+    human = player.HumanPlayer(board_obj, graphics_const.PLAYER_WHITE, 0, 0)
+    engine = player.EnginePlayer(board_obj, not graphics_const.PLAYER_WHITE, 0, 0)
+
+    return board_obj, human, engine
+
+
+def init_engine(engine_process: engine_interface.Engine):
+    engine_process.check_uci()
+    engine_process.new_game()
+    engine_process.check_ready()
+    engine_process.set_fen(graphics_const.START_FEN, [])
+
+
+def get_start_colour():
+    params = graphics_const.START_FEN.split(" ")
+    white_to_move = params[1] == "w"
+
+    return white_to_move
+
+
+def get_move(human, engine, white_to_move):
+    if white_to_move == human.colour:
+        move = human.get_move()
+    else:
+        move = engine.get_move()
 
     return move
-        
-
-def engine_move(engine, move_list):
-    engine.set_fen(graphics_const.START_FEN, move_list)
-
-    return engine.get_move(movetime=graphics_const.ENGINE_MOVE_TIME)
-
-
-def exit(engine):
-    engine.kill_process()  #ensure the background engine process is killed
-
-    quit()
-
-
-def start_from_fen(fen):
-    board = utils.fen_to_board(fen)
-    white_move = fen.split(" ")[1] == "w"
-
-    return board, white_move
 
 
 def main():
     #TODO: add clocks etc.
 
-    draw.init()
+    board_obj, human, engine = init()
+    white_to_move = get_start_colour()
 
-    engine = engine_interface.Engine(debug=True)
-    engine.new_game()
-
-    move_list = []
-    board, white_to_move = start_from_fen(graphics_const.START_FEN)
-
-    draw.draw_board(board)
+    draw.draw_board(board_obj)
 
     while True:
-        if white_to_move == graphics_const.PLAYER_WHITE:
-            move = player_move(engine, board, move_list)
+        move = get_move(human, engine, white_to_move)
 
-            if move == "QUIT":
-                exit(engine)
-        else:
-            move = engine_move(engine, move_list)
-
-        board = utils.make_move(move, board)
-
-        move_list.append(move)
+        board_obj.update(move)
+        
         white_to_move = not white_to_move
 
-        draw.draw_board(board)
+        draw.draw_board(board_obj)
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                exit(engine)
+                human.kill_process()
+                engine.kill_process()
+
+                quit()
 
 
 if __name__ == "__main__":
