@@ -1,11 +1,11 @@
-package src
+package uci
 
 
 import (
-	"strings"
 	"strconv"
-	"chess-engine/src/engine/board"
-	"chess-engine/src/engine/moves"
+	"strings"
+	"gambot/src/engine/board"
+	"gambot/src/engine/moves"
 )
 
 

@@ -1,7 +1,7 @@
 package moves
 
 
-import "chess-engine/src/engine/board"
+import "gambot/src/engine/board"
 
 
 func updateBitboards(state *board.GameState) {

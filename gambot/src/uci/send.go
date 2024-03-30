@@ -1,9 +1,9 @@
-package src
+package uci
 
 
 import (
 	"fmt"
-	"chess-engine/src/engine/moves"
+	"gambot/src/engine/moves"
 )
 
 

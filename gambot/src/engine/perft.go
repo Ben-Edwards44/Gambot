@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 	"strconv"
-	"chess-engine/src/engine/moves"
-	"chess-engine/src/engine/board"
+	"gambot/src/engine/moves"
+	"gambot/src/engine/board"
 )
 
 

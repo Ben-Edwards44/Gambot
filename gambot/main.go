@@ -1,7 +1,7 @@
 package main
 
 
-import "chess-engine/src"
+import "gambot/src"
 
 
 func main() {

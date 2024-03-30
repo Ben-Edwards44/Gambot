@@ -1,10 +1,11 @@
-package src
+package uci
+
 
 import (
-	"chess-engine/src/engine"
-	"chess-engine/src/engine/board"
-	"chess-engine/src/engine/moves"
-	"chess-engine/src/engine/evaluation"
+	"gambot/src/engine"
+	"gambot/src/engine/board"
+	"gambot/src/engine/moves"
+	"gambot/src/engine/evaluation"
 )
 
 
@@ -84,7 +85,7 @@ func (b *bot) newGame() {
 }
 
 
-func initEngine() {
+func InitEngine() {
 	//TODO: init engine when it is supposed to (according to UCI)
 	chessEngine = bot{}
 

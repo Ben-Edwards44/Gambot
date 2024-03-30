@@ -3,7 +3,7 @@ package search
 
 import (
 	"unsafe"
-	"chess-engine/src/engine/moves"
+	"gambot/src/engine/moves"
 )
 
 

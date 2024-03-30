@@ -4,9 +4,9 @@ package engine
 import (
 	"os"
 	"runtime/pprof"
-	"chess-engine/src/engine/moves"
-	"chess-engine/src/engine/board"
-	"chess-engine/src/engine/search"
+	"gambot/src/engine/moves"
+	"gambot/src/engine/board"
+	"gambot/src/engine/search"
 )
 
 

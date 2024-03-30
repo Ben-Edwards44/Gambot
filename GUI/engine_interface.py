@@ -1,7 +1,7 @@
 import subprocess
 
 
-ENGINE_PATH = "../chess-engine/chess-engine"
+ENGINE_PATH = "../gambot/gambot"
 
 
 class Engine:

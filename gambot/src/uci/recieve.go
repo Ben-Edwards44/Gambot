@@ -1,14 +1,13 @@
-package src
+package uci
 
 
 import (
-	"os"
 	"bufio"
+	"gambot/src/engine/board"
+	"gambot/src/engine/moves"
+	"os"
 	"strconv"
-	"chess-engine/src/engine/board"
-	"chess-engine/src/engine/moves"
 )
-
 
 //The UCI protocol is described here: https://backscattering.de/chess/uci/
 
@@ -195,11 +194,12 @@ func evalCmd() {
 }
 
 
-func interpretCmd(cmd string) {
-	if cmd == "" {return}
+func interpretCmd(cmd string) bool {
+	if cmd == "" {return false}
 
 	splitted := splitArgs(cmd)
 
+	stop := false
 	switch splitted[0] {
 	case "uci":
 		uciOk()
@@ -220,10 +220,12 @@ func interpretCmd(cmd string) {
 	default:
 		panic("Unrecognised command: " + cmd)
 	}
+
+	return stop
 }
 
 
-func recieveCmd() {
+func RecieveCmd() bool {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()  //read stdin
 
@@ -231,5 +233,7 @@ func recieveCmd() {
 
 	if scanner.Err() != nil {panic(scanner.Err())}
 
-	interpretCmd(cmd)
+	stop := interpretCmd(cmd)
+
+	return stop
 }

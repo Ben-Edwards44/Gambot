@@ -2,8 +2,8 @@ package search
 
 
 import (
-	"chess-engine/src/engine/board"
-	"chess-engine/src/engine/moves"
+	"gambot/src/engine/board"
+	"gambot/src/engine/moves"
 )
 
 
