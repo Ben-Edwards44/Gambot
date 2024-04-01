@@ -1,10 +1,49 @@
 import graphics_const
 
+from time import time
+
+
+class Clock:
+    def __init__(self, time_allowed_ms):
+        self.time_allowed = time_allowed_ms
+
+        self.is_counting = False
+        self.last_count = self.get_time()
+
+    get_time = lambda self: time() * 1000
+
+    def get_time_left(self):
+        if self.is_counting:
+            elapsed = self.get_time() - self.last_count
+        else:
+            elapsed = 0
+
+        time_left = self.time_allowed - elapsed
+
+        return time_left
+    
+    def get_ms(self):
+        #get the time left as an integer number of ms
+        time = self.get_time_left()
+
+        return int(time)
+
+    def start_counting(self):
+        self.is_counting = True
+        self.last_count = self.get_time()
+
+    def stop_counting(self):
+        self.time_allowed = self.get_time_left()
+        self.is_counting = False
+
 
 class Board:
-    def __init__(self, fen, engine_process):
+    def __init__(self, fen, engine_process, white_clock, black_clock):
         self.start_fen = fen
         self.engine = engine_process
+
+        self.white_clock = white_clock
+        self.black_clock = black_clock
 
         self.move_list = []
 

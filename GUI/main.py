@@ -14,10 +14,13 @@ def init():
 
     init_engine(engine_process)
 
-    board_obj = board.Board(graphics_const.START_FEN, engine_process)
+    human_clock = board.Clock(graphics_const.PLAYER_TIME)
+    engine_clock = board.Clock(graphics_const.ENGINE_TIME)
 
-    human = player.HumanPlayer(board_obj, graphics_const.PLAYER_WHITE, 0, 0)
-    engine = player.EnginePlayer(board_obj, not graphics_const.PLAYER_WHITE, 0, 0)
+    board_obj = board.Board(graphics_const.START_FEN, engine_process, human_clock, engine_clock)
+
+    human = player.HumanPlayer(board_obj, graphics_const.PLAYER_WHITE)
+    engine = player.EnginePlayer(board_obj, not graphics_const.PLAYER_WHITE)
 
     return board_obj, human, engine
 
@@ -36,11 +39,20 @@ def get_start_colour():
     return white_to_move
 
 
-def get_move(human, engine, white_to_move):
+def get_move(board, human, engine, white_to_move):
+    if white_to_move:
+        clock = board.white_clock
+    else:
+        clock = board.black_clock
+
+    clock.start_counting()
+
     if white_to_move == human.colour:
         move = human.get_move()
     else:
         move = engine.get_move()
+
+    clock.stop_counting()
 
     return move
 
@@ -52,15 +64,17 @@ def main():
     white_to_move = get_start_colour()
 
     draw.draw_board(board_obj)
+    draw.draw_clocks(board_obj)
 
     while True:
-        move = get_move(human, engine, white_to_move)
+        move = get_move(board_obj, human, engine, white_to_move)
 
         board_obj.update(move)
         
         white_to_move = not white_to_move
 
         draw.draw_board(board_obj)
+        draw.draw_clocks(board_obj)
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:

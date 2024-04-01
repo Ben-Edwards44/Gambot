@@ -82,6 +82,18 @@ class Engine:
 
         return move
     
+    def try_get_move(self):
+        #this assumes the move command has been sent, and reads a line of stdout to check whether the
+        #engine has decided on its move. This is so that the clock can be updated while the engine is thinking.
+        output = self.read_line()
+
+        if len(output) > 8 and output[:8] == "bestmove":
+            move = output.split(" ")[1]
+        else:
+            move = None
+
+        return move
+    
     def new_game(self):
         self.send_cmd("ucinewgame")
         self.check_ready()

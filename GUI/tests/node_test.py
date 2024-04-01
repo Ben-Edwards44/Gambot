@@ -58,12 +58,9 @@ def get_best(engine1, engine2, fen):
     nodes1 = engine_move(engine1, fen)[:-1]  #the last entry in unreliable
     nodes2 = engine_move(engine2, fen)[:-1]  #the last entry in unreliable
 
-    for i, x in zip(nodes1, nodes2):
-        if i != x:
-            return i, x
-    
-    #nodes are the same
-    return sum(nodes1), sum(nodes2)
+    common_depth = min(len(nodes1), len(nodes2))
+
+    return sum(nodes1[:common_depth]), sum(nodes2[:common_depth])
 
 
 def main(path1, path2, num):

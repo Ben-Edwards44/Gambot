@@ -6,29 +6,35 @@ from time import time
 
 
 class Player:
-    def __init__(self, board, colour, start_time, time_allowed):
+    def __init__(self, board, colour):
         self.board = board
         self.colour = colour
-        self.start_time = start_time
-        self.time_allowed = time_allowed
-
-    get_time_left = lambda self: time() - self.start_time
 
 
 class EnginePlayer(Player):
-    def __init__(self, board, colour, start_time, time_allowed):
-        super().__init__(board, colour, start_time, time_allowed)
+    def __init__(self, board, colour):
+        super().__init__(board, colour)
 
     def get_move(self):
         #get the player's move - assumes position has been updated
-        move = self.board.engine.get_move(movetime=graphics_const.ENGINE_MOVE_TIME)
+        if graphics_const.USE_CLOCK_TIME:
+            args = {"wtime" : self.board.white_clock.get_ms(), "btime" : self.board.black_clock.get_ms()}
+        else:
+            args = {"movetime" : graphics_const.ENGINE_MOVE_TIME}
+
+        self.board.engine.send_args("go", args)
+
+        move = self.board.engine.try_get_move()
+        while move == None:
+            draw.draw_clocks(self.board)
+            move = self.board.engine.try_get_move()
 
         return move
 
 
 class HumanPlayer(Player):
-    def __init__(self, board, colour, start_time, time_allowed):
-        super().__init__(board, colour, start_time, time_allowed)
+    def __init__(self, board, colour):
+        super().__init__(board, colour)
 
         self.dragging_piece = False
         self.dragging_piece_x = None
@@ -103,6 +109,8 @@ class HumanPlayer(Player):
 
         while not made_move:
             clicked = pygame.mouse.get_pressed()[0]
+
+            draw.draw_clocks(self.board)  #we only need to draw the clocks here because the board may be unchanged
 
             if clicked:
                 if not self.dragging_piece:

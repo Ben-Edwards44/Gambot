@@ -4,13 +4,58 @@ import graphics_const
 import pygame
 
 
+class GraphicsClock:
+    def __init__(self, clock, x, y):
+        self.clock = clock
+
+        self.x = x
+        self.y = y
+
+        self.font = pygame.font.Font(graphics_const.CLOCK_FONT_NAME, graphics_const.CLOCK_FONT_SIZE)
+
+    def draw_text(self, text):
+        if self.clock.is_counting:
+            colour = graphics_const.CLOCK_COUNTING_FONT_COLOUR
+        else:
+            colour = graphics_const.CLOCK_NORMAL_FONT_COLOUR
+
+        text_surface = self.font.render(text, graphics_const.CLOCK_FONT_ANTIALIAS, colour)
+        text_rect = text_surface.get_rect()
+
+        text_rect.center = (self.x, self.y)
+
+        window.blit(text_surface, text_rect)
+
+    def draw_background(self):
+        if self.clock.is_counting:
+            colour = graphics_const.CLOCK_COUNTING_COLOUR
+        else:
+            colour = graphics_const.CLOCK_NORMAL_COLOUR
+
+        w = graphics_const.CLOCK_BG_WIDTH
+        h = graphics_const.CLOCK_BG_HEIGHT
+
+        x = self.x - w // 2
+        y = self.y - h // 2
+
+        pygame.draw.rect(window, colour, (x, y, w, h), border_radius=graphics_const.CLOCK_BG_CORNER_RADIUS)
+
+    def draw(self):
+        self.draw_background()
+
+        time = self.clock.get_time_left() / 1000
+        text = f"{time :.1f}"
+        
+        self.draw_text(text)
+
+
 class GraphicsBoard:
     def __init__(self, board, pieces, dragging_piece=None):
         self.board = board
         self.pieces = pieces
         self.dragging_piece = dragging_piece
 
-        self.font = pygame.font.Font(graphics_const.FONT_NAME, graphics_const.FONT_SIZE)
+        self.font = pygame.font.Font(graphics_const.BOARD_FONT_NAME, graphics_const.BOARD_FONT_SIZE)
 
     def draw_square(self, x, y, colour):
         draw_x = x * graphics_const.STEP_X + graphics_const.BOARD_TL[0]
@@ -30,7 +75,7 @@ class GraphicsBoard:
                 self.draw_square(i, j, colour)
 
     def draw_text(self, text, x, y):
-        text_surface = self.font.render(text, graphics_const.FONT_ANTIALIAS, graphics_const.FONT_COLOUR)
+        text_surface = self.font.render(text, graphics_const.BOARD_FONT_ANTIALIAS, graphics_const.BOARD_FONT_COLOUR)
         text_rect = text_surface.get_rect()
 
         text_rect.center = (x, y)
@@ -93,5 +138,19 @@ def draw_board(board, dragging_x=None, dragging_y=None):
 
     board = GraphicsBoard(board, pieces_list, dragging_piece)
     board.draw()
+
+    pygame.display.update()
+
+
+def draw_clocks(board):
+    #draw just the clocks, not the board
+    x1, y1 = graphics_const.HUMAN_CLOCK_CENT
+    x2, y2 = graphics_const.ENGINE_CLOCK_CENT
+
+    clock1 = GraphicsClock(board.white_clock, x1, y1)
+    clock2 = GraphicsClock(board.black_clock, x2, y2)
+
+    clock1.draw()
+    clock2.draw()
 
     pygame.display.update()

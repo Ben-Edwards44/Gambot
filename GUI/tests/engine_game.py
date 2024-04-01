@@ -1,9 +1,12 @@
 import draw
-import utils
+import board
 import engine_interface
 
 from random import randint
 
+
+WHITE_PIECES = ["P", "N", "B", "R", "K", "Q"]
+BLACK_PIECES = [i.lower() for i in WHITE_PIECES]
 
 FEN_FILEPATH = "../data/equal_fens.txt"
 
@@ -49,7 +52,7 @@ def play_game(fen, white, black):
 
     white_to_move = fen.split(" ")[1] == "w"
 
-    board = utils.fen_to_board(fen)
+    board_obj = board.Board(fen, None, None, None)
 
     win = "no_win"
     move_list = []
@@ -74,8 +77,8 @@ def play_game(fen, white, black):
 
         white_to_move = not white_to_move
 
-        board = utils.make_move(move, board)
-        t_board = tuple(tuple(i) for i in board)
+        board_obj.make_move(move)
+        t_board = tuple(tuple(i) for i in board_obj.board_list)
 
         if t_board in seen_boards:
             num = seen_boards[t_board]
@@ -89,7 +92,7 @@ def play_game(fen, white, black):
             seen_boards[t_board] = 1
 
         if SHOW_GRAPHICS:
-            draw.draw_board(board)
+            draw.draw_board(board_obj)
 
     return win
 
@@ -116,8 +119,6 @@ def main(path1, path2, num):
                 black = engine1
 
             winner = play_game(x, white, black)
-
-            print(winner, white)
 
             if winner == "draw":
                 draws += 1
