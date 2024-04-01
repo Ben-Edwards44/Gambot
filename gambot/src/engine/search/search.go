@@ -184,7 +184,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 	searchAbandoned = false
 
 	startTime := time.Now()
-	timeLeft := time.Duration(time.Millisecond * time.Duration(moveTime))  //NOTE: change to 500ms for testing
+	timeLeft := time.Duration(time.Millisecond * time.Duration(moveTime))
 
 	depth := 1
 

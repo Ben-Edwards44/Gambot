@@ -31,7 +31,7 @@ var killerMoves [maxKillerPly][2]*moves.Move
 
 
 func compareMoves(move1 *moves.Move, move2 *moves.Move) bool {
-	if move1 == nil || move2 == nil {return move1 == nil && move2 == nil}
+	if move1 == nil || move2 == nil {return false}
 
 	//pointers need to be redeferenced so that the values of the structs are compared
 	return *move1 == *move2
@@ -76,7 +76,7 @@ func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move, p
 	captVal := state.Board[move.EndX * 8 + move.EndY]
 	if move.EnPassant {captVal = 1}
 	
-	if move == hashMove {
+	if compareMoves(move, hashMove) {
 		//this also implicitly accounts for pv moves
 		return hashMoveScore
 	} else if move.PromotionValue > 0 {
@@ -97,7 +97,7 @@ func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move, p
 	} else if plyFromRoot < maxKillerPly && compareMoves(move, killerMoves[plyFromRoot][1]) {
 		return killerOffset
 	} else {
-		//not a pv move, hash move, promotion or capture. Just a regular ol' move (TODO: add history heuristic)
+		//not a pv move, hash move, promotion, capture or killer. Just a regular ol' move (TODO: add history heuristic)
 		score := 0
 		
 		posBB := uint64(1 << (move.EndX * 8 + move.EndY))
