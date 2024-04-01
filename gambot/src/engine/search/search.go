@@ -73,7 +73,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 	moveList := moves.GenerateAllMoves(state, false)
 	hashMove := searchTable.lookupMove(state.ZobristHash)
 
-	orderMoves(state, moveList, hashMove)
+	orderMoves(state, moveList, hashMove, plyFromRoot)
 
 	//TODO: draws by repetition and 50 move rule etc.
 	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), &moves.Move{}}  //deal with checkmates and draws
@@ -95,6 +95,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 		if score >= beta {
 			if !searchAbandoned {
 				searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
+				addKiller(move, plyFromRoot)
 			}
 
 			return beta, bestMove
@@ -140,7 +141,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, plyFromRoot int, alp
 	moveList := moves.GenerateAllMoves(state, true)
 	hashMove := searchTable.lookupMove(state.ZobristHash)
 
-	orderMoves(state, moveList, hashMove)
+	orderMoves(state, moveList, hashMove, plyFromRoot)
 
 	for _, move := range moveList {
 		moves.MakeMove(state, move)

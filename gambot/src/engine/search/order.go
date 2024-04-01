@@ -19,9 +19,23 @@ var mvvLva [6 * 6]int = [6 * 6]int {
 }
 
 
-const hashMoveScore int = 10000
-const promotionOffset int = 1000
-const mvvLvaOffset int = 100
+const hashMoveScore int = 100000
+const promotionOffset int = 10000
+const mvvLvaOffset int = 1000
+const killerOffset int = 100
+
+const maxKillerPly int = 10
+
+
+var killerMoves [maxKillerPly][2]*moves.Move
+
+
+func compareMoves(move1 *moves.Move, move2 *moves.Move) bool {
+	if move1 == nil || move2 == nil {return move1 == nil && move2 == nil}
+
+	//pointers need to be redeferenced so that the values of the structs are compared
+	return *move1 == *move2
+}
 
 
 func quickSort(moveList []*moves.Move, moveScores []int, low int, high int) {
@@ -56,8 +70,8 @@ func partition(moveList []*moves.Move, moveScores []int, low int, high int) int 
 }
 
 
-func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move) int {
-	//moves are ordered as follows: hash move / pv move (from tt), promotions, MVV/LVA for captures, quiet moves
+func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move, plyFromRoot int) int {
+	//moves are ordered as follows: hash move / pv move (from tt), promotions, MVV/LVA for captures, killer moves, quiet moves
 	
 	captVal := state.Board[move.EndX * 8 + move.EndY]
 	if move.EnPassant {captVal = 1}
@@ -78,6 +92,10 @@ func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move) i
 		if move.PieceValue > 6 {aggressInx -= 6}
 
 		return mvvLvaOffset + mvvLva[victimInx * 6 + aggressInx]
+	} else if plyFromRoot < maxKillerPly && compareMoves(move, killerMoves[plyFromRoot][0]) {
+		return killerOffset + 1
+	} else if plyFromRoot < maxKillerPly && compareMoves(move, killerMoves[plyFromRoot][1]) {
+		return killerOffset
 	} else {
 		//not a pv move, hash move, promotion or capture. Just a regular ol' move (TODO: add history heuristic)
 		score := 0
@@ -90,13 +108,27 @@ func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move) i
 }
 
 
-func orderMoves(state *board.GameState, moveList []*moves.Move, hashMove *moves.Move) {
+func orderMoves(state *board.GameState, moveList []*moves.Move, hashMove *moves.Move, plyFromRoot int) {
 	//slices are passed by reference, so no need to return
 
 	var moveScores []int
 	for _, i := range moveList {
-		moveScores = append(moveScores, scoreMove(state, i, hashMove))  //get the move's score
+		moveScores = append(moveScores, scoreMove(state, i, hashMove, plyFromRoot))  //get the move's score
 	}
 
 	quickSort(moveList, moveScores, 0, len(moveList) - 1)
+}
+
+
+func addKiller(move *moves.Move, plyFromRoot int) {
+	//these are moves that cause a beta cutoff
+	if plyFromRoot >= maxKillerPly {return}
+
+	prevKiller := killerMoves[plyFromRoot][0]
+
+	if !compareMoves(move, prevKiller) {
+		//the other killer no longer resulted in a cutoff, so is not as good anymore
+		killerMoves[plyFromRoot][0] = move
+		killerMoves[plyFromRoot][1] = prevKiller
+	}
 }
