@@ -1,5 +1,7 @@
 # Gambot :chess_pawn:
 
+![Gambot logo](assets/gambot_logo.png)
+
 Gambot is a work in progress UCI chess engine written in Go.
 The repository also contains a GUI written in Python using the Pygame library.
 
@@ -8,7 +10,7 @@ The repository also contains a GUI written in Python using the Pygame library.
 - Working move generator (it passes all perfts on the [chess programming wiki](https://www.chessprogramming.org/Perft_Results))
 - Minimax search with alpha-beta pruning
 - Quiescence search
-- MVV/LVA Move ordering
+- Move ordering with MVV/LVA, hash moves and killer moves
 - Zobrist hashing for board representation
 - Transposition table
 - Middle game and endgame piece square tables
