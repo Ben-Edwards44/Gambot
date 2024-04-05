@@ -2,11 +2,11 @@ package search
 
 
 import (
-	"gambot/src/engine/board"
-	"gambot/src/engine/evaluation"
-	"gambot/src/engine/moves"
 	"fmt"
 	"time"
+	"gambot/src/engine/moves"
+	"gambot/src/engine/board"
+	"gambot/src/engine/evaluation"
 )
 
 
@@ -43,7 +43,8 @@ func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
 }
 
 
-func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, pvLine []*moves.Move, alpha int, beta int, timeLeft time.Duration) (int, *moves.Move) {
+func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, alpha int, beta int, timeLeft time.Duration) (int, *moves.Move) {
+	//core minimax/negamax search routine
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
@@ -57,12 +58,8 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 	if ttSuccess {
 		//this position is in transposition table. We don't need to search it again
 		ttLookups++
+		bestMove := searchTable.lookupMove(state.ZobristHash)
 
-		var bestMove *moves.Move
-		if plyFromRoot == 0 {
-			bestMove = searchTable.lookupMove(state.ZobristHash)
-		}
-		
 		return ttEval, bestMove
 	}
 	
@@ -79,24 +76,23 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), &moves.Move{}}  //deal with checkmates and draws
 
 	nodeType := allNode
-
-	var bestMove *moves.Move
+	bestMove := &moves.Move{}
 
 	for _, move := range moveList {
 		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
-		negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, pvLine, -beta, -alpha, timeLeft - elapsed)
+		negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
 		score := -negScore
 
 		moves.UnMakeLastMove(state)
 
+		if searchAbandoned {return 0, bestMove}
+
 		//fail-hard cutoff (prune position)
 		if score >= beta {
-			if !searchAbandoned {
-				searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
-				addKiller(move, plyFromRoot)
-			}
+			searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
+			addKiller(move, plyFromRoot)
 
 			return beta, bestMove
 		}
@@ -106,18 +102,17 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, p
 			alpha = score
 			bestMove = move
 			nodeType = pvNode
-
-			if len(pvLine) > 0 {pvLine[plyFromRoot] = bestMove}  //NOTE: this will be overwritten later if a better move is found
 		}
 	}
 
-	if !searchAbandoned {searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, alpha, nodeType, bestMove)}  //if the search was abandoned, the eval cannot be trusted
+	searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, alpha, nodeType, bestMove)
 
 	return alpha, bestMove
 }
 
 
 func quiescenceSearch(state *board.GameState, isWhite bool, plyFromRoot int, alpha int, beta int, timeLeft time.Duration) int {
+	//search through all capture moves until a quiet position is reached
 	if timeLeft < 0 {
 		searchAbandoned = true
 		return 0
@@ -125,7 +120,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, plyFromRoot int, alp
 
 	if inCheck(state, isWhite) {
 		//if we are in check, search through all evasive moves. This helps stop obvious blunders and detect mates.
-		eval, _ := negamax(state, isWhite, 1, plyFromRoot, []*moves.Move{}, alpha, beta, timeLeft)
+		eval, _ := negamax(state, isWhite, 1, plyFromRoot, alpha, beta, timeLeft)  //TODO: actually do the moveLines
 		return eval
 	}
 	
@@ -151,11 +146,36 @@ func quiescenceSearch(state *board.GameState, isWhite bool, plyFromRoot int, alp
 	
 		moves.UnMakeLastMove(state)
 
-		if score >= beta {return beta}  //prune
+		if searchAbandoned {return 0}
+
+		if score >= beta {return beta}  //prune (NOTE: no need to add killer move because captures are treated differently anyway)
+
 		if score > alpha {alpha = score}
 	}
 
 	return alpha
+}
+
+
+func getAnyMove(state *board.GameState) *moves.Move {
+	//when we have not even searched depth 1, get any legal move
+	moveList := moves.GenerateAllMoves(state, false)
+	return moveList[0]
+}
+
+
+func getPvLine(state *board.GameState, prevPvMove *moves.Move, pvLine *[]*moves.Move, depthSearched int) {
+	//use the transposition table to get the pv line
+	if len(*pvLine) > depthSearched {return}  //we cannot have a pv line longer than the depth we searched it to
+
+	*pvLine = append(*pvLine, prevPvMove)
+
+	moves.MakeMove(state, prevPvMove)
+
+	pvMove := searchTable.lookupPvMove(state.ZobristHash)
+	if pvMove != nil {getPvLine(state, pvMove, pvLine, depthSearched)}
+
+	moves.UnMakeLastMove(state)
 }
 
 
@@ -164,7 +184,6 @@ func uciSearchInfo(depth int, score int, nodes int, ttLookups int, timeMs int64,
 	var pvMoves string
 	for i, x := range pvLine {
 		if i > 0 {pvMoves += " "}
-		
 		pvMoves += x.MoveStr()
 	}
 
@@ -181,50 +200,52 @@ func uciSearchInfo(depth int, score int, nodes int, ttLookups int, timeMs int64,
 
 
 func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
+	//run iterative deepening to get the (objectively...) best move
 	searchAbandoned = false
 
 	startTime := time.Now()
 	timeLeft := time.Duration(time.Millisecond * time.Duration(moveTime))
 
 	depth := 1
-
 	searchedDepthOne := false
 
-	var pvLine []*moves.Move
+	pvLine := []*moves.Move{}
 
+	var posScore int
 	var bestMove *moves.Move
 	var elapsed time.Duration
+
 	for timeLeft > 0 {
 		posSearched = 0
 		ttLookups = 0
-
-		pvLine = append(pvLine, &moves.Move{})
 
 		elapsed = time.Since(startTime)
 
 		timeLeft -= elapsed
 
-		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, pvLine, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
+		
+		if searchBestMove.PieceValue != 0 {
+			posScore = score
+			bestMove = searchBestMove
+			searchedDepthOne = true
+
+			pvLine = []*moves.Move{}
+			getPvLine(state, searchBestMove, &pvLine, depth)
+		}
 
 		uciSearchInfo(depth, score, posSearched, ttLookups, elapsed.Milliseconds(), pvLine)
 
-		if searchAbandoned {
-			break
-		} else {
-			bestMove = searchBestMove
-			searchedDepthOne = true
-		}
+		if searchAbandoned {break}
 
 		depth++
 	}
 
-	if !searchedDepthOne {
-		//could not even search to depth one, just play the first available move
-		moveList := moves.GenerateAllMoves(state, false)
-		bestMove = moveList[0]
-	}
+	if !searchedDepthOne {bestMove = getAnyMove(state)}
+	if bestMove.PieceValue == 0 {panic("Best move is an empty move")}  //NOTE: this may be because we are in mate
 
-	if bestMove.PieceValue == 0 {panic("Best move is an empty move")}
+	//the search may have been cancelled before we could store the result from the final depth in the tt, so let's do it now O-O.
+	searchTable.storeEntry(state.ZobristHash, depth, 0, posScore, pvNode, bestMove)
 
-	return bestMove  //NOTE: if no moves are available (in mate), this will be an empty move
+	return bestMove
 }

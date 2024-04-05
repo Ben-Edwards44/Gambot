@@ -87,6 +87,19 @@ func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 }
 
 
+func (table *ttTable) lookupPvMove(zobHash uint64) *moves.Move {
+	//Get the PV move. Need to ensure the node is a pv node
+	inx := zobHash % ttLen
+	entry := &table.entries[inx]
+
+	if entry.zobHash == zobHash && entry.nodeType == pvNode {
+		return entry.bestMove
+	} else {
+		return nil
+	}
+}
+
+
 func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, plyFromRoot int, eval int, nodeType int, bestMove *moves.Move) {
 	correctedScore := correctMateScore(eval, -plyFromRoot)  //the - is because we want to increase (not decrease) the magnitude of the stored score if it is a mate
 

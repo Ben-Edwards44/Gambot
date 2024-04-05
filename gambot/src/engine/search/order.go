@@ -19,12 +19,12 @@ var mvvLva [6 * 6]int = [6 * 6]int {
 }
 
 
-const hashMoveScore int = 100000
-const promotionOffset int = 10000
-const mvvLvaOffset int = 1000
-const killerOffset int = 100
+const hashMoveScore int = 40000
+const promotionOffset int = 30000
+const mvvLvaOffset int = 20000
+const killerOffset int = 10000
 
-const maxKillerPly int = 10
+const maxKillerPly int = 50
 
 
 var killerMoves [maxKillerPly][2]*moves.Move
@@ -77,7 +77,7 @@ func scoreMove(state *board.GameState, move *moves.Move, hashMove *moves.Move, p
 	if move.EnPassant {captVal = 1}
 	
 	if compareMoves(move, hashMove) {
-		//this also implicitly accounts for pv moves
+		//also accounts for pv moves
 		return hashMoveScore
 	} else if move.PromotionValue > 0 {
 		promVal := move.PromotionValue
