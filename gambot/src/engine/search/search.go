@@ -164,7 +164,7 @@ func getAnyMove(state *board.GameState) *moves.Move {
 }
 
 
-func getPvLine(state *board.GameState, prevPvMove *moves.Move, pvLine *[]*moves.Move, depthSearched int) {
+func playPvLine(state *board.GameState, prevPvMove *moves.Move, pvLine *[]*moves.Move, depthSearched int) {
 	//use the transposition table to get the pv line
 	if len(*pvLine) > depthSearched {return}  //we cannot have a pv line longer than the depth we searched it to
 
@@ -173,9 +173,33 @@ func getPvLine(state *board.GameState, prevPvMove *moves.Move, pvLine *[]*moves.
 	moves.MakeMove(state, prevPvMove)
 
 	pvMove := searchTable.lookupPvMove(state.ZobristHash)
-	if pvMove != nil {getPvLine(state, pvMove, pvLine, depthSearched)}
+	if pvMove != nil {playPvLine(state, pvMove, pvLine, depthSearched)}
 
 	moves.UnMakeLastMove(state)
+}
+
+
+func getPvLine(state *board.GameState, bestMove *moves.Move, depthSearched int) (pvLine *[]*moves.Move) {
+	pvLine = &[]*moves.Move{}
+	
+	defer func() {
+		//In some rare cases, the tt will be overwritten by another pv node.
+		//This will give a non-legal move, causing a panic when we try to make this move it.
+		//Since the pv is not used, we can just ignore the panic (x_x) and not crash the entire engine.
+		r := recover()
+
+		if r != nil {
+			*pvLine = (*pvLine)[:len(*pvLine) - 1]
+
+			for i := 0; i <= len(*pvLine); i++ {
+				moves.UnMakeLastMove(state)
+			}
+		}
+	}()
+
+	playPvLine(state, bestMove, pvLine, depthSearched)
+
+	return  //NOTE: named return value has been used
 }
 
 
@@ -211,7 +235,6 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 	pvLine := []*moves.Move{}
 
-	var posScore int
 	var bestMove *moves.Move
 	var elapsed time.Duration
 
@@ -226,12 +249,10 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 		
 		if searchBestMove.PieceValue != 0 {
-			posScore = score
 			bestMove = searchBestMove
 			searchedDepthOne = true
 
-			pvLine = []*moves.Move{}
-			getPvLine(state, searchBestMove, &pvLine, depth)
+			pvLine = *getPvLine(state, searchBestMove, depth)
 		}
 
 		uciSearchInfo(depth, score, posSearched, ttLookups, elapsed.Milliseconds(), pvLine)
@@ -243,9 +264,6 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 	if !searchedDepthOne {bestMove = getAnyMove(state)}
 	if bestMove.PieceValue == 0 {panic("Best move is an empty move")}  //NOTE: this may be because we are in mate
-
-	//the search may have been cancelled before we could store the result from the final depth in the tt, so let's do it now O-O.
-	searchTable.storeEntry(state.ZobristHash, depth, 0, posScore, pvNode, bestMove)
 
 	return bestMove
 }
