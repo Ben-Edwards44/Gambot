@@ -11,8 +11,8 @@ import (
 
 
 const inf int = 9999999
-const matescore int = 100000
-const mateThreshold int = matescore - 1024
+const mateScore int = 100000
+const mateThreshold int = mateScore - 1024
 
 var searchAbandoned bool
 
@@ -36,7 +36,7 @@ func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
 	//check who has won, or if it is a draw - assumes that the player has no legal moves
 	if inCheck(state, isWhite) {
 		//we are checkmated :(
-		return -matescore + plyFromRoot //negative because being checkmated is bad, also a larger ply from root is good
+		return -mateScore + plyFromRoot //negative because being checkmated is bad, also a larger ply from root is good
 	} else {
 		return 0  //draw
 	}
@@ -61,6 +61,14 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		bestMove := searchTable.lookupMove(state.ZobristHash)
 
 		return ttEval, bestMove
+	}
+
+	//mate distance pruning - a mate has been found in n plies, so we can prune if we have not yet found a mate in <= n plies
+	if alpha > mateThreshold && plyFromRoot > 0 {
+		currentMateScore := mateScore - plyFromRoot
+
+		if currentMateScore < beta {beta = currentMateScore}
+		if alpha >= currentMateScore {return currentMateScore, &moves.Move{}}
 	}
 	
 	if depth == 0 {return quiescenceSearch(state, isWhite, plyFromRoot, alpha, beta, timeLeft), &moves.Move{}}
@@ -258,6 +266,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 		uciSearchInfo(depth, score, posSearched, ttLookups, elapsed.Milliseconds(), pvLine)
 
 		if searchAbandoned {break}
+		if score >= mateScore - depth {break}  //we have found a mate in the given depth, no need to look further
 
 		depth++
 	}
