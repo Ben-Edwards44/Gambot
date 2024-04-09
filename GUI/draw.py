@@ -49,6 +49,57 @@ class GraphicsClock:
         self.draw_text(text)
 
 
+class GraphicsPromotion:
+    def __init__(self, pawn_x, pawn_y, pawn_value):
+        self.y_pos = pawn_y
+        self.colour_offset = pawn_value
+
+        self.piece_x_pos = self.get_x_pos(pawn_x)
+        self.pieces = self.get_pieces()
+
+    def get_x_pos(self, queen_x):
+        #get the board y positions of the other promotion pieces
+        if queen_x == 0:
+            mult = 1
+        else:
+            mult = -1
+
+        pos = [queen_x + mult * i for i in range(4)]
+
+        return pos
+    
+    def get_pieces(self):
+        #get the piece objects for the pieces we can promote to. NOTE: queen should be at index 0.
+        inx = 0
+        pieces = []
+
+        for val_offset in reversed(range(1, 6)):
+            if val_offset == 4:
+                continue  #cannot promote to king
+
+            piece_val = self.colour_offset + val_offset
+            piece_obj = piece.Piece(window, self.piece_x_pos[inx], self.y_pos, piece_val)
+            
+            pieces.append(piece_obj)
+
+            inx += 1
+
+        return pieces
+
+    def draw_square(self, x, y, colour):
+        draw_x = x * graphics_const.STEP_X + graphics_const.BOARD_TL[0]
+        draw_y = y * graphics_const.STEP_Y + graphics_const.BOARD_TL[1]
+
+        pygame.draw.rect(window, colour, (draw_x, draw_y, graphics_const.STEP_X, graphics_const.STEP_Y))
+
+    def draw(self):
+        for x in self.piece_x_pos:
+            self.draw_square(self.y_pos, x, graphics_const.PROMOTION_COLOUR)  #x and y swap because we convert from array inxs to screen coords (usual story)
+
+        for i in self.pieces:
+            i.draw()
+
+
 class GraphicsBoard:
     def __init__(self, board, pieces, dragging_piece=None):
         self.board = board
@@ -152,5 +203,13 @@ def draw_clocks(board):
 
     clock1.draw()
     clock2.draw()
+
+    pygame.display.update()
+
+
+def draw_promotion(pawn_x, pawn_y, pawn_value):
+    #draw the promotion menu when the player wants to promote
+    promotion = GraphicsPromotion(pawn_x, pawn_y, pawn_value)
+    promotion.draw()
 
     pygame.display.update()

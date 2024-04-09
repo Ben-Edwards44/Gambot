@@ -48,6 +48,12 @@ class HumanPlayer(Player):
     def kill_process(self):
         self.board.kill_process()
 
+    def check_quit(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.board.kill_process()
+                quit()
+
     def get_mouse_coords(self):
         #get the board cell coordinates of the mouse position
         x, y = pygame.mouse.get_pos()
@@ -77,30 +83,54 @@ class HumanPlayer(Player):
         if self.dragging_piece:
             draw.draw_board(self.board, self.dragging_piece_x, self.dragging_piece_y)
 
-    def check_for_promotion(self, end_x, end_y):
-        piece_val = self.board.board_list[end_x][end_y]
-
-        if (piece_val == 1 or piece_val == 7) and (end_x == 0 or end_x == 7):
-            #promotion
-            promotion_val = input("Enter promotion piece: ")
-        else:
-            promotion_val = ""
-
-        return promotion_val
-
     def convert_move(self, start_x, start_y, end_x, end_y):
         #convert the dragging coords to a UCI move
-        prom_value = self.check_for_promotion(end_x, end_y)  #promotions are special case
+        prom_value = self.check_for_promotion(start_x, start_y, end_x)  #promotions are special case
         move = self.board.move_to_str(start_x, start_y, end_x, end_y, prom_value)
 
         return move
     
     def check_legal(self, start_x, start_y, end_x, end_y):
         #make sure the player's move is legal
+        if not graphics_const.LEGAL_FILTER:
+            return True
+
         target = (end_x, end_y)
         legal_moves = self.board.get_legal_moves(start_x, start_y)
 
         return target in legal_moves
+
+
+    def check_for_promotion(self, start_x, start_y, end_rank):
+        piece_val = self.board.board_list[start_x][start_y]
+
+        if (piece_val == 1 or piece_val == 7) and (end_rank == 0 or end_rank == 7):
+            #promotion
+            draw.draw_promotion(end_rank, start_y, piece_val)
+            
+            promotion_inx = self.get_promoted_piece(end_rank, start_y)
+            promotion_val = graphics_const.PROMOTION_ORDER[promotion_inx]
+        else:
+            promotion_val = ""
+
+        return promotion_val
+
+
+    def get_promoted_piece(self, pawn_x, pawn_y):
+        #get the player's choice of promotion from the menu
+        chosen_inx = None
+        while chosen_inx is None:
+            if pygame.mouse.get_pressed()[0]:
+                x, y = self.get_mouse_coords()
+                vert_offset = abs(pawn_x - x)
+
+                if y == pawn_y and vert_offset < 4:  #if clicked on menu
+                    chosen_inx = vert_offset
+
+            draw.draw_clocks(self.board)
+            self.check_quit()
+
+        return chosen_inx
 
 
     def get_move(self):
@@ -130,9 +160,6 @@ class HumanPlayer(Player):
 
                     self.reset_dragging()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.board.kill_process()
-                    quit()
+            self.check_quit()
 
         return move

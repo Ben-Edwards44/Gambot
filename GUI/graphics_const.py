@@ -4,7 +4,7 @@ START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 PLAYER_WHITE = True
 
 
-LEGAL_FILTER = True
+LEGAL_FILTER = False
 
 
 USE_CLOCK_TIME = False
@@ -65,6 +65,7 @@ LIGHT_SQ_COLOUR = (240, 217, 181)
 DARK_SQ_COLOUR = (181, 136, 99)
 LEGAL_MOVE_COLOUR = (128, 88, 55)
 BORDER_COLOUR = (64, 62, 60)
+PROMOTION_COLOUR = (110, 110, 110)
 
 
 PIECE_NAMES = [
@@ -87,7 +88,10 @@ PIECE_VALUES = {
 }
 
 
-FILES = ["a", "b", "c", "d", "e", "f", "g", "h"]
+FILES = ("a", "b", "c", "d", "e", "f", "g", "h")
 
-WHITE_PIECES = ["P", "N", "B", "R", "K", "Q"]
-BLACK_PIECES = [i.lower() for i in WHITE_PIECES]
+WHITE_PIECES = ("P", "N", "B", "R", "K", "Q")
+BLACK_PIECES = tuple(i.lower() for i in WHITE_PIECES)
+
+
+PROMOTION_ORDER = ("q", "r", "b", "n")

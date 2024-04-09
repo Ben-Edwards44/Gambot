@@ -60,7 +60,10 @@ def get_best(engine1, engine2, fen):
 
     common_depth = min(len(nodes1), len(nodes2))
 
-    return sum(nodes1[:common_depth]), sum(nodes2[:common_depth])
+    sum1 = sum(nodes1[:common_depth])
+    sum2 = sum(nodes2[:common_depth])
+
+    return sum1, sum2
 
 
 def main(path1, path2, num):
