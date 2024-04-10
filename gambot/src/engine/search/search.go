@@ -92,12 +92,28 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	nodeType := allNode
 	bestMove := &moves.Move{}
 
-	for _, move := range moveList {
+	for inx, move := range moveList {
 		moves.MakeMove(state, move)
 
 		elapsed := time.Since(startTime)
-		negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
-		score := -negScore
+
+		//PVS search - due to move ordering, we assume the best move to be the first.
+		//Therefore, we can search all other moves with a smaller window and just make sure they are as bad as we think they are.
+		var score int
+		if inx == 0 {
+			negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
+			score = -negScore
+		} else {
+			negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -alpha - 1, -alpha, timeLeft - elapsed)
+			score = -negScore
+
+			needFullSearch := score > alpha
+			if needFullSearch {
+				//this move is not as bad as we first thought; we need to search it fully
+				negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
+				score = -negScore
+			}
+		}
 
 		moves.UnMakeLastMove(state)
 
