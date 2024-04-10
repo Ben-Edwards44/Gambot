@@ -9,11 +9,11 @@ import (
 )
 
 
-func Init() {
+func Init(ttSize int) {
 	//to be called at start of every new game
 	moves.PrecalculateEdgeDists()
 	board.PrecalculateZobristNums()
 	evaluation.PrecalculateDists()
 
-	search.NewTT()
+	search.NewTT(ttSize)
 }

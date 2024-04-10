@@ -20,6 +20,7 @@ var chessEngine bot
 type bot struct {
 	currentPos board.GameState
 	moveTime int
+	ttSize *spinOption
 }
 
 
@@ -81,13 +82,15 @@ func (b *bot) runEval() int {
 
 func (b *bot) newGame() {
 	//start of new game
-	engine.Init()
+	engine.Init(b.ttSize.setVal)
 }
 
 
 func InitEngine() {
 	//TODO: init engine when it is supposed to (according to UCI)
-	chessEngine = bot{}
+	ttSize := createTTOpt()
 
-	engine.Init()
+	chessEngine = bot{ttSize: ttSize}
+
+	engine.Init(ttSize.defaultVal)
 }

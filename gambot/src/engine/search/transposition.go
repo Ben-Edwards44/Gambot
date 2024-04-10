@@ -13,12 +13,10 @@ const cutNode int = 2
 
 const ttEnabled bool = true
 
-const ttSizeMib int = 64
-const ttLen uint64 = uint64((1024 * 1024 * ttSizeMib) / int(unsafe.Sizeof(ttEntry{})))  //using uint64 means we don't have to convert later
+const DefaultTTSizeMib int = 64
 
 
 var searchTable ttTable
-//var qSearchTable ttTable
 
 
 type ttEntry struct {
@@ -31,7 +29,8 @@ type ttEntry struct {
 
 
 type ttTable struct {
-	entries [ttLen]ttEntry
+	length uint64
+	entries []ttEntry
 }
 
 
@@ -49,7 +48,7 @@ func correctMateScore(score int, plyFromRoot int) int {
 func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, plyFromRoot int, alpha int, beta int) (bool, int) {
 	if !ttEnabled {return false, 0}
 
-	inx := zobHash % ttLen
+	inx := zobHash % table.length
 
 	entry := &table.entries[inx]
 
@@ -76,7 +75,7 @@ func (table *ttTable) lookupEval(zobHash uint64, currentDepth int, plyFromRoot i
 
 func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 	//This is so that we search the best move from the previous depth first (no need to check for searched depth)
-	inx := zobHash % ttLen
+	inx := zobHash % table.length
 	entry := &table.entries[inx]
 
 	if entry.zobHash == zobHash {
@@ -89,7 +88,7 @@ func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 
 func (table *ttTable) lookupPvMove(zobHash uint64) *moves.Move {
 	//Get the PV move. Need to ensure the node is a pv node
-	inx := zobHash % ttLen
+	inx := zobHash % table.length
 	entry := &table.entries[inx]
 
 	if entry.zobHash == zobHash && entry.nodeType == pvNode {
@@ -104,13 +103,15 @@ func (table *ttTable) storeEntry(zobHash uint64, searchDepth int, plyFromRoot in
 	correctedScore := correctMateScore(eval, -plyFromRoot)  //the - is because we want to increase (not decrease) the magnitude of the stored score if it is a mate
 
 	entry := ttEntry{zobHash: zobHash, depthSearched: searchDepth, eval: correctedScore, nodeType: nodeType, bestMove: bestMove}
-	inx := zobHash % ttLen
+	inx := zobHash % table.length
 
 	table.entries[inx] = entry
 }
 
 
-func NewTT() {
-	searchTable = ttTable{}
-	//qSearchTable = ttTable{}
+func NewTT(sizeMib int) {
+	length := uint64((1024 * 1024 * sizeMib) / int(unsafe.Sizeof(ttEntry{})))
+	entries := make([]ttEntry, length)
+
+	searchTable = ttTable{length: length, entries: entries}
 }

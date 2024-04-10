@@ -3,6 +3,7 @@ package uci
 
 import (
 	"fmt"
+	"strconv"
 	"gambot/src/engine/moves"
 )
 
@@ -16,9 +17,12 @@ func sendStr(text string) {
 }
 
 
-func uciOk() {
+func uciOk(engine *bot) {
 	sendStr("id name " + engineName)
 	sendStr("id author " + engineAuthor)
+
+	sendOptions(engine)
+
 	sendStr("uciok")
 }
 
@@ -28,4 +32,21 @@ func sendBestMove(bestMove *moves.Move) {
 	moveStr := bestMove.MoveStr()
 	
 	sendStr("bestmove " + moveStr)
+}
+
+
+func sendSpinOpt(option *spinOption) {
+	str := "option name " + option.name
+	str += " type spin"
+	str += " default " + strconv.Itoa(option.defaultVal)
+	str += " min " + strconv.Itoa(option.min)
+	str += " max " + strconv.Itoa(option.max)
+
+	sendStr(str)
+}
+
+
+func sendOptions(engine *bot) {
+	sendStr("")
+	sendSpinOpt(engine.ttSize)
 }

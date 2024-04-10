@@ -36,7 +36,7 @@ type GameState struct {
 	prvBitboard []*Bitboard
 	prvDoubleCheck []bool
 	prvEnPassantPin []bool
-	prvZobHash []uint64
+	PrvZobHash []uint64
 }
 
 
@@ -59,7 +59,7 @@ func (state *GameState) SetPrevVals() {
 	state.prvBitboard = append(state.prvBitboard, state.Bitboards)
 	state.prvDoubleCheck = append(state.prvDoubleCheck, state.DoubleChecked)
 	state.prvEnPassantPin = append(state.prvEnPassantPin, state.EnPassantPin)
-	state.prvZobHash = append(state.prvZobHash, state.ZobristHash)
+	state.PrvZobHash = append(state.PrvZobHash, state.ZobristHash)
 }
 
 
@@ -74,7 +74,7 @@ func (state *GameState) RestorePrev() {
 	state.Bitboards = state.prvBitboard[len(state.prvBitboard) - 1]
 	state.DoubleChecked = state.prvDoubleCheck[len(state.prvDoubleCheck) - 1]
 	state.EnPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
-	state.ZobristHash = state.prvZobHash[len(state.prvZobHash) - 1]
+	state.ZobristHash = state.PrvZobHash[len(state.PrvZobHash) - 1]
 
 	//pop end of slice
 	state.prvBoard = state.prvBoard[:len(state.prvBoard) - 1]
@@ -84,5 +84,5 @@ func (state *GameState) RestorePrev() {
 	state.prvBitboard = state.prvBitboard[:len(state.prvBitboard) - 1]
 	state.prvDoubleCheck = state.prvDoubleCheck[:len(state.prvDoubleCheck) - 1]
 	state.prvEnPassantPin = state.prvEnPassantPin[:len(state.prvEnPassantPin) - 1]
-	state.prvZobHash = state.prvZobHash[:len(state.prvZobHash) - 1]
+	state.PrvZobHash = state.PrvZobHash[:len(state.PrvZobHash) - 1]
 }

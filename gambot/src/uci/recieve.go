@@ -2,12 +2,13 @@ package uci
 
 
 import (
+	"os"
 	"bufio"
+	"strconv"
 	"gambot/src/engine/board"
 	"gambot/src/engine/moves"
-	"os"
-	"strconv"
 )
+
 
 //The UCI protocol is described here: https://backscattering.de/chess/uci/
 
@@ -147,6 +148,19 @@ func getIntArg(cmd []string, key string) int {
 }
 
 
+func getStrArg(cmd []string, key string) string {
+	for i, x := range cmd {
+		if x == key {
+			val := cmd[i + 1]
+
+			return val
+		}
+	}
+
+	return ""
+}
+
+
 func goCmd(splitCmd []string) {
 	var isPerft bool
 	for _, i := range splitCmd {
@@ -194,6 +208,18 @@ func evalCmd() {
 }
 
 
+func setOptCmd(splitCmd []string) {
+	name := getStrArg(splitCmd, "name")
+
+	if name == "Hash" {
+		value := getIntArg(splitCmd, "value")
+		chessEngine.ttSize.changeTTSize(value)
+	} else {
+		panic("Option not recognised")
+	}
+}
+
+
 func interpretCmd(cmd string) bool {
 	if cmd == "" {return false}
 
@@ -202,7 +228,7 @@ func interpretCmd(cmd string) bool {
 	stop := false
 	switch splitted[0] {
 	case "uci":
-		uciOk()
+		uciOk(&chessEngine)
 	case "isready":
 		sendStr("readyok")
 	case "ucinewgame":
@@ -217,6 +243,8 @@ func interpretCmd(cmd string) bool {
 		stop = true
 	case "eval":
 		evalCmd()
+	case "setoption":
+		setOptCmd(splitted)
 	default:
 		panic("Unrecognised command: " + cmd)
 	}
