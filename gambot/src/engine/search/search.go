@@ -55,7 +55,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 	//check for draw by threefold repetition.
 	//NOTE: we only need to check for 1 repetition in the search because there is no reason we would choose differently if we saw the same pos again
-	if repTable.seen(state.ZobristHash, isWhite) {return 0, &moves.Move{}}
+	if plyFromRoot > 0 && repTable.seen(state.ZobristHash) {return 0, &moves.Move{}}
 
 	ttSuccess, ttEval := searchTable.lookupEval(state.ZobristHash, depth, plyFromRoot, alpha, beta)
 
@@ -87,7 +87,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	//check for wins and draws
 	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), &moves.Move{}}
 
-	repTable.push(state.ZobristHash)
+	if plyFromRoot > 0 {repTable.push(state.ZobristHash)}
 
 	nodeType := allNode
 	bestMove := &moves.Move{}
@@ -119,7 +119,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 		if searchAbandoned {return 0, bestMove}
 
-		if repTable.seenHashes[repTable.length - 1] != state.ZobristHash {
+		if plyFromRoot > 0 && repTable.seenHashes[repTable.length - 1] != state.ZobristHash {
 			fmt.Println(repTable)
 			fmt.Println(state.ZobristHash)
 			fmt.Println(plyFromRoot)
@@ -128,7 +128,8 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 		//fail-hard cutoff (prune position)
 		if score >= beta {
-			repTable.pop()
+			if plyFromRoot > 0 {repTable.pop()}
+			
 			searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
 			addKiller(move, plyFromRoot)
 
@@ -143,7 +144,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		}
 	}
 
-	repTable.pop()
+	if plyFromRoot > 0 {repTable.pop()}
 	searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, alpha, nodeType, bestMove)
 
 	return alpha, bestMove
@@ -274,14 +275,14 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 	pvLine := []*moves.Move{}
 
+	initRepTable(state.ZobristHash)
+
 	var bestMove *moves.Move
 	var elapsed time.Duration
 
 	for timeLeft > 0 {
 		posSearched = 0
 		ttLookups = 0
-
-		initRepTable(state.WhiteToMove)
 
 		elapsed = time.Since(startTime)
 

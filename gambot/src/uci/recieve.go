@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"gambot/src/engine/board"
 	"gambot/src/engine/moves"
+	"gambot/src/engine/search"
 )
 
 
@@ -118,13 +119,19 @@ func posCmd(splitCmd []string) {
 
 	stateObj := parseFen(fen)
 
+	search.ResetRepetitions(stateObj.ZobristHash)
+
 	//play the moves
 	inx := findInx(splitCmd, "moves")
 	if inx != -1 {
 		for i := inx + 1; i < len(splitCmd); i++ {
 			moveObj := parseMove(&stateObj, splitCmd[i])
+			prvBoard := stateObj.Board
 
 			moves.MakeMove(&stateObj, moveObj)
+
+			//update the repetition table if needed
+			search.AddPlayedRepetition(moveObj, stateObj.ZobristHash, stateObj.WhiteToMove, prvBoard)
 		}
 	}
 
