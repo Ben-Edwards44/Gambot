@@ -46,13 +46,12 @@ func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
 }
 
 
-func getReduction(state *board.GameState, isWhite bool, move *moves.Move, moveInx int, depth int) int {
+func getReduction(state *board.GameState, isWhite bool, isCapt bool, isProm bool, moveInx int, depth int) int {
 	//Late move reductions - we assume moves at the end of the ordered list to be bad, so we can search them at a lower depth. (https://www.chessprogramming.org/Late_Move_Reductions)
-	isCapt := state.Board[move.EndX * 8 + move.EndY] != 0
 	check := inCheck(state, isWhite)
 
 	//TODO: tune the values, or use a non-linear function
-	if depth < 3 || moveInx < reductionCutoff || isCapt || move.PromotionValue != 0 || check {return 0}  //we don't want to reduce potentially good moves
+	if depth < 3 || moveInx < reductionCutoff || isCapt || isProm || check {return 0}  //we don't want to reduce potentially good moves
 
 	if moveInx < steepReductionCutoff {
 		return 1
@@ -113,6 +112,9 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	var bestMove *moves.Move
 
 	for inx, move := range moveList {
+		moveIsCapt := state.Board[move.EndX * 8 + move.EndY] != 0
+		moveIsProm := move.PromotionValue != 0
+
 		elapsed := time.Since(startTime)
 
 		//PVS search - due to move ordering, we assume the best move to be the first.
@@ -124,9 +126,9 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 			negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
 			score = -negScore
 		} else {
-			reduction := getReduction(state, isWhite, move, inx, depth)
+			reduction := getReduction(state, isWhite, moveIsCapt, moveIsProm, inx, depth)
 
-			moves.MakeMove(state, move)  //we need the current board to get the reduction, so only make the move after reduction has been found
+			moves.MakeMove(state, move)  //getting the reduction relies on the current board state, so only make the move after getting the reduction
 
 			reducedDepth := depth - reduction - 1
 			if reducedDepth < 0 {reducedDepth = 0}
@@ -153,7 +155,8 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 			if plyFromRoot > 0 {repTable.pop()}
 			
 			searchTable.storeEntry(state.ZobristHash, depth, plyFromRoot, beta, cutNode, bestMove)  //we do not actually know if the value of bestMove is best for this position
-			addKiller(move, plyFromRoot)
+			
+			if !moveIsCapt && !moveIsProm {addKiller(move, plyFromRoot)}  //promotions and captures are ordered before killers anyway, so only add quiet moves to killers
 
 			return beta, bestMove
 		}
@@ -182,7 +185,7 @@ func quiescenceSearch(state *board.GameState, isWhite bool, plyFromRoot int, alp
 
 	if inCheck(state, isWhite) {
 		//if we are in check, search through all evasive moves. This helps stop obvious blunders and detect mates.
-		eval, _ := negamax(state, isWhite, 1, plyFromRoot, alpha, beta, timeLeft)  //TODO: actually do the moveLines
+		eval, _ := negamax(state, isWhite, 1, plyFromRoot, alpha, beta, timeLeft)
 		return eval
 	}
 	
