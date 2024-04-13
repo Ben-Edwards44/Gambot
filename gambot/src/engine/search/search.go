@@ -14,6 +14,9 @@ const inf int = 9999999
 const mateScore int = 100000
 const mateThreshold int = mateScore - 1024
 
+const reductionCutoff int = 4  //the move at which moves start getting reduced
+const steepReductionCutoff int = 6  //the move at which moves start being more heavily reduced
+
 var searchAbandoned bool
 
 var posSearched int
@@ -39,6 +42,22 @@ func checkWin(state *board.GameState, plyFromRoot int, isWhite bool) int {
 		return -mateScore + plyFromRoot //negative because being checkmated is bad, also a larger ply from root is good
 	} else {
 		return 0  //draw
+	}
+}
+
+
+func getReduction(state *board.GameState, isWhite bool, move *moves.Move, moveInx int, depth int) int {
+	//Late move reductions - we assume moves at the end of the ordered list to be bad, so we can search them at a lower depth. (https://www.chessprogramming.org/Late_Move_Reductions)
+	isCapt := state.Board[move.EndX * 8 + move.EndY] != 0
+	check := inCheck(state, isWhite)
+
+	//TODO: tune the values, or use a non-linear function
+	if depth < 3 || moveInx < reductionCutoff || isCapt || move.PromotionValue != 0 || check {return 0}  //we don't want to reduce potentially good moves
+
+	if moveInx < steepReductionCutoff {
+		return 1
+	} else {
+		return depth / 3
 	}
 }
 
@@ -93,23 +112,30 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	bestMove := &moves.Move{}
 
 	for inx, move := range moveList {
-		moves.MakeMove(state, move)
-
 		elapsed := time.Since(startTime)
 
 		//PVS search - due to move ordering, we assume the best move to be the first.
 		//Therefore, we can search all other moves with a smaller window and just make sure they are as bad as we think they are.
 		var score int
 		if inx == 0 {
+			moves.MakeMove(state, move)
+
 			negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
 			score = -negScore
 		} else {
-			negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -alpha - 1, -alpha, timeLeft - elapsed)
+			reduction := getReduction(state, isWhite, move, inx, depth)
+
+			moves.MakeMove(state, move)  //we need the current board to get the reduction, so only make the move after reduction has been found
+
+			reducedDepth := depth - reduction - 1
+			if reducedDepth < 0 {reducedDepth = 0}
+
+			negScore, _ := negamax(state, !isWhite, reducedDepth, plyFromRoot + 1, -alpha - 1, -alpha, timeLeft - elapsed)
 			score = -negScore
 
 			needFullSearch := score > alpha
 			if needFullSearch {
-				//this move is not as bad as we first thought; we need to search it fully
+				//this move is not as bad as we first thought; we need to search it fully without reductions and with a full window
 				negScore, _ := negamax(state, !isWhite, depth - 1, plyFromRoot + 1, -beta, -alpha, timeLeft - elapsed)
 				score = -negScore
 			}
@@ -119,12 +145,7 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 
 		if searchAbandoned {return 0, bestMove}
 
-		if plyFromRoot > 0 && repTable.seenHashes[repTable.length - 1] != state.ZobristHash {
-			fmt.Println(repTable)
-			fmt.Println(state.ZobristHash)
-			fmt.Println(plyFromRoot)
-			panic("Reptable not popped")
-		}
+		if plyFromRoot > 0 && repTable.seenHashes[repTable.length - 1] != state.ZobristHash {panic("Reptable not popped")}  //for testing
 
 		//fail-hard cutoff (prune position)
 		if score >= beta {

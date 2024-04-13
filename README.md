@@ -16,6 +16,7 @@ The repository also contains a GUI written in Python using the Pygame library.
 - Transposition table
 - Repetition table
 - Middle game and endgame piece square tables
+- Late move reductions
 - Supported UCI commands:
     - `uci`
     - `isready`
