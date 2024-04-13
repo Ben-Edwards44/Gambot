@@ -81,7 +81,7 @@ func (table *ttTable) lookupMove(zobHash uint64) *moves.Move {
 	if entry.zobHash == zobHash {
 		return entry.bestMove
 	} else {
-		return &moves.Move{}
+		return nil
 	}
 }
 

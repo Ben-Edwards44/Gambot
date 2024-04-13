@@ -28,8 +28,7 @@ type Move struct {
 
 func (move *Move) MoveStr() string {
 	//return a string representation like e2e4 of a7a8q
-	
-	if move.PieceValue == 0 {
+	if move == nil || move.PieceValue == 0 {
 		return "0000"  //null move
 	}
 	

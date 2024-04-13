@@ -67,14 +67,14 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	if timeLeft < 0 {
 		//out of time
 		searchAbandoned = true
-		return 0, &moves.Move{}
+		return 0, nil
 	}
 
 	startTime := time.Now()
 
 	//check for draw by threefold repetition.
 	//NOTE: we only need to check for 1 repetition in the search because there is no reason we would choose differently if we saw the same pos again
-	if plyFromRoot > 0 && repTable.seen(state.ZobristHash) {return 0, &moves.Move{}}
+	if plyFromRoot > 0 && repTable.seen(state.ZobristHash) {return 0, nil}
 
 	ttSuccess, ttEval := searchTable.lookupEval(state.ZobristHash, depth, plyFromRoot, alpha, beta)
 
@@ -91,10 +91,10 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 		currentMateScore := mateScore - plyFromRoot
 
 		if currentMateScore < beta {beta = currentMateScore}
-		if alpha >= currentMateScore {return currentMateScore, &moves.Move{}}
+		if alpha >= currentMateScore {return currentMateScore, nil}
 	}
 	
-	if depth == 0 {return quiescenceSearch(state, isWhite, plyFromRoot, alpha, beta, timeLeft), &moves.Move{}}
+	if depth == 0 {return quiescenceSearch(state, isWhite, plyFromRoot, alpha, beta, timeLeft), nil}
 
 	posSearched++
 
@@ -104,12 +104,13 @@ func negamax(state *board.GameState, isWhite bool, depth int, plyFromRoot int, a
 	orderMoves(state, moveList, hashMove, plyFromRoot)
 
 	//check for wins and draws
-	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), &moves.Move{}}
+	if len(moveList) == 0 {return checkWin(state, plyFromRoot, isWhite), nil}
 
 	if plyFromRoot > 0 {repTable.push(state.ZobristHash)}
 
 	nodeType := allNode
-	bestMove := &moves.Move{}
+	
+	var bestMove *moves.Move
 
 	for inx, move := range moveList {
 		elapsed := time.Since(startTime)
@@ -311,7 +312,7 @@ func GetBestMove(state *board.GameState, moveTime int) *moves.Move {
 
 		score, searchBestMove := negamax(state, state.WhiteToMove, depth, 0, -inf, inf, timeLeft)  //NOTE: don't need to -score because this call is from the POV of the engine
 		
-		if searchBestMove.PieceValue != 0 {
+		if searchBestMove != nil {
 			bestMove = searchBestMove
 			searchedDepthOne = true
 
