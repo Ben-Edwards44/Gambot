@@ -191,6 +191,8 @@ func MakeMove(state *board.GameState, move *Move) {
 
 
 func UnMakeLastMove(state *board.GameState) {
+	state.WhiteToMove = !state.WhiteToMove
+	
 	state.RestorePrev()
 	board.UnMoveLastPiece()
 }

@@ -29,14 +29,13 @@ type GameState struct {
 	ZobristHash uint64
 
 	//for unmaking moves (end index is the most recent)
-	prvBoard [][64]int
-	prvWhiteToMove []bool
-	prvCastleRights []uint8
-	prvPrevPawnDouble [][2]int
-	prvBitboard []*Bitboard
-	prvDoubleCheck []bool
-	prvEnPassantPin []bool
-	PrvZobHash []uint64
+	prvBoard stack[[64]int]
+	prvCastleRights stack[uint8]
+	prvPrevPawnDouble stack[[2]int]
+	prvBitboard stack[*Bitboard]
+	prvDoubleCheck stack[bool]
+	prvEnPassantPin stack[bool]
+	PrvZobHash stack[uint64]
 }
 
 
@@ -49,40 +48,53 @@ type Bitboard struct {
 }
 
 
+type stack[T any] struct {
+	data []T
+	top int  //NOTE: the actual index is 1 less than this
+	totalSize int
+}
+
+
 func (state *GameState) SetPrevVals() {
 	//set prev values
-	//NOTE: any slices will be passed by reference, so must be manually copied
-	state.prvBoard = append(state.prvBoard, state.Board)
-	state.prvWhiteToMove = append(state.prvWhiteToMove, state.WhiteToMove)
-	state.prvCastleRights = append(state.prvCastleRights, state.CastleRights)
-	state.prvPrevPawnDouble = append(state.prvPrevPawnDouble, state.PrevPawnDouble)
-	state.prvBitboard = append(state.prvBitboard, state.Bitboards)
-	state.prvDoubleCheck = append(state.prvDoubleCheck, state.DoubleChecked)
-	state.prvEnPassantPin = append(state.prvEnPassantPin, state.EnPassantPin)
-	state.PrvZobHash = append(state.PrvZobHash, state.ZobristHash)
+	state.prvBoard.push(state.Board)
+	state.prvCastleRights.push(state.CastleRights)
+	state.prvPrevPawnDouble.push(state.PrevPawnDouble)
+	state.prvBitboard.push(state.Bitboards)
+	state.prvDoubleCheck.push(state.DoubleChecked)
+	state.prvEnPassantPin.push(state.EnPassantPin)
+	state.PrvZobHash.push(state.ZobristHash)
 }
 
 
 func (state *GameState) RestorePrev() {
-	//restore the previous values. Note that the slices are only shallow copies
-	
-	//restore value
-	state.Board = state.prvBoard[len(state.prvBoard) - 1]
-	state.WhiteToMove = state.prvWhiteToMove[len(state.prvWhiteToMove) - 1]
-	state.CastleRights = state.prvCastleRights[len(state.prvCastleRights) - 1]
-	state.PrevPawnDouble = state.prvPrevPawnDouble[len(state.prvPrevPawnDouble) - 1]
-	state.Bitboards = state.prvBitboard[len(state.prvBitboard) - 1]
-	state.DoubleChecked = state.prvDoubleCheck[len(state.prvDoubleCheck) - 1]
-	state.EnPassantPin = state.prvEnPassantPin[len(state.prvEnPassantPin) - 1]
-	state.ZobristHash = state.PrvZobHash[len(state.PrvZobHash) - 1]
+	//restore the previous values
+	state.Board = state.prvBoard.pop()
+	state.CastleRights = state.prvCastleRights.pop()
+	state.PrevPawnDouble = state.prvPrevPawnDouble.pop()
+	state.Bitboards = state.prvBitboard.pop()
+	state.DoubleChecked = state.prvDoubleCheck.pop()
+	state.EnPassantPin = state.prvEnPassantPin.pop()
+	state.ZobristHash = state.PrvZobHash.pop()
+}
 
-	//pop end of slice
-	state.prvBoard = state.prvBoard[:len(state.prvBoard) - 1]
-	state.prvWhiteToMove = state.prvWhiteToMove[:len(state.prvWhiteToMove) - 1]
-	state.prvCastleRights = state.prvCastleRights[:len(state.prvCastleRights) - 1]
-	state.prvPrevPawnDouble = state.prvPrevPawnDouble[:len(state.prvPrevPawnDouble) - 1]
-	state.prvBitboard = state.prvBitboard[:len(state.prvBitboard) - 1]
-	state.prvDoubleCheck = state.prvDoubleCheck[:len(state.prvDoubleCheck) - 1]
-	state.prvEnPassantPin = state.prvEnPassantPin[:len(state.prvEnPassantPin) - 1]
-	state.PrvZobHash = state.PrvZobHash[:len(state.PrvZobHash) - 1]
+
+func (s *stack[T]) push(data T) {
+	//for the sake of speed, we assume the stack has not reached its max size
+	s.top++
+
+	if s.totalSize < s.top {
+		s.totalSize++
+		s.data = append(s.data, data)
+	} else {
+		s.data[s.top - 1] = data
+	}
+}
+
+
+func (s *stack[T]) pop() T {
+	//for the sake of speed, we assume the stack is not empty without actually checking
+	s.top--
+	
+	return s.data[s.top]
 }
