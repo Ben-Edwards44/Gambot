@@ -5,6 +5,7 @@ import (
 	"gambot/src/engine"
 	"gambot/src/engine/board"
 	"gambot/src/engine/moves"
+	"gambot/src/engine/tests"
 	"gambot/src/engine/evaluation"
 )
 
@@ -60,7 +61,7 @@ func (b *bot) updateMoveTime(moveTime int) {
 
 func (b *bot) runPerft(depth int) {
 	//run perft - assumes the position has been updated
-	engine.Perft(&b.currentPos, depth)
+	tests.Perft(&b.currentPos, depth)
 }
 
 

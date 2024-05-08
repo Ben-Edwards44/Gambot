@@ -274,8 +274,19 @@ func enPassantPin(board *[64]int, kingX int, kingY int, isWhite bool, prevPawnDo
 }
 
 
+func resetCurrent(bitboard *board.Bitboard) {
+	//reset the bitboards that will be overwritten (but not the other ones)
+	bitboard.AttackedSquares = 0
+	bitboard.AttacksOnKing = 0
+	bitboard.PawnAttacks = 0
+	bitboard.PinArray = [64]uint64{}
+}
+
+
 func GetFilterBitboards(board *[64]int, kingPos int, kingValue int, otherPiecePos *[16]int, isWhite bool, prevPawnDouble [2]int, bitboard *board.Bitboard) (bool, bool) {
 	//update the bitboard struct with new bitboards and return whether double checked or en passant pinned
+	resetCurrent(bitboard)
+	
 	numChecks = 0
 
 	for i := 0; i < len(otherPiecePos); i++ {

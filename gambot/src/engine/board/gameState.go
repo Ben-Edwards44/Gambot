@@ -45,6 +45,9 @@ type Bitboard struct {
 	AttacksOnKing uint64
 	
 	PinArray [64]uint64
+
+	WPieces [6]uint64
+	BPieces [6]uint64
 }
 
 

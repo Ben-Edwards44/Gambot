@@ -1,10 +1,11 @@
 package moves
 
 
-import "gambot/src/engine/board"
+import (
+	"gambot/src/engine/board"
+)
 
-
-func updateBitboards(state *board.GameState) {
+func updateBitboards(state *board.GameState, newBB *board.Bitboard) {
 	//TODO: make faster??
 
 	kingVal := 11
@@ -16,13 +17,13 @@ func updateBitboards(state *board.GameState) {
 		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	bitboards := board.Bitboard{}
+	//bug
+	enPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble, newBB)
 
-	enPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, state.WhiteToMove, state.PrevPawnDouble, &bitboards)
+	state.Bitboards = newBB  //update the bitboard object
 
 	state.DoubleChecked = doubleChecked
 	state.EnPassantPin = enPassantPin
-	state.Bitboards = &bitboards
 }
 
 
@@ -109,15 +110,16 @@ func updateHash(state *board.GameState, move *Move, start int, end int, pieceVal
 
 func MakeMove(state *board.GameState, move *Move) {
 	//updates game state
-
 	state.SetPrevVals()  //so that we can restore later
+
+	newBB := board.Bitboard{WPieces: state.Bitboards.WPieces, BPieces: state.Bitboards.BPieces}  //need a new bitboard object
 
 	start := move.StartX * 8 + move.StartY
 	end := move.EndX * 8 + move.EndY
 	val := move.PieceValue
 	captVal := state.Board[end]
 
-	board.MovePiecePosition(start, end, move.PieceValue)
+	board.MovePiecePosition(state, &newBB, start, end, move.PieceValue, captVal)
 
 	//move piece
 	state.Board[start] = 0
@@ -129,21 +131,21 @@ func MakeMove(state *board.GameState, move *Move) {
 		capturePos := move.StartX * 8 + move.EndY
 		state.Board[capturePos] = 0
 
-		board.EnPassant(capturePos, move.PieceValue > 6)
+		board.EnPassant(state, &newBB, capturePos, move.PieceValue > 6)
 	} else if move.KingCastle {
 		rookVal := move.PieceValue - 1
 
 		state.Board[end + 1] = 0
 		state.Board[end - 1] = rookVal
 
-		board.Castle(end + 1, end - 1, rookVal)  //move the rook
+		board.Castle(state, &newBB, end + 1, end - 1, rookVal)  //move the rook
 	} else if move.QueenCastle {
 		rookVal := move.PieceValue - 1
 
 		state.Board[end - 2] = 0
 		state.Board[end + 1] = rookVal
 
-		board.Castle(end - 2, end + 1, rookVal)  //move the rook
+		board.Castle(state, &newBB, end - 2, end + 1, rookVal)  //move the rook
 	}
 	
 	oldEpFile := state.PrevPawnDouble[1]
@@ -154,7 +156,9 @@ func MakeMove(state *board.GameState, move *Move) {
 	}
 
 	if move.PromotionValue != 0 {
+		//promotion
 		state.Board[end] = move.PromotionValue
+		board.Promotion(&newBB, end, move.PromotionValue)
 	}
 
 	newCastleRights := state.CastleRights
@@ -185,7 +189,7 @@ func MakeMove(state *board.GameState, move *Move) {
 	oldCastleRights := state.CastleRights
 	state.CastleRights = newCastleRights
 
-	updateBitboards(state)
+	updateBitboards(state, &newBB)
 	updateHash(state, move, start, end, val, captVal, oldCastleRights, newCastleRights, oldEpFile)
 }
 
@@ -194,14 +198,15 @@ func UnMakeLastMove(state *board.GameState) {
 	state.WhiteToMove = !state.WhiteToMove
 	
 	state.RestorePrev()
+
 	board.UnMoveLastPiece()
 }
 
 
 func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]int) board.GameState {
 	//to be called whenever new game state obj is created
-	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble}
 	bitboards := board.Bitboard{}
+	state := board.GameState{Board: b, WhiteToMove: whiteMove, CastleRights: castleRights, PrevPawnDouble: pDouble, Bitboards: &bitboards}
 
 	board.InitPieceLists(&state)
 	
@@ -214,11 +219,10 @@ func CreateGameState(b [64]int, whiteMove bool, castleRights uint8, pDouble [2]i
 		otherPieces = &board.PieceLists.BlackPieceSquares
 	}
 
-	enPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble, &bitboards)
+	enPassantPin, doubleChecked := GetFilterBitboards(&state.Board, kingPos, kingVal, otherPieces, whiteMove, pDouble, state.Bitboards)
 
 	state.DoubleChecked = doubleChecked
 	state.EnPassantPin = enPassantPin
-	state.Bitboards = &bitboards
 
 	zobHash := board.HashState(&state)
 	state.ZobristHash = zobHash

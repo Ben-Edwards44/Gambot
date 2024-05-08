@@ -46,17 +46,19 @@ func (list *pieceList) restorePrev() {
 }
 
 
-func pieceCapture(captInx int, captPieceWhite bool) {
+func pieceCapture(newBB *Bitboard, end int, captInx int, captVal int, captPieceWhite bool) {
 	//remove captured piece from list
 	if captPieceWhite {
 		PieceLists.WhitePieceSquares[captInx] = -1
+		newBB.WPieces[captVal - 1] ^= 1 << end  //remove captured piece from bitboard
 	} else {
 		PieceLists.BlackPieceSquares[captInx] = -1
+		newBB.BPieces[captVal - 7] ^= 1 << end  //remove captured piece from bitboard
 	}
 }
 
 
-func Castle(rookStart int, rookEnd int, pieceVal int) {
+func Castle(state *GameState, newBB *Bitboard, rookStart int, rookEnd int, pieceVal int) {
 	//move the rook's position after a castle. NOTE: king will already have been moved
 	inx := PieceLists.pieceInxs[rookStart]
 
@@ -65,8 +67,10 @@ func Castle(rookStart int, rookEnd int, pieceVal int) {
 	isWhite := pieceVal < 7
 	if isWhite {
 		PieceLists.WhitePieceSquares[inx] = rookEnd
+		newBB.WPieces[pieceVal - 1] ^= (1 << rookEnd) | (1 << rookStart)  //update the rook's bitboard
 	} else {
 		PieceLists.BlackPieceSquares[inx] = rookEnd
+		newBB.BPieces[pieceVal - 7] ^= (1 << rookEnd) | (1 << rookStart)  //update the rook's bitboard
 	}
 
 	//update the index map
@@ -75,17 +79,34 @@ func Castle(rookStart int, rookEnd int, pieceVal int) {
 }
 
 
-func EnPassant(captPos int, captPieceWhite bool) {
+func EnPassant(state *GameState, newBB *Bitboard, captPos int, captPieceWhite bool) {
 	//remove the pawn captured by en passant
 	inx := PieceLists.pieceInxs[captPos]
 
-	pieceCapture(inx, captPieceWhite)
+	captVal := 7
+	if captPieceWhite {captVal = 1}
+
+	pieceCapture(newBB, captPos, inx, captVal, captPieceWhite)
 
 	PieceLists.pieceInxs[captPos] = -1  //remove pawn from piece index map as well
 }
 
 
-func MovePiecePosition(start int, end int, pieceVal int) {
+func Promotion(newBB *Bitboard, promotionPos int, promotionVal int) {
+	//update the piece bitboards after promotion. NOTE: piece lists do not need updating because promoted piece will just take pawn's place
+	var bbPos uint64 = 1 << promotionPos
+
+	if promotionVal > 6 {
+		newBB.BPieces[0] ^= bbPos  //remove pawn
+		newBB.BPieces[promotionVal - 7] ^= bbPos  //add promoted piece
+	} else {
+		newBB.WPieces[0] ^= bbPos  //remove pawn
+		newBB.WPieces[promotionVal - 1] ^= bbPos  //add promoted piece
+	}
+}
+
+
+func MovePiecePosition(state *GameState, newBB *Bitboard, start int, end int, pieceVal int, captVal int) {
 	//update the position of a piece after is has been moved
 	PieceLists.setPrevVals()  //in case we unmake the move
 
@@ -96,12 +117,14 @@ func MovePiecePosition(start int, end int, pieceVal int) {
 	isWhite := pieceVal < 7
 	if isWhite {
 		PieceLists.WhitePieceSquares[inx] = end
+		newBB.WPieces[pieceVal - 1] ^= (1 << end) | (1 << start)  //toggle the start and end bits in the bitboards
 	} else {
 		PieceLists.BlackPieceSquares[inx] = end
+		newBB.BPieces[pieceVal - 7] ^= (1 << end) | (1 << start)  //toggle the start and end bits in the bitboards
 	}
 
 	captInx := PieceLists.pieceInxs[end]
-	if captInx != -1 {pieceCapture(captInx, !isWhite)}
+	if captInx != -1 {pieceCapture(newBB, end, captInx, captVal, !isWhite)}
 
 	//update the index map
 	PieceLists.pieceInxs[end] = inx
@@ -142,11 +165,15 @@ func InitPieceLists(state *GameState) {
 				pieceInxs[i] = whiteInx
 				whitePieceSquares[whiteInx] = i
 				whiteInx++
+
+				state.Bitboards.WPieces[pieceVal - 1] |= 1 << i  //set the bitboard for the piece
 			} else {
 				//black
 				pieceInxs[i] = blackInx
 				blackPieceSquares[blackInx] = i
 				blackInx++
+
+				state.Bitboards.BPieces[pieceVal - 7] |= 1 << i  //set the bitboard for the piece
 			}
 
 			if pieceVal == 5 {whiteKingPos = i}
