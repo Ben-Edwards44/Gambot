@@ -1,10 +1,7 @@
 package tests
 
 
-import (
-	"fmt"
-	"gambot/src/engine/board"
-)
+import "gambot/src/engine/board"
 
 
 func inList(square int, list [16]int) bool {
@@ -41,15 +38,7 @@ func testBitboards(state *board.GameState) {
 			onBB := bb & (1 << square) != 0
 			onBoard := state.Board[square] == pieceVal
 
-			if onBB != onBoard {
-				fmt.Println(inx)
-				fmt.Println(state.Bitboards.WPieces[0])
-				fmt.Println(bb)
-				fmt.Println(square)
-				fmt.Println(state.Board[square])
-				fmt.Println(pieceVal)
-				panic("Bitboards do not match")
-			}
+			if onBB != onBoard {panic("Bitboards do not match")}
 		}
 	}
 
