@@ -1,5 +1,7 @@
 import subprocess
 
+from time import sleep
+
 
 ENGINE_PATH = "../gambot/gambot"
 
@@ -9,8 +11,6 @@ class Engine:
         self.debug = debug
 
         self.process = subprocess.Popen(path, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-
-        self.check_uci()
 
     def __del__(self):
         self.kill_process()  #if object is deleted for any reason, we need to kill engine process
@@ -93,9 +93,14 @@ class Engine:
             move = None
 
         return move
-    
-    def new_game(self):
-        self.send_cmd("ucinewgame")
+
+    def perform_handshake(self, is_new_game):
+        #check communications with the engine
+        self.check_uci()
+
+        if is_new_game:
+            self.send_cmd("ucinewgame")
+
         self.check_ready()
 
     def check_uci(self):
@@ -119,6 +124,8 @@ class Engine:
     def read_line(self):
         #read a line of stdout
 
+        self.process.stdout.flush()
+
         if self.process.poll() is not None:
             raise Exception("UCI engine process finished")  #process has exited for some reason
                         
@@ -139,6 +146,8 @@ class Engine:
         self.send_cmd(f"{cmd_name}{args}")
         
     def send_cmd(self, cmd):
+        self.process.stdout.flush()
+
         if self.debug:
             print(f"Sending: {cmd}")
 

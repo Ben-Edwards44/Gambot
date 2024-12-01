@@ -41,6 +41,9 @@ class GraphicsClock:
         pygame.draw.rect(window, colour, (x, y, w, h), border_radius=graphics_const.CLOCK_BG_CORNER_RADIUS)
 
     def draw(self):
+        if not graphics_const.USE_CLOCK_TIME:
+            return
+
         self.draw_background()
 
         time = self.clock.get_time_left() / 1000

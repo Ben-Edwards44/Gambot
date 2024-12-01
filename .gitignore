@@ -2,6 +2,8 @@ __pycache__/
 profiles/
 backup/
 builds/
+hidden/
+gambot
 *.prof
 *.exe
 *.txt

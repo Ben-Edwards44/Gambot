@@ -10,7 +10,7 @@ import pygame
 def init():
     draw.init()
 
-    engine_process = engine_interface.Engine()
+    engine_process = engine_interface.Engine(debug=False)
 
     init_engine(engine_process)
 
@@ -26,9 +26,7 @@ def init():
 
 
 def init_engine(engine_process: engine_interface.Engine):
-    engine_process.check_uci()
-    engine_process.new_game()
-    engine_process.check_ready()
+    engine_process.perform_handshake(True)
     engine_process.set_fen(graphics_const.START_FEN, [])
 
 
@@ -58,8 +56,6 @@ def get_move(board, human, engine, white_to_move):
 
 
 def main():
-    #TODO: add clocks etc.
-
     board_obj, human, engine = init()
     white_to_move = get_start_colour()
 
