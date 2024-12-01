@@ -9,7 +9,7 @@ from math import exp
 
 
 FEN_FILEPATH = "../data/equal_fens.txt"
-STOCKFISH_PATH = "C:\\Users\\Ben Edwards\\Documents\\stockfish-windows-x86-64-avx2\\stockfish\\stockfish-windows-x86-64-avx2.exe"
+STOCKFISH_PATH = ""
 
 SHOW_GRAPHICS = False
 
