@@ -1,7 +1,5 @@
 import subprocess
 
-from time import sleep
-
 
 ENGINE_PATH = "../gambot/gambot"
 

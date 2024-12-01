@@ -55,14 +55,18 @@ def get_move(board, human, engine, white_to_move):
     return move
 
 
-def main():
+check_game_end = lambda board: len(board.engine.get_legal_moves()) == 0
+
+
+def play_game():
     board_obj, human, engine = init()
     white_to_move = get_start_colour()
 
     draw.draw_board(board_obj)
     draw.draw_clocks(board_obj)
 
-    while True:
+    playing = True
+    while playing:
         move = get_move(board_obj, human, engine, white_to_move)
 
         board_obj.update(move)
@@ -72,12 +76,24 @@ def main():
         draw.draw_board(board_obj)
         draw.draw_clocks(board_obj)
 
+        if check_game_end(board_obj):
+            print("Game over")
+            playing = False
+
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 human.kill_process()
                 engine.kill_process()
 
                 quit()
+
+
+def main():
+    play_again = True
+    while play_again:
+        play_game()
+
+        play_again = input("Play again? (y/n) ") == "y"
 
 
 if __name__ == "__main__":
